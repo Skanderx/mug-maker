@@ -1080,7 +1080,7 @@
         <div class="brand">
           <div>
             <h1>Créateur de mugs</h1>
-            <div class="size-note">2700 x 1050 PNG</div>
+            <div class="size-note">2550 x 992 PNG</div>
           </div>
         </div>
 
@@ -1490,7 +1490,7 @@
             <div class="preview-meta">9 × 3,5 po · 229 × 89 mm (mug 11 oz)</div>
             <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4">
               <button type="button" class="sheet-option" data-sheet-layout="3up" aria-pressed="true">3 / page · 210×82 mm</button>
-              <button type="button" class="sheet-option" data-sheet-layout="4up" aria-pressed="false">4 / page · 190×74 mm</button>
+              <button type="button" class="sheet-option" data-sheet-layout="4up" aria-pressed="false">4 / page · 210×74 mm</button>
             </div>
           </div>
         </div>
@@ -1505,38 +1505,40 @@
 
     <script>
       (() => {
-        const EXPORT_WIDTH = 2700;
-        const EXPORT_HEIGHT = 1050;
+        const EXPORT_WIDTH = 2550;
+        const EXPORT_HEIGHT = 992;
         const LAYOUT_PRESETS = {
           classic: {
-            left: { x: 0, y: 0, width: 953, height: EXPORT_HEIGHT },
-            center: { x: 953, y: 0, width: 794, height: EXPORT_HEIGHT },
-            right: { x: 1747, y: 0, width: 953, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 900, height: EXPORT_HEIGHT },
+            center: { x: 900, y: 0, width: 750, height: EXPORT_HEIGHT },
+            right: { x: 1650, y: 0, width: 900, height: EXPORT_HEIGHT },
           },
           equal: {
-            left: { x: 0, y: 0, width: 900, height: EXPORT_HEIGHT },
-            center: { x: 900, y: 0, width: 900, height: EXPORT_HEIGHT },
-            right: { x: 1800, y: 0, width: 900, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 850, height: EXPORT_HEIGHT },
+            center: { x: 850, y: 0, width: 850, height: EXPORT_HEIGHT },
+            right: { x: 1700, y: 0, width: 850, height: EXPORT_HEIGHT },
           },
           textWide: {
-            left: { x: 0, y: 0, width: 794, height: EXPORT_HEIGHT },
-            center: { x: 794, y: 0, width: 1112, height: EXPORT_HEIGHT },
-            right: { x: 1906, y: 0, width: 794, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 750, height: EXPORT_HEIGHT },
+            center: { x: 750, y: 0, width: 1050, height: EXPORT_HEIGHT },
+            right: { x: 1800, y: 0, width: 750, height: EXPORT_HEIGHT },
           },
           imagesWide: {
-            left: { x: 0, y: 0, width: 1112, height: EXPORT_HEIGHT },
-            center: { x: 1112, y: 0, width: 476, height: EXPORT_HEIGHT },
-            right: { x: 1588, y: 0, width: 1112, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 1050, height: EXPORT_HEIGHT },
+            center: { x: 1050, y: 0, width: 450, height: EXPORT_HEIGHT },
+            right: { x: 1500, y: 0, width: 1050, height: EXPORT_HEIGHT },
           },
         };
         const DEFAULT_LAYOUT = "classic";
         const SHEET_LAYOUTS = {
-          "3up": { perPage: 3, widthMm: 210, gapMm: 8 },
-          "4up": { perPage: 4, widthMm: 190, gapMm: 0 },
+          "3up": { perPage: 3, widthMm: 210, heightMm: 82, gapMm: 8 },
+          "4up": { perPage: 4, widthMm: 210, heightMm: 74, gapMm: 0 },
         };
         let printQueue = [];
         let queueIndex = 0;
         let sheetLayout = "3up";
+        let previewScale = 1;
+        let previewOffset = { x: 0, y: 0 };
         const DEFAULT_FIT_MODES = {
           left: "cut",
           center: "cut",
@@ -1931,7 +1933,6 @@
         }
 
         function updateImageShiftOverlay() {
-          const scale = stage.width() / EXPORT_WIDTH;
           const zones = getZones();
           elements.imageShiftOverlay.querySelectorAll("[data-shift-zone]").forEach((zoneElement) => {
             const slot = zoneElement.dataset.shiftZone;
@@ -1940,10 +1941,10 @@
             zoneElement.hidden = state.minimalMode || !hasImage;
             if (!zone) return;
 
-            zoneElement.style.left = `${Math.round(zone.x * scale)}px`;
-            zoneElement.style.top = `${Math.round(zone.y * scale)}px`;
-            zoneElement.style.width = `${Math.round(zone.width * scale)}px`;
-            zoneElement.style.height = `${Math.round(zone.height * scale)}px`;
+            zoneElement.style.left = `${Math.round(previewOffset.x + zone.x * previewScale)}px`;
+            zoneElement.style.top = `${Math.round(previewOffset.y + zone.y * previewScale)}px`;
+            zoneElement.style.width = `${Math.round(zone.width * previewScale)}px`;
+            zoneElement.style.height = `${Math.round(zone.height * previewScale)}px`;
           });
         }
 
@@ -2461,15 +2462,28 @@
 
         function resizeStage() {
           const area = document.querySelector(".stage-area");
+          const layout = SHEET_LAYOUTS[sheetLayout] || SHEET_LAYOUTS["3up"];
           const availableWidth = Math.max(area.clientWidth - 48, 320);
           const availableHeight = Math.max(area.clientHeight - 48, 220);
-          const scale = Math.min(availableWidth / EXPORT_WIDTH, availableHeight / EXPORT_HEIGHT, 1);
-          const width = Math.round(EXPORT_WIDTH * scale);
-          const height = Math.round(EXPORT_HEIGHT * scale);
+          const scale = Math.min(
+            availableWidth / layout.widthMm,
+            availableHeight / layout.heightMm,
+            EXPORT_WIDTH / layout.widthMm,
+            EXPORT_HEIGHT / layout.heightMm,
+          );
+          const width = Math.round(layout.widthMm * scale);
+          const height = Math.round(layout.heightMm * scale);
+          previewScale = Math.max(width / EXPORT_WIDTH, height / EXPORT_HEIGHT);
+          previewOffset = {
+            x: (width - EXPORT_WIDTH * previewScale) / 2,
+            y: (height - EXPORT_HEIGHT * previewScale) / 2,
+          };
           stage.width(width);
           stage.height(height);
-          contentLayer.scale({ x: scale, y: scale });
-          guideLayer.scale({ x: scale, y: scale });
+          contentLayer.scale({ x: previewScale, y: previewScale });
+          contentLayer.position(previewOffset);
+          guideLayer.scale({ x: previewScale, y: previewScale });
+          guideLayer.position(previewOffset);
           elements.stageFrame.style.width = `${width}px`;
           elements.stageFrame.style.height = `${height}px`;
           updateImageShiftOverlay();
@@ -2681,6 +2695,7 @@
           if (!SHEET_LAYOUTS[layout]) return;
           sheetLayout = layout;
           updateSheetLayoutButtons();
+          resizeStage();
         }
 
         function updateSheetLayoutButtons() {
@@ -2755,12 +2770,15 @@
                   .cell {
                     position: relative;
                     width: ${layout.widthMm}mm;
+                    height: ${layout.heightMm}mm;
                     margin: 0 auto ${layout.gapMm}mm auto;
                   }
                   .cell img {
                     display: block;
                     width: 100%;
-                    height: auto;
+                    height: 100%;
+                    object-fit: cover;
+                    object-position: center;
                   }
                   .cell.mirror img {
                     transform: scaleX(-1);
