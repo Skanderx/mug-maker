@@ -236,6 +236,8 @@
       .upload-button:focus-visible,
       .mode-button:focus-visible,
       .slot-remove:focus-visible,
+      .font-preview-close:focus-visible,
+      .font-preview-option:focus-visible,
       .swatch:focus-visible,
       textarea:focus-visible,
       select:focus-visible,
@@ -452,6 +454,13 @@
         gap: 6px;
       }
 
+      .font-picker {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(92px, 0.36fr);
+        align-items: end;
+        gap: 8px;
+      }
+
       select {
         min-height: 56px;
         width: 100%;
@@ -462,6 +471,124 @@
         padding: 0 44px 0 14px;
         font-weight: 800;
         cursor: pointer;
+      }
+
+      .font-preview-button {
+        min-height: 56px;
+        padding-inline: 10px;
+      }
+
+      .font-preview-popover {
+        position: fixed;
+        z-index: 20;
+        top: 16px;
+        left: 16px;
+        width: min(420px, calc(100vw - 32px));
+        max-height: min(540px, calc(100vh - 32px));
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .font-preview-popover[hidden] {
+        display: none;
+      }
+
+      .font-preview-head {
+        min-height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px 10px 14px;
+        border-bottom: 1px solid var(--line);
+        background: #f8fbfd;
+      }
+
+      .font-preview-title {
+        font-weight: 800;
+      }
+
+      .font-preview-close {
+        inline-size: 40px;
+        block-size: 40px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .font-preview-close .icon,
+      .font-preview-close .icon svg {
+        inline-size: 18px;
+        block-size: 18px;
+      }
+
+      .font-preview-list {
+        max-height: min(468px, calc(100vh - 104px));
+        padding: 10px;
+        display: grid;
+        gap: 12px;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+
+      .font-preview-group {
+        display: grid;
+        gap: 7px;
+      }
+
+      .font-preview-group-title {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .font-preview-option {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--ink);
+        display: grid;
+        gap: 5px;
+        padding: 10px 12px;
+        text-align: start;
+        cursor: pointer;
+      }
+
+      .font-preview-option:hover {
+        border-color: #9eb0c2;
+        background: #f8fafc;
+      }
+
+      .font-preview-option[aria-selected="true"] {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        box-shadow: inset 4px 0 0 var(--accent);
+      }
+
+      .font-preview-name {
+        color: var(--muted);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+
+      .font-preview-sample {
+        min-height: 34px;
+        display: block;
+        overflow-wrap: anywhere;
+        font-size: 1.38rem;
+        line-height: 1.15;
       }
 
       .range-row {
@@ -669,6 +796,10 @@
         }
 
         .print-row {
+          grid-template-columns: 1fr;
+        }
+
+        .font-picker {
           grid-template-columns: 1fr;
         }
       }
@@ -883,28 +1014,43 @@
             <div id="text-heading" class="control-label">Texte central</div>
             <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
 
-            <div class="select-wrap">
-              <label class="fit-label" for="fontSelect">Police</label>
-              <select id="fontSelect" aria-label="Police du texte">
-                <optgroup label="Latin">
-                  <option value="geist" selected>Geist (par défaut)</option>
-                  <option value="atkinson">Atkinson Hyperlegible</option>
-                  <option value="montserrat">Montserrat</option>
-                  <option value="poppins">Poppins</option>
-                  <option value="playfair">Playfair Display</option>
-                  <option value="lobster">Lobster</option>
-                  <option value="bebas">Bebas Neue</option>
-                  <option value="caveat">Caveat</option>
-                </optgroup>
-                <optgroup label="Arabe">
-                  <option value="noto-naskh-arabic">Noto Naskh Arabic</option>
-                  <option value="noto-kufi-arabic">Noto Kufi Arabic</option>
-                  <option value="cairo">Cairo</option>
-                  <option value="tajawal">Tajawal</option>
-                  <option value="amiri">Amiri</option>
-                  <option value="changa">Changa</option>
-                </optgroup>
-              </select>
+            <div class="font-picker">
+              <div class="select-wrap">
+                <label class="fit-label" for="fontSelect">Police</label>
+                <select id="fontSelect" aria-label="Police du texte">
+                  <optgroup label="Latin">
+                    <option value="geist" selected>Geist (par défaut)</option>
+                    <option value="atkinson">Atkinson Hyperlegible</option>
+                    <option value="montserrat">Montserrat</option>
+                    <option value="poppins">Poppins</option>
+                    <option value="playfair">Playfair Display</option>
+                    <option value="lobster">Lobster</option>
+                    <option value="bebas">Bebas Neue</option>
+                    <option value="caveat">Caveat</option>
+                  </optgroup>
+                  <optgroup label="Arabe">
+                    <option value="noto-naskh-arabic">Noto Naskh Arabic</option>
+                    <option value="noto-kufi-arabic">Noto Kufi Arabic</option>
+                    <option value="cairo">Cairo</option>
+                    <option value="tajawal">Tajawal</option>
+                    <option value="amiri">Amiri</option>
+                    <option value="changa">Changa</option>
+                  </optgroup>
+                </select>
+              </div>
+              <button id="fontPreviewButton" class="button secondary font-preview-button" type="button" aria-expanded="false" aria-controls="fontPreviewPopover" title="Aperçu de toutes les polices">
+                <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
+                <span class="button-text">Tout voir</span>
+              </button>
+            </div>
+            <div id="fontPreviewPopover" class="font-preview-popover" role="dialog" aria-modal="false" aria-labelledby="fontPreviewTitle" hidden>
+              <div class="font-preview-head">
+                <div id="fontPreviewTitle" class="font-preview-title">Aperçu des polices</div>
+                <button id="fontPreviewClose" class="font-preview-close" type="button" aria-label="Fermer l'aperçu des polices">
+                  <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                </button>
+              </div>
+              <div id="fontPreviewList" class="font-preview-list" role="listbox" aria-label="Aperçu de toutes les polices"></div>
             </div>
 
             <div class="button-group four format-controls" role="group" aria-label="Options de format du texte">
@@ -1118,6 +1264,32 @@
           amiri: '"Amiri", Georgia, serif',
           changa: '"Changa", Arial, sans-serif',
         };
+        const FONT_LABELS = {
+          geist: "Geist (par défaut)",
+          atkinson: "Atkinson Hyperlegible",
+          montserrat: "Montserrat",
+          poppins: "Poppins",
+          playfair: "Playfair Display",
+          lobster: "Lobster",
+          bebas: "Bebas Neue",
+          caveat: "Caveat",
+          "noto-naskh-arabic": "Noto Naskh Arabic",
+          "noto-kufi-arabic": "Noto Kufi Arabic",
+          cairo: "Cairo",
+          tajawal: "Tajawal",
+          amiri: "Amiri",
+          changa: "Changa",
+        };
+        const FONT_GROUPS = [
+          {
+            label: "Latin",
+            keys: ["geist", "atkinson", "montserrat", "poppins", "playfair", "lobster", "bebas", "caveat"],
+          },
+          {
+            label: "Arabe",
+            keys: ["noto-naskh-arabic", "noto-kufi-arabic", "cairo", "tajawal", "amiri", "changa"],
+          },
+        ];
 
         const state = {
           layoutPreset: DEFAULT_LAYOUT,
@@ -1153,6 +1325,10 @@
           positionControls: Array.from(document.querySelectorAll("[data-position-slot]")),
           textInput: document.querySelector("#textInput"),
           fontSelect: document.querySelector("#fontSelect"),
+          fontPreviewButton: document.querySelector("#fontPreviewButton"),
+          fontPreviewPopover: document.querySelector("#fontPreviewPopover"),
+          fontPreviewClose: document.querySelector("#fontPreviewClose"),
+          fontPreviewList: document.querySelector("#fontPreviewList"),
           fontSize: document.querySelector("#fontSize"),
           fontSizeValue: document.querySelector("#fontSizeValue"),
           textColor: document.querySelector("#textColor"),
@@ -1217,11 +1393,42 @@
 
         elements.textInput.addEventListener("input", () => {
           state.text = elements.textInput.value;
+          updateFontPreviewSamples();
           render();
         });
 
         elements.fontSelect.addEventListener("change", () => {
           setTextFont(elements.fontSelect.value);
+        });
+
+        elements.fontPreviewButton.addEventListener("click", toggleFontPreviewPopover);
+        elements.fontPreviewClose.addEventListener("click", () => {
+          closeFontPreviewPopover();
+          elements.fontPreviewButton.focus();
+        });
+        elements.fontPreviewList.addEventListener("click", (event) => {
+          const option = event.target.closest("[data-font-preview]");
+          if (!option) return;
+
+          setTextFont(option.dataset.fontPreview);
+          closeFontPreviewPopover();
+          elements.fontPreviewButton.focus();
+          setStatus("Police choisie");
+        });
+        elements.fontPreviewList.addEventListener("keydown", handleFontPreviewKeydown);
+        document.addEventListener("click", (event) => {
+          if (elements.fontPreviewPopover.hidden) return;
+          if (elements.fontPreviewPopover.contains(event.target)) return;
+          if (elements.fontPreviewButton.contains(event.target)) return;
+          closeFontPreviewPopover();
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key !== "Escape" || elements.fontPreviewPopover.hidden) return;
+          closeFontPreviewPopover();
+          elements.fontPreviewButton.focus();
+        });
+        window.addEventListener("resize", () => {
+          if (!elements.fontPreviewPopover.hidden) positionFontPreviewPopover();
         });
 
         elements.fontSize.addEventListener("input", () => {
@@ -1239,6 +1446,7 @@
             const key = button.dataset.textFormat;
             state.textFormat[key] = !state.textFormat[key];
             updateTextFormatButtons();
+            updateFontPreviewSamples();
             render();
           });
         });
@@ -1280,6 +1488,8 @@
         updatePositionControls();
         updateRemoveButtons();
         updateOutlineColorButtons();
+        buildFontPreviewList();
+        updateFontPreviewSamples();
         renderIcons();
         resizeStage();
         render();
@@ -1310,6 +1520,154 @@
               focusable: "false",
             },
           });
+        }
+
+        function buildFontPreviewList() {
+          elements.fontPreviewList.textContent = "";
+          FONT_GROUPS.forEach((group) => {
+            const groupElement = document.createElement("div");
+            groupElement.className = "font-preview-group";
+
+            const title = document.createElement("div");
+            title.className = "font-preview-group-title";
+            title.textContent = group.label;
+            groupElement.appendChild(title);
+
+            group.keys.forEach((fontKey) => {
+              if (!FONT_OPTIONS[fontKey]) return;
+
+              const option = document.createElement("button");
+              option.type = "button";
+              option.className = "font-preview-option";
+              option.dataset.fontPreview = fontKey;
+              option.setAttribute("role", "option");
+
+              const name = document.createElement("span");
+              name.className = "font-preview-name";
+              name.textContent = FONT_LABELS[fontKey] || fontKey;
+
+              const sample = document.createElement("span");
+              sample.className = "font-preview-sample";
+              sample.dataset.fontPreviewSample = fontKey;
+              sample.style.fontFamily = getFontFamily(fontKey);
+
+              option.append(name, sample);
+              groupElement.appendChild(option);
+            });
+
+            elements.fontPreviewList.appendChild(groupElement);
+          });
+          updateFontPreviewSelection();
+        }
+
+        function toggleFontPreviewPopover(event) {
+          event.stopPropagation();
+          if (elements.fontPreviewPopover.hidden) {
+            openFontPreviewPopover();
+            return;
+          }
+          closeFontPreviewPopover();
+        }
+
+        function openFontPreviewPopover() {
+          updateFontPreviewSamples();
+          elements.fontPreviewPopover.hidden = false;
+          elements.fontPreviewPopover.style.visibility = "hidden";
+          positionFontPreviewPopover();
+          elements.fontPreviewPopover.style.visibility = "";
+          elements.fontPreviewButton.setAttribute("aria-expanded", "true");
+
+          const selectedOption = getSelectedFontPreviewOption();
+          if (!selectedOption) return;
+          selectedOption.scrollIntoView({ block: "nearest" });
+          selectedOption.focus({ preventScroll: true });
+        }
+
+        function closeFontPreviewPopover() {
+          if (elements.fontPreviewPopover.hidden) return;
+          elements.fontPreviewPopover.hidden = true;
+          elements.fontPreviewButton.setAttribute("aria-expanded", "false");
+        }
+
+        function positionFontPreviewPopover() {
+          const buttonRect = elements.fontPreviewButton.getBoundingClientRect();
+          const popoverWidth = elements.fontPreviewPopover.offsetWidth || 420;
+          const popoverHeight = elements.fontPreviewPopover.offsetHeight || 420;
+          const margin = 12;
+          const maxLeft = Math.max(margin, window.innerWidth - popoverWidth - margin);
+          const left = Math.min(Math.max(buttonRect.right - popoverWidth, margin), maxLeft);
+          const belowTop = buttonRect.bottom + 8;
+          const aboveTop = buttonRect.top - popoverHeight - 8;
+          const top = belowTop + popoverHeight <= window.innerHeight - margin
+            ? belowTop
+            : Math.max(margin, aboveTop);
+
+          elements.fontPreviewPopover.style.left = `${left}px`;
+          elements.fontPreviewPopover.style.top = `${top}px`;
+        }
+
+        function handleFontPreviewKeydown(event) {
+          const options = getFontPreviewOptions();
+          const currentIndex = options.indexOf(document.activeElement);
+          if (currentIndex === -1) return;
+
+          let nextIndex = currentIndex;
+          if (event.key === "ArrowDown") nextIndex = Math.min(options.length - 1, currentIndex + 1);
+          else if (event.key === "ArrowUp") nextIndex = Math.max(0, currentIndex - 1);
+          else if (event.key === "Home") nextIndex = 0;
+          else if (event.key === "End") nextIndex = options.length - 1;
+          else return;
+
+          event.preventDefault();
+          options.forEach((option) => {
+            option.tabIndex = -1;
+          });
+          options[nextIndex].tabIndex = 0;
+          options[nextIndex].focus();
+        }
+
+        function updateFontPreviewSamples() {
+          const previewText = getFontPreviewText();
+          const direction = getTextDirection(previewText);
+          const fontWeight = state.textFormat.bold ? "700" : "400";
+          const fontStyle = state.textFormat.italic ? "italic" : "normal";
+          const textShadow = state.textFormat.shadow ? "0 3px 5px rgba(0, 0, 0, 0.22)" : "none";
+
+          elements.fontPreviewList.querySelectorAll("[data-font-preview-sample]").forEach((sample) => {
+            sample.textContent = previewText;
+            sample.dir = direction;
+            sample.style.color = state.textColor;
+            sample.style.fontWeight = fontWeight;
+            sample.style.fontStyle = fontStyle;
+            sample.style.textShadow = textShadow;
+            sample.style.webkitTextStroke = state.textFormat.outline ? `1px ${state.outlineColor}` : "";
+          });
+          updateFontPreviewSelection();
+        }
+
+        function updateFontPreviewSelection() {
+          getFontPreviewOptions().forEach((option) => {
+            const isSelected = option.dataset.fontPreview === state.textFont;
+            option.setAttribute("aria-selected", isSelected ? "true" : "false");
+            option.tabIndex = isSelected ? 0 : -1;
+          });
+        }
+
+        function getFontPreviewOptions() {
+          return Array.from(elements.fontPreviewList.querySelectorAll("[data-font-preview]"));
+        }
+
+        function getSelectedFontPreviewOption() {
+          return getFontPreviewOptions().find((option) => option.dataset.fontPreview === state.textFont);
+        }
+
+        function getFontPreviewText() {
+          const text = state.text.trim();
+          return text || "Votre texte نصك هنا";
+        }
+
+        function getFontFamily(fontKey) {
+          return FONT_OPTIONS[fontKey] || FONT_OPTIONS[DEFAULT_TEXT_FONT];
         }
 
         function setLayoutPreset(layout) {
@@ -1507,6 +1865,7 @@
             button.setAttribute("aria-pressed", normalizeHex(button.dataset.color) === normalized ? "true" : "false");
           });
           updateOutlineColorButtons();
+          updateFontPreviewSamples();
           render();
         }
 
@@ -1515,6 +1874,7 @@
           state.textFormat.outline = true;
           updateTextFormatButtons();
           updateOutlineColorButtons();
+          updateFontPreviewSamples();
           render();
         }
 
@@ -1555,6 +1915,7 @@
         function setTextFont(fontKey) {
           state.textFont = FONT_OPTIONS[fontKey] ? fontKey : DEFAULT_TEXT_FONT;
           elements.fontSelect.value = state.textFont;
+          updateFontPreviewSelection();
           render();
           ensureTextFontLoaded().then(render);
         }
@@ -1705,7 +2066,7 @@
         }
 
         function getTextFontFamily() {
-          return FONT_OPTIONS[state.textFont] || FONT_OPTIONS[DEFAULT_TEXT_FONT];
+          return getFontFamily(state.textFont);
         }
 
         function getCanvasFont(fontSize) {
