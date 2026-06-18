@@ -89,6 +89,90 @@
         gap: 18px;
       }
 
+      .wizard-panel {
+        display: none;
+        margin-bottom: 18px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #f8fbfd;
+      }
+
+      .minimal-mode .wizard-panel {
+        display: grid;
+        gap: 10px;
+      }
+
+      .wizard-steps {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .wizard-step {
+        min-width: 0;
+        min-height: 72px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--muted);
+        display: grid;
+        place-items: center;
+        gap: 4px;
+        padding: 8px 6px;
+        cursor: pointer;
+      }
+
+      .wizard-step[aria-current="step"] {
+        border-color: var(--accent);
+        color: var(--accent-strong);
+        background: var(--accent-soft);
+        box-shadow: inset 0 -4px 0 var(--accent);
+      }
+
+      .wizard-step:disabled {
+        opacity: 0.42;
+        cursor: default;
+      }
+
+      .wizard-step .icon,
+      .wizard-step .icon svg {
+        inline-size: 24px;
+        block-size: 24px;
+      }
+
+      .wizard-label {
+        max-inline-size: 100%;
+        font-size: 0.74rem;
+        font-weight: 850;
+        line-height: 1.05;
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+
+      .wizard-nav {
+        display: none;
+        grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .minimal-mode .wizard-nav {
+        display: grid;
+      }
+
+      .wizard-nav[hidden] {
+        display: none;
+      }
+
+      .minimal-mode [data-advanced-control],
+      .minimal-mode [data-wizard-step] {
+        display: none;
+      }
+
+      .minimal-mode [data-wizard-active="true"] {
+        display: grid;
+      }
+
       .control-block {
         display: grid;
         gap: 10px;
@@ -244,9 +328,17 @@
         border-color: #9eb0c2;
       }
 
+      .button:disabled,
+      .upload-button:disabled,
+      .mode-button:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+
       .button:focus-visible,
       .upload-button:focus-visible,
       .mode-button:focus-visible,
+      .wizard-step:focus-visible,
       .slot-remove:focus-visible,
       .font-preview-close:focus-visible,
       .font-preview-option:focus-visible,
@@ -284,6 +376,11 @@
       .button.danger:hover {
         background: #991b1b;
         border-color: #991b1b;
+      }
+
+      .button.primary:disabled {
+        background: #91bdb8;
+        border-color: #91bdb8;
       }
 
       .segmented,
@@ -1071,10 +1168,18 @@
         .font-picker {
           grid-template-columns: 1fr;
         }
+
+        .wizard-steps {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .wizard-nav {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
-  <body>
+  <body class="minimal-mode">
     <main class="app">
       <aside class="controls" aria-label="Commandes de création du mug">
         <div class="brand">
@@ -1084,12 +1189,33 @@
           </div>
         </div>
 
+        <div id="wizardPanel" class="wizard-panel" aria-label="Assistant de création">
+          <div class="wizard-steps" role="group" aria-label="Étapes de création">
+            <button class="wizard-step" type="button" data-wizard-go="left" aria-current="step" aria-label="Étape 1 image gauche">
+              <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
+              <span class="wizard-label">1 Gauche</span>
+            </button>
+            <button class="wizard-step" type="button" data-wizard-go="right" disabled aria-label="Étape 2 image droite">
+              <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
+              <span class="wizard-label">2 Droite</span>
+            </button>
+            <button class="wizard-step" type="button" data-wizard-go="text" disabled aria-label="Étape 3 texte et couleur">
+              <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
+              <span class="wizard-label">3 Texte</span>
+            </button>
+            <button class="wizard-step" type="button" data-wizard-go="done" disabled aria-label="Étape 4 terminé">
+              <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
+              <span class="wizard-label">4 OK</span>
+            </button>
+          </div>
+        </div>
+
         <div class="stack">
           <section class="control-block" aria-labelledby="images-heading">
             <div id="images-heading" class="control-label">Images</div>
             <div class="control-block">
-              <div class="fit-label">Disposition</div>
-              <div class="button-group four layout-group" role="group" aria-label="Disposition du mug">
+              <div class="fit-label" data-advanced-control>Disposition</div>
+              <div class="button-group four layout-group" role="group" aria-label="Disposition du mug" data-advanced-control>
                 <button class="mode-button" type="button" data-layout="classic" aria-pressed="true" aria-label="Disposition classique">
                   <span class="layout-mini classic" aria-hidden="true"><span></span><span></span><span></span></span>
                   <span class="button-text">Classique</span>
@@ -1108,13 +1234,13 @@
                 </button>
               </div>
               <label class="checkbox-card minimal-mode-toggle" for="minimalMode">
-                <input id="minimalMode" type="checkbox">
+                <input id="minimalMode" type="checkbox" checked>
                 <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
                 <span class="button-text">Mode simple</span>
               </label>
             </div>
             <div class="upload-list">
-              <div class="upload-row">
+              <div class="upload-row" data-wizard-step="left" data-wizard-active="true">
                 <div class="fit-label slot-label">
                   <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
                   <span>Gauche</span>
@@ -1177,7 +1303,7 @@
                 </div>
               </div>
 
-              <div class="upload-row">
+              <div class="upload-row" data-wizard-step="center" data-advanced-control>
                 <div class="fit-label slot-label">
                   <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
                   <span>Centre</span>
@@ -1240,7 +1366,7 @@
                 </div>
               </div>
 
-              <div class="upload-row">
+              <div class="upload-row" data-wizard-step="right">
                 <div class="fit-label slot-label">
                   <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
                   <span>Droite</span>
@@ -1305,11 +1431,11 @@
             </div>
           </section>
 
-          <section class="control-block" aria-labelledby="text-heading">
+          <section class="control-block" aria-labelledby="text-heading" data-wizard-step="text">
             <div id="text-heading" class="control-label">Texte central</div>
             <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
 
-            <div class="font-picker">
+            <div class="font-picker" data-advanced-control>
               <div class="select-wrap">
                 <label class="fit-label" for="fontSelect">Police</label>
                 <select id="fontSelect" aria-label="Police du texte">
@@ -1348,7 +1474,7 @@
               <div id="fontPreviewList" class="font-preview-list" role="listbox" aria-label="Aperçu de toutes les polices"></div>
             </div>
 
-            <div class="button-group four format-controls" role="group" aria-label="Options de format du texte">
+            <div class="button-group four format-controls" role="group" aria-label="Options de format du texte" data-advanced-control>
               <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">
                 <span class="icon" aria-hidden="true"><i data-lucide="bold"></i></span>
                 <span class="button-text">Gras</span>
@@ -1367,7 +1493,7 @@
               </button>
             </div>
 
-            <div class="button-group three" role="group" aria-label="Position verticale du texte">
+            <div class="button-group three" role="group" aria-label="Position verticale du texte" data-advanced-control>
               <button class="mode-button" type="button" data-text-position="top" aria-pressed="false">
                 <span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span>
                 <span class="button-text">Haut</span>
@@ -1382,7 +1508,7 @@
               </button>
             </div>
 
-            <div class="range-wrap">
+            <div class="range-wrap" data-advanced-control>
               <div class="range-row">
                 <span>Taille</span>
                 <span id="fontSizeValue">138</span>
@@ -1422,7 +1548,7 @@
                 </div>
               </div>
 
-              <div class="palette-group">
+              <div class="palette-group" data-advanced-control>
                 <div class="palette-title-row">
                   <div class="palette-title">Couleur contour</div>
                   <input id="outlineColor" type="color" value="#7592b3" aria-label="Couleur du contour personnalisée">
@@ -1437,7 +1563,7 @@
             </div>
           </section>
 
-          <section class="actions" aria-label="Actions">
+          <section class="actions" aria-label="Actions" data-wizard-step="done">
             <button id="downloadButton" class="button primary" type="button">
               <span class="icon" aria-hidden="true"><i data-lucide="download"></i></span>
               <span class="button-text">Télécharger PNG</span>
@@ -1477,6 +1603,17 @@
               <span class="button-text">Supprimer</span>
             </button>
           </section>
+
+          <div id="wizardNav" class="wizard-nav" aria-label="Navigation de l'assistant">
+            <button id="wizardBack" class="button secondary" type="button" disabled>
+              <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
+              <span class="button-text">Retour</span>
+            </button>
+            <button id="wizardNext" class="button primary" type="button" disabled>
+              <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
+              <span class="button-text">Suivant</span>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -1534,9 +1671,11 @@
           "3up": { perPage: 3, widthMm: 210, heightMm: 82, gapMm: 8 },
           "4up": { perPage: 4, widthMm: 210, heightMm: 74, gapMm: 0 },
         };
+        const WIZARD_STEPS = ["left", "right", "text", "done"];
         let printQueue = [];
         let queueIndex = 0;
         let sheetLayout = "3up";
+        let wizardStep = "left";
         let previewScale = 1;
         let previewOffset = { x: 0, y: 0 };
         const DEFAULT_FIT_MODES = {
@@ -1628,7 +1767,7 @@
           layoutPreset: DEFAULT_LAYOUT,
           fitModes: { ...DEFAULT_FIT_MODES },
           imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS),
-          minimalMode: false,
+          minimalMode: true,
           text: "",
           textPosition: "center",
           textFont: DEFAULT_TEXT_FONT,
@@ -1670,6 +1809,12 @@
           fontSizeValue: document.querySelector("#fontSizeValue"),
           textColor: document.querySelector("#textColor"),
           outlineColor: document.querySelector("#outlineColor"),
+          wizardStepButtons: Array.from(document.querySelectorAll("[data-wizard-go]")),
+          wizardStepPanels: Array.from(document.querySelectorAll("[data-wizard-step]")),
+          wizardNav: document.querySelector("#wizardNav"),
+          wizardBack: document.querySelector("#wizardBack"),
+          wizardNext: document.querySelector("#wizardNext"),
+          wizardNextText: document.querySelector("#wizardNext .button-text"),
           addToPageButton: document.querySelector("#addToPageButton"),
           queuePanel: document.querySelector("#queuePanel"),
           queuePrev: document.querySelector("#queuePrev"),
@@ -1728,6 +1873,15 @@
           setMinimalMode(elements.minimalMode.checked);
         });
 
+        elements.wizardStepButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setWizardStep(button.dataset.wizardGo);
+          });
+        });
+
+        elements.wizardBack.addEventListener("click", goToPreviousWizardStep);
+        elements.wizardNext.addEventListener("click", goToNextWizardStep);
+
         elements.fitButtons.forEach((button) => {
           button.addEventListener("click", () => {
             setFitMode(button.dataset.fitSlot, button.dataset.fitMode);
@@ -1758,6 +1912,7 @@
         elements.textInput.addEventListener("input", () => {
           state.text = elements.textInput.value;
           updateFontPreviewSamples();
+          updateWizardUI();
           render();
         });
 
@@ -1794,6 +1949,7 @@
         window.addEventListener("resize", () => {
           if (!elements.fontPreviewPopover.hidden) positionFontPreviewPopover();
         });
+        window.addEventListener("beforeunload", protectCreationBeforeUnload);
 
         elements.fontSize.addEventListener("input", () => {
           state.fontSize = Number(elements.fontSize.value);
@@ -1865,6 +2021,7 @@
         buildFontPreviewList();
         updateFontPreviewSamples();
         renderIcons();
+        updateWizardUI();
         resizeStage();
         render();
         updateSheetLayoutButtons();
@@ -2121,10 +2278,15 @@
         function setMinimalMode(isEnabled) {
           state.minimalMode = Boolean(isEnabled);
           if (state.minimalMode) {
+            state.layoutPreset = DEFAULT_LAYOUT;
             state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
+            clearCenterImageForSimpleMode();
+            wizardStep = WIZARD_STEPS[getUnlockedWizardStepIndex()];
+            updateLayoutButtons();
             updatePositionControls();
           }
           updateMinimalMode();
+          updateWizardUI();
           updateImageShiftOverlay();
           render();
         }
@@ -2132,6 +2294,88 @@
         function updateMinimalMode() {
           elements.minimalMode.checked = state.minimalMode;
           document.body.classList.toggle("minimal-mode", state.minimalMode);
+        }
+
+        function clearCenterImageForSimpleMode() {
+          state.images.center = null;
+          state.imagePositions.center = { ...DEFAULT_IMAGE_POSITION };
+          elements.centerImage.value = "";
+          setFileName("center", DEFAULT_FILE_LABELS.center);
+          updateRemoveButtons();
+        }
+
+        function setWizardStep(step) {
+          const index = WIZARD_STEPS.indexOf(step);
+          if (index === -1 || index > getUnlockedWizardStepIndex()) return;
+
+          wizardStep = step;
+          updateWizardUI();
+        }
+
+        function goToPreviousWizardStep() {
+          const index = WIZARD_STEPS.indexOf(wizardStep);
+          if (index <= 0) return;
+          setWizardStep(WIZARD_STEPS[index - 1]);
+        }
+
+        function goToNextWizardStep() {
+          if (!canCompleteWizardStep(wizardStep)) {
+            updateWizardUI();
+            return;
+          }
+
+          const index = WIZARD_STEPS.indexOf(wizardStep);
+          const nextStep = WIZARD_STEPS[Math.min(index + 1, WIZARD_STEPS.length - 1)];
+          wizardStep = nextStep;
+          updateWizardUI();
+        }
+
+        function getUnlockedWizardStepIndex() {
+          if (state.images.left && state.images.right && state.text.trim()) return 3;
+          if (state.images.left && state.images.right) return 2;
+          if (state.images.left) return 1;
+          return 0;
+        }
+
+        function canCompleteWizardStep(step) {
+          if (step === "left") return Boolean(state.images.left);
+          if (step === "right") return Boolean(state.images.right);
+          if (step === "text") return Boolean(state.text.trim());
+          return true;
+        }
+
+        function updateWizardUI() {
+          const unlockedIndex = getUnlockedWizardStepIndex();
+          const currentIndex = WIZARD_STEPS.indexOf(wizardStep);
+          if (currentIndex === -1 || currentIndex > unlockedIndex) {
+            wizardStep = WIZARD_STEPS[unlockedIndex];
+          }
+
+          elements.wizardStepPanels.forEach((panel) => {
+            if (!state.minimalMode) {
+              panel.removeAttribute("data-wizard-active");
+              return;
+            }
+
+            if (panel.dataset.wizardStep === wizardStep) {
+              panel.dataset.wizardActive = "true";
+              return;
+            }
+            panel.removeAttribute("data-wizard-active");
+          });
+
+          elements.wizardStepButtons.forEach((button) => {
+            const index = WIZARD_STEPS.indexOf(button.dataset.wizardGo);
+            const isCurrent = button.dataset.wizardGo === wizardStep;
+            button.disabled = index > unlockedIndex;
+            button.setAttribute("aria-current", isCurrent ? "step" : "false");
+          });
+
+          const isDone = wizardStep === "done";
+          elements.wizardNav.hidden = !state.minimalMode || isDone;
+          elements.wizardBack.disabled = WIZARD_STEPS.indexOf(wizardStep) === 0;
+          elements.wizardNext.disabled = !canCompleteWizardStep(wizardStep);
+          elements.wizardNextText.textContent = wizardStep === "text" ? "Accepter" : "Suivant";
         }
 
         function setFitMode(slot, mode) {
@@ -2168,6 +2412,7 @@
           setFileName(slot, DEFAULT_FILE_LABELS[slot]);
           updateRemoveButtons();
           updatePositionControls();
+          updateWizardUI();
           setStatus("Image retirée");
           render();
         }
@@ -2422,6 +2667,7 @@
             };
             setFileName(slot, file.name);
             updateRemoveButtons();
+            updateWizardUI();
             setStatus("Image chargée");
             render();
           } catch (error) {
@@ -2974,6 +3220,23 @@
           return chunks;
         }
 
+        function hasCreationInProgress() {
+          return Boolean(
+            state.images.left ||
+              state.images.center ||
+              state.images.right ||
+              state.text.trim() ||
+              printQueue.length,
+          );
+        }
+
+        function protectCreationBeforeUnload(event) {
+          if (!hasCreationInProgress()) return;
+
+          event.preventDefault();
+          event.returnValue = "";
+        }
+
         function clearAll() {
           const confirmed = window.confirm(
             "Supprimer tout le design ? Cette action efface les images, le texte et les réglages.",
@@ -2989,7 +3252,8 @@
           state.layoutPreset = DEFAULT_LAYOUT;
           state.fitModes = { ...DEFAULT_FIT_MODES };
           state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
-          state.minimalMode = false;
+          state.minimalMode = true;
+          wizardStep = "left";
           state.text = "";
           state.textPosition = "center";
           state.textFont = DEFAULT_TEXT_FONT;
@@ -3007,6 +3271,7 @@
           elements.textInput.value = "";
           updateLayoutButtons();
           updateMinimalMode();
+          updateWizardUI();
           updatePositionControls();
           updateRemoveButtons();
           elements.fontSelect.value = state.textFont;
