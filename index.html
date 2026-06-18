@@ -504,6 +504,13 @@
         font-weight: 800;
       }
 
+      .palette-hint {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1.4;
+      }
+
       .swatches {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -982,11 +989,13 @@
               <div class="palette-group">
                 <div class="palette-title">Contour</div>
                 <div id="outlineSwatches" class="swatches outline-swatches" aria-label="Couleurs du contour">
-                  <button class="swatch" type="button" data-outline-color="#f59e0b" aria-label="Contour doré" aria-pressed="true"></button>
-                  <button class="swatch" type="button" data-outline-color="#14b8a6" aria-label="Contour turquoise" aria-pressed="false"></button>
-                  <button class="swatch" type="button" data-outline-color="#f472b6" aria-label="Contour rose" aria-pressed="false"></button>
-                  <button class="swatch" type="button" data-outline-color="#ffffff" aria-label="Contour blanc" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #7592b3" data-outline-color="#7592b3" aria-label="Contour ton sur ton" aria-pressed="true"></button>
+                  <button class="swatch" type="button" style="background: #1b1b1f" data-outline-color="#1b1b1f" aria-label="Contour charbon" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #ffffff" data-outline-color="#ffffff" aria-label="Contour blanc" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #c9a227" data-outline-color="#c9a227" aria-label="Contour or" aria-pressed="false"></button>
                 </div>
+                <input id="outlineColor" type="color" value="#7592b3" aria-label="Couleur du contour personnalisée">
+                <p class="palette-hint">Choisi automatiquement pour s'accorder au texte — ou choisis ta propre teinte.</p>
               </div>
             </div>
           </section>
@@ -1086,11 +1095,11 @@
           shadow: false,
         };
         const DEFAULT_TEXT_COLOR = "#17202a";
-        const OUTLINE_HARMONIES = [
-          { label: "complémentaire", offset: 180 },
-          { label: "split complémentaire", offset: 150 },
-          { label: "split complémentaire", offset: 210 },
-          { label: "triadique", offset: 120 },
+        const OUTLINE_PRESETS = [
+          { label: "ton sur ton", tonal: true },
+          { label: "charbon", color: "#1b1b1f" },
+          { label: "blanc", color: "#ffffff" },
+          { label: "or", color: "#c9a227" },
         ];
         const DEFAULT_TEXT_FONT = "geist";
         const FONT_OPTIONS = {
@@ -1147,6 +1156,7 @@
           fontSize: document.querySelector("#fontSize"),
           fontSizeValue: document.querySelector("#fontSizeValue"),
           textColor: document.querySelector("#textColor"),
+          outlineColor: document.querySelector("#outlineColor"),
           textFormatButtons: Array.from(document.querySelectorAll("[data-text-format]")),
           textPositionButtons: Array.from(document.querySelectorAll("[data-text-position]")),
           colorPresetButtons: Array.from(document.querySelectorAll("[data-color]")),
@@ -1251,6 +1261,11 @@
             setOutlineColor(button.dataset.outlineColor);
             setStatus("Contour choisi");
           });
+        });
+
+        elements.outlineColor.addEventListener("input", () => {
+          setOutlineColor(elements.outlineColor.value);
+          setStatus("Contour personnalisé");
         });
 
         elements.downloadButton.addEventListener("click", downloadPng);
@@ -1381,37 +1396,26 @@
         }
 
         function getGeneratedOutlineColorOptions(textColor) {
-          const rgb = hexToRgb(textColor);
-          const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-          return uniqueColors(
-            OUTLINE_HARMONIES.map((harmony) => getContrastingHarmonyColor(hsl, harmony.offset, textColor)),
+          return OUTLINE_PRESETS.map((preset) =>
+            preset.tonal ? getTonalOutlineColor(textColor) : preset.color,
           );
         }
 
-        function getContrastingHarmonyColor(baseHsl, hueOffset, textColor) {
-          const hue = baseHsl.h + hueOffset;
-          const saturation = Math.min(94, Math.max(72, baseHsl.s + 8));
-          const lightnessSteps = [12, 16, 22, 28, 34, 42, 58, 66, 74, 82, 88];
-          let best = null;
-
-          lightnessSteps.forEach((lightness) => {
-            const candidate = hslToHex(hue, saturation, lightness);
-            const textContrast = getContrastRatio(candidate, textColor);
-            const whiteContrast = getContrastRatio(candidate, "#ffffff");
-            const score = textContrast + Math.min(whiteContrast, 5) * 0.12;
-            if (!best || score > best.score) best = { color: candidate, score };
-          });
-
-          return best.color;
-        }
-
-        function uniqueColors(colors) {
-          const seen = new Set();
-          return colors.map(normalizeHex).filter((color) => {
-            if (seen.has(color)) return false;
-            seen.add(color);
-            return true;
-          });
+        // "Ton sur ton": keep the text's own hue but shift its lightness to a
+        // deep shade (or, for already-dark text, a soft pale one) so the outline
+        // always harmonizes instead of clashing the way a rotated complement does.
+        function getTonalOutlineColor(textColor) {
+          const rgb = hexToRgb(textColor);
+          const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+          // Light or bright text: a deep, rich shade of the same hue reads as a
+          // crisp outline against a white mug.
+          if (hsl.l >= 36) {
+            return hslToHex(hsl.h, Math.min(72, Math.max(42, hsl.s)), 24);
+          }
+          // Dark text: a deep outline blends into the text and a pale one washes
+          // into the white mug, so use a muted mid-tone of the same hue — visibly
+          // distinct from both while still harmonizing.
+          return hslToHex(hsl.h, Math.min(42, Math.max(28, hsl.s)), 58);
         }
 
         function hexToRgb(hex) {
@@ -1516,16 +1520,16 @@
 
         function updateOutlineColorButtons() {
           const options = getOutlineColorOptions(state.textColor);
-          if (!options.includes(state.outlineColor)) state.outlineColor = options[0];
           elements.outlineColorButtons.forEach((button, index) => {
             const color = options[index] || options[0];
-            const harmony = OUTLINE_HARMONIES[index] || OUTLINE_HARMONIES[0];
+            const preset = OUTLINE_PRESETS[index] || OUTLINE_PRESETS[0];
             button.dataset.outlineColor = color;
             button.style.background = color;
-            button.setAttribute("aria-label", `Contour ${harmony.label}`);
-            button.title = `Contour ${harmony.label}`;
+            button.setAttribute("aria-label", `Contour ${preset.label}`);
+            button.title = `Contour ${preset.label}`;
             button.setAttribute("aria-pressed", state.outlineColor === color ? "true" : "false");
           });
+          elements.outlineColor.value = state.outlineColor;
         }
 
         function updateTextFormatButtons() {
