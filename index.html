@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Créateur de mugs</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1">
+    <link rel="shortcut icon" href="favicon.svg?v=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Montserrat:wght@400;700&amp;family=Poppins:wght@400;700&amp;family=Playfair+Display:wght@400;700&amp;family=Lobster&amp;family=Bebas+Neue&amp;family=Caveat:wght@400;700&amp;family=Amiri:wght@400;700&amp;family=Cairo:wght@400;700&amp;family=Changa:wght@400;700&amp;family=Noto+Kufi+Arabic:wght@400;700&amp;family=Noto+Naskh+Arabic:wght@400;700&amp;family=Tajawal:wght@400;700&amp;display=swap" rel="stylesheet">
@@ -1039,6 +1041,9 @@
         min-height: 0;
         padding: 24px;
         display: grid;
+        gap: 12px;
+        align-content: center;
+        justify-items: center;
         place-items: center;
         overflow: auto;
       }
@@ -1058,12 +1063,9 @@
       }
 
       .preview-action {
-        position: absolute;
-        z-index: 4;
-        left: 50%;
-        bottom: 14px;
+        position: static;
         min-width: min(280px, calc(100% - 28px));
-        transform: translateX(-50%);
+        max-width: 100%;
         box-shadow: 0 12px 28px rgba(23, 32, 42, 0.22);
         display: none;
       }
@@ -1218,6 +1220,10 @@
           align-items: flex-start;
           flex-direction: column;
         }
+
+        .image-shift-overlay {
+          display: none;
+        }
       }
 
       @media (max-width: 520px) {
@@ -1315,7 +1321,7 @@
               <label class="checkbox-card minimal-mode-toggle" for="minimalMode">
                 <input id="minimalMode" type="checkbox" checked>
                 <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
-                <span class="button-text">Mode simple</span>
+                <span class="button-text">Mode rapide</span>
               </label>
             </div>
             <div class="upload-list">
@@ -1714,11 +1720,11 @@
           <div class="stage-frame">
             <div id="stage"></div>
             <div id="imageShiftOverlay" class="image-shift-overlay" aria-label="Déplacement des images dans l'aperçu"></div>
-            <button id="previewActionButton" class="button primary preview-action" type="button">
-              <span id="previewActionIcon" class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
-              <span id="previewActionText" class="button-text">Image gauche</span>
-            </button>
           </div>
+          <button id="previewActionButton" class="button primary preview-action" type="button">
+            <span id="previewActionIcon" class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
+            <span id="previewActionText" class="button-text">Image gauche</span>
+          </button>
         </div>
       </section>
     </main>
@@ -3025,8 +3031,9 @@
         function resizeStage() {
           const area = document.querySelector(".stage-area");
           const layout = SHEET_LAYOUTS[sheetLayout] || SHEET_LAYOUTS["3up"];
+          const actionReserve = getPreviewActionReserve();
           const availableWidth = Math.max(area.clientWidth - 48, 320);
-          const availableHeight = Math.max(area.clientHeight - 48, 220);
+          const availableHeight = Math.max(area.clientHeight - 48 - actionReserve, 220);
           const scale = Math.min(
             availableWidth / layout.widthMm,
             availableHeight / layout.heightMm,
@@ -3050,6 +3057,13 @@
           elements.stageFrame.style.height = `${height}px`;
           updateImageShiftOverlay();
           render();
+        }
+
+        function getPreviewActionReserve() {
+          if (!state.minimalMode) return 0;
+
+          const height = elements.previewActionButton.offsetHeight || 56;
+          return height + 12;
         }
 
         function render() {
@@ -3281,6 +3295,13 @@
         }
 
         async function printMug() {
+          const printWindow = shouldUseStandalonePrintWindow() ? window.open("", "_blank") : null;
+          if (printWindow) {
+            printWindow.document.open();
+            printWindow.document.write(`<!doctype html><title>Impression du mug</title><body>Préparation...</body>`);
+            printWindow.document.close();
+          }
+
           await ensureTextFontLoaded();
           const single = printQueue.length === 0;
           const images = single
@@ -3288,16 +3309,11 @@
             : printQueue.slice();
           const layout = single ? SHEET_LAYOUTS["3up"] : SHEET_LAYOUTS[sheetLayout];
           const perPage = single ? 1 : layout.perPage;
-          const cutOffset = layout.gapMm > 0 ? `-${layout.gapMm / 2}mm` : "0";
-          const mirrorClass = state.mirrorPrint ? " mirror" : "";
+          const printMarkup = createPrintMarkup(images, layout, perPage, { standalone: Boolean(printWindow) });
 
-          const sheets = [];
-          for (let index = 0; index < images.length; index += perPage) {
-            const cells = images
-              .slice(index, index + perPage)
-              .map((url) => `<div class="cell${mirrorClass}"><img src="${url}" alt="Création pour mug"></div>`)
-              .join("");
-            sheets.push(`<div class="sheet">${cells}</div>`);
+          if (printWindow) {
+            printFromStandaloneWindow(printWindow, printMarkup, images.length);
+            return;
           }
 
           const iframe = document.createElement("iframe");
@@ -3312,13 +3328,97 @@
 
           const printDocument = iframe.contentWindow.document;
           printDocument.open();
-          printDocument.write(`<!doctype html>
+          printDocument.write(printMarkup);
+          printDocument.close();
+
+          let didPrint = false;
+          const runPrint = () => {
+            if (didPrint) return;
+            didPrint = true;
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            setTimeout(() => iframe.remove(), 1000);
+          };
+          const printImages = Array.from(printDocument.querySelectorAll("img"));
+          Promise.all(
+            printImages.map((image) =>
+              image.complete
+                ? Promise.resolve()
+                : new Promise((resolve) => {
+                    image.addEventListener("load", resolve, { once: true });
+                    image.addEventListener("error", resolve, { once: true });
+                  }),
+            ),
+          ).then(runPrint);
+          setStatus(single ? "Fenêtre d'impression ouverte" : `Impression de ${images.length} création(s)`);
+        }
+
+        function shouldUseStandalonePrintWindow() {
+          const userAgent = navigator.userAgent || "";
+          const isiPadOSDesktopMode = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+          return /iPad|iPhone|iPod/.test(userAgent) || isiPadOSDesktopMode;
+        }
+
+        function createPrintMarkup(images, layout, perPage, options = {}) {
+          const cutOffset = layout.gapMm > 0 ? `-${layout.gapMm / 2}mm` : "0";
+          const mirrorClass = state.mirrorPrint ? " mirror" : "";
+          const standalone = Boolean(options.standalone);
+          const sheets = [];
+
+          for (let index = 0; index < images.length; index += perPage) {
+            const cells = images
+              .slice(index, index + perPage)
+              .map((url) => `<div class="cell${mirrorClass}"><img src="${url}" alt="Création pour mug"></div>`)
+              .join("");
+            sheets.push(`<div class="sheet">${cells}</div>`);
+          }
+
+          const printToolbar = standalone
+            ? `<div class="print-toolbar"><button type="button" onclick="window.print()">Imprimer</button></div>`
+            : "";
+          const autoPrintScript = standalone
+            ? `<script>
+                  (() => {
+                    const images = Array.from(document.images);
+                    const waitForImages = Promise.all(images.map((image) =>
+                      image.complete ? Promise.resolve() : new Promise((resolve) => {
+                        image.addEventListener("load", resolve, { once: true });
+                        image.addEventListener("error", resolve, { once: true });
+                      })
+                    ));
+                    waitForImages.then(() => setTimeout(() => window.print(), 150));
+                  })();
+                <\/script>`
+            : "";
+
+          return `<!doctype html>
             <html>
               <head>
                 <title>Impression du mug</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1">
                 <style>
                   @page { size: A4 portrait; margin: 0; }
                   html, body { margin: 0; }
+                  body { background: #ffffff; color: #17202a; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+                  .print-toolbar {
+                    min-height: 64px;
+                    padding: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #eef3f7;
+                    border-bottom: 1px solid #cdd8e3;
+                  }
+                  .print-toolbar button {
+                    min-height: 44px;
+                    border: 0;
+                    border-radius: 8px;
+                    background: #0f766e;
+                    color: #ffffff;
+                    padding: 10px 18px;
+                    font: inherit;
+                    font-weight: 800;
+                  }
                   .sheet {
                     width: 210mm;
                     height: 297mm;
@@ -3354,34 +3454,25 @@
                     bottom: ${cutOffset};
                     border-bottom: 0.2mm dashed rgba(23, 32, 42, 0.45);
                   }
+                  @media print {
+                    .print-toolbar { display: none; }
+                  }
                 </style>
               </head>
               <body>
+                ${printToolbar}
                 ${sheets.join("")}
+                ${autoPrintScript}
               </body>
-            </html>`);
-          printDocument.close();
+            </html>`;
+        }
 
-          let didPrint = false;
-          const runPrint = () => {
-            if (didPrint) return;
-            didPrint = true;
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            setTimeout(() => iframe.remove(), 1000);
-          };
-          const printImages = Array.from(printDocument.querySelectorAll("img"));
-          Promise.all(
-            printImages.map((image) =>
-              image.complete
-                ? Promise.resolve()
-                : new Promise((resolve) => {
-                    image.addEventListener("load", resolve, { once: true });
-                    image.addEventListener("error", resolve, { once: true });
-                  }),
-            ),
-          ).then(runPrint);
-          setStatus(single ? "Fenêtre d'impression ouverte" : `Impression de ${images.length} création(s)`);
+        function printFromStandaloneWindow(printWindow, markup, imageCount) {
+          printWindow.document.open();
+          printWindow.document.write(markup);
+          printWindow.document.close();
+          printWindow.focus();
+          setStatus(imageCount === 1 ? "Onglet d'impression ouvert" : `Impression de ${imageCount} création(s)`);
         }
 
         function createExportCanvas(options = {}) {
