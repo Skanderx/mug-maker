@@ -122,6 +122,18 @@
         font-size: 0.95rem;
       }
 
+      .slot-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .slot-label .icon,
+      .slot-label .icon svg {
+        inline-size: 16px;
+        block-size: 16px;
+      }
+
       .upload-main {
         display: grid;
         grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
@@ -332,7 +344,7 @@
 
       .position-control {
         display: grid;
-        grid-template-columns: 86px minmax(0, 1fr) 74px;
+        grid-template-columns: 86px minmax(0, 1fr) 84px;
         gap: 8px;
         align-items: center;
       }
@@ -363,9 +375,10 @@
         border-radius: 8px;
         background: #ffffff;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(2.8ch, 1fr) auto;
         align-items: center;
-        padding: 0 9px 0 8px;
+        gap: 6px;
+        padding: 0 10px;
         color: var(--muted);
         font-weight: 800;
       }
@@ -378,10 +391,17 @@
         color: var(--ink);
         font-weight: 800;
         text-align: right;
+        -moz-appearance: textfield;
       }
 
       .position-percent:focus {
         outline: 0;
+      }
+
+      .position-percent::-webkit-outer-spin-button,
+      .position-percent::-webkit-inner-spin-button {
+        margin: 0;
+        -webkit-appearance: none;
       }
 
       .format-controls {
@@ -693,13 +713,6 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
-      .color-hint {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.78rem;
-        line-height: 1.4;
-      }
-
       .actions {
         display: grid;
         grid-template-columns: 1fr;
@@ -735,15 +748,13 @@
         cursor: pointer;
       }
 
-      .status {
-        min-height: 1.4em;
-        color: var(--muted);
-        font-size: 0.92rem;
+      .minimal-mode-toggle {
+        justify-content: flex-start;
       }
 
-      .status.warning {
-        color: var(--warning);
-        font-weight: 750;
+      .minimal-mode .position-grid,
+      .minimal-mode .image-shift-overlay {
+        display: none;
       }
 
       .preview {
@@ -902,6 +913,31 @@
         }
       }
 
+      @media (min-width: 881px) {
+        html,
+        body {
+          height: 100%;
+          overflow: hidden;
+        }
+
+        .app {
+          height: 100vh;
+          min-height: 0;
+        }
+
+        .controls {
+          max-height: 100vh;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+        }
+
+        .preview {
+          height: 100vh;
+          min-height: 0;
+          overflow: hidden;
+        }
+      }
+
       @media (max-width: 880px) {
         .app {
           grid-template-columns: 1fr;
@@ -981,10 +1017,18 @@
                   <span class="button-text">Images +</span>
                 </button>
               </div>
+              <label class="checkbox-card minimal-mode-toggle" for="minimalMode">
+                <input id="minimalMode" type="checkbox">
+                <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
+                <span class="button-text">Mode simple</span>
+              </label>
             </div>
             <div class="upload-list">
               <div class="upload-row">
-                <div class="fit-label">Gauche</div>
+                <div class="fit-label slot-label">
+                  <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
+                  <span>Gauche</span>
+                </div>
                 <div class="upload-main">
                   <label class="upload-button" for="leftImage">
                     <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
@@ -1044,7 +1088,10 @@
               </div>
 
               <div class="upload-row">
-                <div class="fit-label">Centre</div>
+                <div class="fit-label slot-label">
+                  <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
+                  <span>Centre</span>
+                </div>
                 <div class="upload-main">
                   <label class="upload-button" for="centerImage">
                     <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
@@ -1063,7 +1110,7 @@
                 </div>
                 <input id="centerImage" type="file" accept="image/*">
                 <div class="file-row">
-                  <div id="centerName" class="file-name">Facultatif</div>
+                  <div id="centerName" class="file-name">Aucune image choisie</div>
                   <button class="slot-remove" type="button" data-remove-slot="center" hidden aria-label="Retirer l'image centrale">
                     <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
                     <span class="button-text">Retirer</span>
@@ -1104,7 +1151,10 @@
               </div>
 
               <div class="upload-row">
-                <div class="fit-label">Droite</div>
+                <div class="fit-label slot-label">
+                  <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
+                  <span>Droite</span>
+                </div>
                 <div class="upload-main">
                   <label class="upload-button" for="rightImage">
                     <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
@@ -1294,7 +1344,6 @@
                   <button class="swatch" type="button" style="background: #c9a227" data-outline-preset="gold" aria-label="Contour or" aria-pressed="false"></button>
                 </div>
               </div>
-              <p class="color-hint">Le contour ton sur ton s'accorde automatiquement au texte. Les deux pipettes restent disponibles pour une teinte libre.</p>
             </div>
           </section>
 
@@ -1322,7 +1371,6 @@
               <span class="icon" aria-hidden="true"><i data-lucide="trash-2"></i></span>
               <span class="button-text">Supprimer</span>
             </button>
-            <div id="status" class="status" role="status">Prêt</div>
           </section>
         </div>
       </aside>
@@ -1396,7 +1444,7 @@
         };
         const DEFAULT_FILE_LABELS = {
           left: "Aucune image choisie",
-          center: "Facultatif",
+          center: "Aucune image choisie",
           right: "Aucune image choisie",
         };
         const DEFAULT_TEXT_FORMAT = {
@@ -1460,6 +1508,7 @@
           layoutPreset: DEFAULT_LAYOUT,
           fitModes: { ...DEFAULT_FIT_MODES },
           imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS),
+          minimalMode: false,
           text: "",
           textPosition: "center",
           textFont: DEFAULT_TEXT_FONT,
@@ -1487,6 +1536,7 @@
           rightName: document.querySelector("#rightName"),
           removeButtons: Array.from(document.querySelectorAll("[data-remove-slot]")),
           layoutButtons: Array.from(document.querySelectorAll("[data-layout]")),
+          minimalMode: document.querySelector("#minimalMode"),
           fitButtons: Array.from(document.querySelectorAll("[data-fit-slot]")),
           positionControls: Array.from(document.querySelectorAll("[data-position-value]")),
           positionInputs: Array.from(document.querySelectorAll("[data-position-input]")),
@@ -1544,6 +1594,10 @@
           button.addEventListener("click", () => {
             setLayoutPreset(button.dataset.layout);
           });
+        });
+
+        elements.minimalMode.addEventListener("change", () => {
+          setMinimalMode(elements.minimalMode.checked);
         });
 
         elements.fitButtons.forEach((button) => {
@@ -1667,6 +1721,7 @@
         elements.clearButton.addEventListener("click", clearAll);
 
         updateLayoutButtons();
+        updateMinimalMode();
         updatePositionControls();
         updateRemoveButtons();
         updateColorControls();
@@ -1679,6 +1734,7 @@
         if (document.fonts) document.fonts.ready.then(render);
 
         function setStatus(message, isWarning = false) {
+          if (!elements.status) return;
           elements.status.textContent = message;
           elements.status.classList.toggle("warning", isWarning);
         }
@@ -1745,7 +1801,7 @@
             const slot = zoneElement.dataset.shiftZone;
             const zone = zones[slot];
             const hasImage = Boolean(state.images[slot]);
-            zoneElement.hidden = !hasImage;
+            zoneElement.hidden = state.minimalMode || !hasImage;
             if (!zone) return;
 
             zoneElement.style.left = `${Math.round(zone.x * scale)}px`;
@@ -1757,7 +1813,7 @@
 
         function nudgeImagePosition(slot, direction) {
           const config = IMAGE_SHIFT_DIRECTIONS[direction];
-          if (!config || !state.images[slot] || !state.imagePositions[slot]) return;
+          if (state.minimalMode || !config || !state.images[slot] || !state.imagePositions[slot]) return;
 
           const current = state.imagePositions[slot][config.axis];
           const next = Math.min(1, Math.max(0, current + config.delta));
@@ -1925,6 +1981,22 @@
           });
         }
 
+        function setMinimalMode(isEnabled) {
+          state.minimalMode = Boolean(isEnabled);
+          if (state.minimalMode) {
+            state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
+            updatePositionControls();
+          }
+          updateMinimalMode();
+          updateImageShiftOverlay();
+          render();
+        }
+
+        function updateMinimalMode() {
+          elements.minimalMode.checked = state.minimalMode;
+          document.body.classList.toggle("minimal-mode", state.minimalMode);
+        }
+
         function setFitMode(slot, mode) {
           state.fitModes[slot] = mode;
           updateFitButtons();
@@ -1939,6 +2011,7 @@
         }
 
         function setImagePosition(slot, axis, value) {
+          if (state.minimalMode) return;
           if (!state.imagePositions[slot] || !["x", "y"].includes(axis)) return;
 
           const position = clampPosition(value);
@@ -2679,6 +2752,7 @@
           state.layoutPreset = DEFAULT_LAYOUT;
           state.fitModes = { ...DEFAULT_FIT_MODES };
           state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
+          state.minimalMode = false;
           state.text = "";
           state.textPosition = "center";
           state.textFont = DEFAULT_TEXT_FONT;
@@ -2695,6 +2769,7 @@
           setFileName("right", DEFAULT_FILE_LABELS.right);
           elements.textInput.value = "";
           updateLayoutButtons();
+          updateMinimalMode();
           updatePositionControls();
           updateRemoveButtons();
           elements.fontSelect.value = state.textFont;
