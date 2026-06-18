@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Montserrat:wght@400;700&amp;family=Poppins:wght@400;700&amp;family=Playfair+Display:wght@400;700&amp;family=Lobster&amp;family=Bebas+Neue&amp;family=Caveat:wght@400;700&amp;family=Amiri:wght@400;700&amp;family=Cairo:wght@400;700&amp;family=Changa:wght@400;700&amp;family=Noto+Kufi+Arabic:wght@400;700&amp;family=Noto+Naskh+Arabic:wght@400;700&amp;family=Tajawal:wght@400;700&amp;display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/konva@10.3.0/konva.min.js"></script>
+    <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js"></script>
     <style>
       :root {
         color-scheme: light;
@@ -101,12 +102,24 @@
 
       .upload-list {
         display: grid;
-        gap: 10px;
+        gap: 14px;
       }
 
       .upload-row {
         display: grid;
-        gap: 7px;
+        gap: 9px;
+        padding: 12px;
+        border: 1px solid #b8c8d8;
+        border-radius: 8px;
+        background: #f8fbfd;
+        box-shadow: 0 1px 0 rgba(23, 32, 42, 0.04);
+      }
+
+      .upload-row > .fit-label {
+        padding-bottom: 4px;
+        border-bottom: 1px solid #d7e4ef;
+        color: #334155;
+        font-size: 0.95rem;
       }
 
       .upload-main {
@@ -123,6 +136,44 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+
+      .file-row {
+        min-height: 38px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .slot-remove {
+        min-height: 34px;
+        border: 1px solid #f2a7a7;
+        border-radius: 8px;
+        background: #fff5f5;
+        color: #991b1b;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 6px 10px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .slot-remove[hidden] {
+        display: none;
+      }
+
+      .slot-remove:hover {
+        background: #fee2e2;
+        border-color: #dc2626;
+      }
+
+      .slot-remove .icon,
+      .slot-remove .icon svg {
+        inline-size: 16px;
+        block-size: 16px;
       }
 
       input[type="file"] {
@@ -153,6 +204,28 @@
         user-select: none;
       }
 
+      .icon {
+        inline-size: 20px;
+        block-size: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .icon svg {
+        inline-size: 20px;
+        block-size: 20px;
+        stroke-width: 2.4;
+      }
+
+      .button-text {
+        min-width: 0;
+        max-inline-size: 100%;
+        white-space: normal;
+        overflow-wrap: break-word;
+      }
+
       .button:hover,
       .upload-button:hover,
       .mode-button:hover {
@@ -162,6 +235,7 @@
       .button:focus-visible,
       .upload-button:focus-visible,
       .mode-button:focus-visible,
+      .slot-remove:focus-visible,
       .swatch:focus-visible,
       textarea:focus-visible,
       select:focus-visible,
@@ -196,10 +270,28 @@
         border-color: #991b1b;
       }
 
-      .segmented {
+      .segmented,
+      .button-group {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        overflow: hidden;
+      }
+
+      .segmented.three,
+      .button-group.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .button-group.four {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .button-group.five {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
       }
 
       .fit-label {
@@ -214,21 +306,121 @@
         font-size: 0.9rem;
       }
 
-      .format-controls {
+      .segmented .mode-button,
+      .button-group .mode-button {
+        min-width: 0;
+        min-height: 52px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        padding: 10px 8px;
+      }
+
+      .segmented .mode-button + .mode-button,
+      .button-group .mode-button + .mode-button {
+        border-left: 1px solid var(--line);
+      }
+
+      .position-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
       }
 
+      .position-control {
+        display: grid;
+        grid-template-columns: 86px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+      }
+
+      .axis-label {
+        min-height: 46px;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
+      .axis-label .icon,
+      .axis-label .icon svg {
+        inline-size: 17px;
+        block-size: 17px;
+      }
+
+      .position-button {
+        min-width: 0;
+      }
+
+      .format-controls {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+      }
+
       .format-controls .mode-button {
-        min-height: 50px;
-        padding-inline: 8px;
+        min-height: 66px;
+        flex-direction: column;
+        gap: 5px;
+        padding: 8px 6px;
+      }
+
+      .format-controls .icon,
+      .format-controls .icon svg {
+        inline-size: 18px;
+        block-size: 18px;
+      }
+
+      .format-controls .button-text {
+        display: block;
+        line-height: 1.05;
       }
 
       .mode-button[aria-pressed="true"] {
         background: var(--accent-soft);
         border-color: var(--accent);
         color: var(--accent-strong);
+      }
+
+      .button-group .mode-button[aria-pressed="true"] {
+        box-shadow: inset 0 -4px 0 var(--accent);
+      }
+
+      .layout-group .mode-button {
+        min-height: 68px;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.82rem;
+      }
+
+      .layout-mini {
+        inline-size: 46px;
+        block-size: 22px;
+        display: grid;
+        gap: 3px;
+      }
+
+      .layout-mini span {
+        border-radius: 3px;
+        background: currentColor;
+        opacity: 0.72;
+      }
+
+      .layout-mini.classic {
+        grid-template-columns: 1.2fr 1fr 1.2fr;
+      }
+
+      .layout-mini.equal {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .layout-mini.text-wide {
+        grid-template-columns: 0.8fr 1.5fr 0.8fr;
+      }
+
+      .layout-mini.images-wide {
+        grid-template-columns: 1.45fr 0.7fr 1.45fr;
       }
 
       textarea {
@@ -316,6 +508,10 @@
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 8px;
+      }
+
+      .outline-swatches {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       .swatch {
@@ -461,6 +657,10 @@
           grid-template-columns: 1fr;
         }
 
+        .position-control {
+          grid-template-columns: 1fr;
+        }
+
         .print-row {
           grid-template-columns: 1fr;
         }
@@ -480,44 +680,194 @@
         <div class="stack">
           <section class="control-block" aria-labelledby="images-heading">
             <div id="images-heading" class="control-label">Images</div>
+            <div class="control-block">
+              <div class="fit-label">Disposition</div>
+              <div class="button-group four layout-group" role="group" aria-label="Disposition du mug">
+                <button class="mode-button" type="button" data-layout="classic" aria-pressed="true" aria-label="Disposition classique">
+                  <span class="layout-mini classic" aria-hidden="true"><span></span><span></span><span></span></span>
+                  <span class="button-text">Classique</span>
+                </button>
+                <button class="mode-button" type="button" data-layout="equal" aria-pressed="false" aria-label="Disposition en trois zones égales">
+                  <span class="layout-mini equal" aria-hidden="true"><span></span><span></span><span></span></span>
+                  <span class="button-text">Égales</span>
+                </button>
+                <button class="mode-button" type="button" data-layout="textWide" aria-pressed="false" aria-label="Disposition avec texte large">
+                  <span class="layout-mini text-wide" aria-hidden="true"><span></span><span></span><span></span></span>
+                  <span class="button-text">Texte +</span>
+                </button>
+                <button class="mode-button" type="button" data-layout="imagesWide" aria-pressed="false" aria-label="Disposition avec images larges">
+                  <span class="layout-mini images-wide" aria-hidden="true"><span></span><span></span><span></span></span>
+                  <span class="button-text">Images +</span>
+                </button>
+              </div>
+            </div>
             <div class="upload-list">
               <div class="upload-row">
                 <div class="fit-label">Gauche</div>
                 <div class="upload-main">
-                  <label class="upload-button" for="leftImage">Image gauche</label>
+                  <label class="upload-button" for="leftImage">
+                    <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
+                    <span class="button-text">Image gauche</span>
+                  </label>
                   <div class="segmented" role="group" aria-label="Ajustement de l'image gauche">
-                    <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="cut" aria-pressed="true">Couper</button>
-                    <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="resize" aria-pressed="false">Tout afficher</button>
+                    <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="cut" aria-pressed="true">
+                      <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
+                      <span class="button-text">Couper</span>
+                    </button>
+                    <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="resize" aria-pressed="false">
+                      <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
+                      <span class="button-text">Voir tout</span>
+                    </button>
                   </div>
                 </div>
                 <input id="leftImage" type="file" accept="image/*">
-                <div id="leftName" class="file-name">Aucune image choisie</div>
+                <div class="file-row">
+                  <div id="leftName" class="file-name">Aucune image choisie</div>
+                  <button class="slot-remove" type="button" data-remove-slot="left" hidden aria-label="Retirer l'image gauche">
+                    <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                    <span class="button-text">Retirer</span>
+                  </button>
+                </div>
+                <div class="position-grid" aria-label="Position de l'image gauche">
+                  <div class="position-control">
+                    <div class="axis-label">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
+                      <span>Horizontal</span>
+                    </div>
+                    <div class="button-group five position-buttons" role="group" aria-label="Position horizontale de l'image gauche">
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image gauche vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image gauche au premier tiers"><span class="button-text">1/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image gauche centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image gauche au deuxième tiers"><span class="button-text">2/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image gauche vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
+                    </div>
+                  </div>
+                  <div class="position-control">
+                    <div class="axis-label">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
+                      <span>Vertical</span>
+                    </div>
+                    <div class="button-group five position-buttons" role="group" aria-label="Position verticale de l'image gauche">
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image gauche en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image gauche au premier tiers vertical"><span class="button-text">1/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image gauche au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image gauche au deuxième tiers vertical"><span class="button-text">2/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image gauche en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="upload-row">
                 <div class="fit-label">Centre</div>
                 <div class="upload-main">
-                  <label class="upload-button" for="centerImage">Image centrale</label>
+                  <label class="upload-button" for="centerImage">
+                    <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
+                    <span class="button-text">Image centrale</span>
+                  </label>
                   <div class="segmented" role="group" aria-label="Ajustement de l'image centrale">
-                    <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="cut" aria-pressed="true">Couper</button>
-                    <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="resize" aria-pressed="false">Tout afficher</button>
+                    <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="cut" aria-pressed="true">
+                      <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
+                      <span class="button-text">Couper</span>
+                    </button>
+                    <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="resize" aria-pressed="false">
+                      <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
+                      <span class="button-text">Voir tout</span>
+                    </button>
                   </div>
                 </div>
                 <input id="centerImage" type="file" accept="image/*">
-                <div id="centerName" class="file-name">Facultatif</div>
+                <div class="file-row">
+                  <div id="centerName" class="file-name">Facultatif</div>
+                  <button class="slot-remove" type="button" data-remove-slot="center" hidden aria-label="Retirer l'image centrale">
+                    <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                    <span class="button-text">Retirer</span>
+                  </button>
+                </div>
+                <div class="position-grid" aria-label="Position de l'image centrale">
+                  <div class="position-control">
+                    <div class="axis-label">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
+                      <span>Horizontal</span>
+                    </div>
+                    <div class="button-group five position-buttons" role="group" aria-label="Position horizontale de l'image centrale">
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image centrale vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image centrale au premier tiers"><span class="button-text">1/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image centrale centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image centrale au deuxième tiers"><span class="button-text">2/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image centrale vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
+                    </div>
+                  </div>
+                  <div class="position-control">
+                    <div class="axis-label">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
+                      <span>Vertical</span>
+                    </div>
+                    <div class="button-group five position-buttons" role="group" aria-label="Position verticale de l'image centrale">
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image centrale en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image centrale au premier tiers vertical"><span class="button-text">1/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image centrale au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image centrale au deuxième tiers vertical"><span class="button-text">2/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image centrale en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="upload-row">
                 <div class="fit-label">Droite</div>
                 <div class="upload-main">
-                  <label class="upload-button" for="rightImage">Image droite</label>
+                  <label class="upload-button" for="rightImage">
+                    <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
+                    <span class="button-text">Image droite</span>
+                  </label>
                   <div class="segmented" role="group" aria-label="Ajustement de l'image droite">
-                    <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="cut" aria-pressed="true">Couper</button>
-                    <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="resize" aria-pressed="false">Tout afficher</button>
+                    <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="cut" aria-pressed="true">
+                      <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
+                      <span class="button-text">Couper</span>
+                    </button>
+                    <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="resize" aria-pressed="false">
+                      <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
+                      <span class="button-text">Voir tout</span>
+                    </button>
                   </div>
                 </div>
                 <input id="rightImage" type="file" accept="image/*">
-                <div id="rightName" class="file-name">Aucune image choisie</div>
+                <div class="file-row">
+                  <div id="rightName" class="file-name">Aucune image choisie</div>
+                  <button class="slot-remove" type="button" data-remove-slot="right" hidden aria-label="Retirer l'image droite">
+                    <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                    <span class="button-text">Retirer</span>
+                  </button>
+                </div>
+                <div class="position-grid" aria-label="Position de l'image droite">
+                  <div class="position-control">
+                    <div class="axis-label">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
+                      <span>Horizontal</span>
+                    </div>
+                    <div class="button-group five position-buttons" role="group" aria-label="Position horizontale de l'image droite">
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image droite vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image droite au premier tiers"><span class="button-text">1/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image droite centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image droite au deuxième tiers"><span class="button-text">2/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image droite vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
+                    </div>
+                  </div>
+                  <div class="position-control">
+                    <div class="axis-label">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
+                      <span>Vertical</span>
+                    </div>
+                    <div class="button-group five position-buttons" role="group" aria-label="Position verticale de l'image droite">
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image droite en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image droite au premier tiers vertical"><span class="button-text">1/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image droite au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image droite au deuxième tiers vertical"><span class="button-text">2/3</span></button>
+                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image droite en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -550,11 +900,38 @@
               </select>
             </div>
 
-            <div class="format-controls" aria-label="Options de format du texte">
-              <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">Gras</button>
-              <button class="mode-button" type="button" data-text-format="italic" aria-pressed="false">Italique</button>
-              <button class="mode-button" type="button" data-text-format="outline" aria-pressed="false">Contour</button>
-              <button class="mode-button" type="button" data-text-format="shadow" aria-pressed="false">Ombre</button>
+            <div class="button-group four format-controls" role="group" aria-label="Options de format du texte">
+              <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">
+                <span class="icon" aria-hidden="true"><i data-lucide="bold"></i></span>
+                <span class="button-text">Gras</span>
+              </button>
+              <button class="mode-button" type="button" data-text-format="italic" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="italic"></i></span>
+                <span class="button-text">Italique</span>
+              </button>
+              <button class="mode-button" type="button" data-text-format="outline" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="box-select"></i></span>
+                <span class="button-text">Contour</span>
+              </button>
+              <button class="mode-button" type="button" data-text-format="shadow" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="layers-2"></i></span>
+                <span class="button-text">Ombre</span>
+              </button>
+            </div>
+
+            <div class="button-group three" role="group" aria-label="Position verticale du texte">
+              <button class="mode-button" type="button" data-text-position="top" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span>
+                <span class="button-text">Haut</span>
+              </button>
+              <button class="mode-button" type="button" data-text-position="center" aria-pressed="true">
+                <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
+                <span class="button-text">Milieu</span>
+              </button>
+              <button class="mode-button" type="button" data-text-position="bottom" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span>
+                <span class="button-text">Bas</span>
+              </button>
             </div>
 
             <div class="inline-controls">
@@ -601,19 +978,43 @@
                   <button class="swatch" type="button" style="background: #0f766e" data-color="#0f766e" aria-label="Texte sarcelle foncé" aria-pressed="false"></button>
                 </div>
               </div>
+
+              <div class="palette-group">
+                <div class="palette-title">Contour</div>
+                <div id="outlineSwatches" class="swatches outline-swatches" aria-label="Couleurs du contour">
+                  <button class="swatch" type="button" data-outline-color="#f59e0b" aria-label="Contour doré" aria-pressed="true"></button>
+                  <button class="swatch" type="button" data-outline-color="#14b8a6" aria-label="Contour turquoise" aria-pressed="false"></button>
+                  <button class="swatch" type="button" data-outline-color="#f472b6" aria-label="Contour rose" aria-pressed="false"></button>
+                  <button class="swatch" type="button" data-outline-color="#ffffff" aria-label="Contour blanc" aria-pressed="false"></button>
+                </div>
+              </div>
             </div>
           </section>
 
           <section class="actions" aria-label="Actions">
-            <button id="downloadButton" class="button primary" type="button">Télécharger PNG</button>
+            <button id="downloadButton" class="button primary" type="button">
+              <span class="icon" aria-hidden="true"><i data-lucide="download"></i></span>
+              <span class="button-text">Télécharger PNG</span>
+            </button>
+            <button id="downloadMirrorButton" class="button secondary" type="button">
+              <span class="icon" aria-hidden="true"><i data-lucide="flip-horizontal"></i></span>
+              <span class="button-text">Télécharger miroir</span>
+            </button>
             <div class="print-row">
-              <button id="printButton" class="button secondary" type="button">Imprimer</button>
+              <button id="printButton" class="button secondary" type="button">
+                <span class="icon" aria-hidden="true"><i data-lucide="printer"></i></span>
+                <span class="button-text">Imprimer</span>
+              </button>
               <label class="checkbox-card" for="mirrorPrint">
                 <input id="mirrorPrint" type="checkbox" checked>
-                Miroir
+                <span class="icon" aria-hidden="true"><i data-lucide="flip-horizontal"></i></span>
+                <span class="button-text">Miroir</span>
               </label>
             </div>
-            <button id="clearButton" class="button danger" type="button">Supprimer</button>
+            <button id="clearButton" class="button danger" type="button">
+              <span class="icon" aria-hidden="true"><i data-lucide="trash-2"></i></span>
+              <span class="button-text">Supprimer</span>
+            </button>
             <div id="status" class="status" role="status">Prêt</div>
           </section>
         </div>
@@ -639,15 +1040,44 @@
       (() => {
         const EXPORT_WIDTH = 2550;
         const EXPORT_HEIGHT = 1050;
-        const ZONES = {
-          left: { x: 0, y: 0, width: 900, height: EXPORT_HEIGHT },
-          center: { x: 900, y: 0, width: 750, height: EXPORT_HEIGHT },
-          right: { x: 1650, y: 0, width: 900, height: EXPORT_HEIGHT },
+        const LAYOUT_PRESETS = {
+          classic: {
+            left: { x: 0, y: 0, width: 900, height: EXPORT_HEIGHT },
+            center: { x: 900, y: 0, width: 750, height: EXPORT_HEIGHT },
+            right: { x: 1650, y: 0, width: 900, height: EXPORT_HEIGHT },
+          },
+          equal: {
+            left: { x: 0, y: 0, width: 850, height: EXPORT_HEIGHT },
+            center: { x: 850, y: 0, width: 850, height: EXPORT_HEIGHT },
+            right: { x: 1700, y: 0, width: 850, height: EXPORT_HEIGHT },
+          },
+          textWide: {
+            left: { x: 0, y: 0, width: 750, height: EXPORT_HEIGHT },
+            center: { x: 750, y: 0, width: 1050, height: EXPORT_HEIGHT },
+            right: { x: 1800, y: 0, width: 750, height: EXPORT_HEIGHT },
+          },
+          imagesWide: {
+            left: { x: 0, y: 0, width: 1050, height: EXPORT_HEIGHT },
+            center: { x: 1050, y: 0, width: 450, height: EXPORT_HEIGHT },
+            right: { x: 1500, y: 0, width: 1050, height: EXPORT_HEIGHT },
+          },
         };
+        const DEFAULT_LAYOUT = "classic";
         const DEFAULT_FIT_MODES = {
           left: "cut",
           center: "cut",
           right: "cut",
+        };
+        const DEFAULT_IMAGE_POSITION = { x: 0.5, y: 0.5 };
+        const DEFAULT_IMAGE_POSITIONS = {
+          left: { ...DEFAULT_IMAGE_POSITION },
+          center: { ...DEFAULT_IMAGE_POSITION },
+          right: { ...DEFAULT_IMAGE_POSITION },
+        };
+        const DEFAULT_FILE_LABELS = {
+          left: "Aucune image choisie",
+          center: "Facultatif",
+          right: "Aucune image choisie",
         };
         const DEFAULT_TEXT_FORMAT = {
           bold: true,
@@ -655,6 +1085,13 @@
           outline: false,
           shadow: false,
         };
+        const DEFAULT_TEXT_COLOR = "#17202a";
+        const OUTLINE_HARMONIES = [
+          { label: "complémentaire", offset: 180 },
+          { label: "split complémentaire", offset: 150 },
+          { label: "split complémentaire", offset: 210 },
+          { label: "triadique", offset: 120 },
+        ];
         const DEFAULT_TEXT_FONT = "geist";
         const FONT_OPTIONS = {
           geist: '"Geist", Arial, Helvetica, sans-serif',
@@ -674,11 +1111,15 @@
         };
 
         const state = {
+          layoutPreset: DEFAULT_LAYOUT,
           fitModes: { ...DEFAULT_FIT_MODES },
+          imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS),
           text: "",
+          textPosition: "center",
           textFont: DEFAULT_TEXT_FONT,
           fontSize: 138,
-          textColor: "#17202a",
+          textColor: DEFAULT_TEXT_COLOR,
+          outlineColor: getDefaultOutlineColor(DEFAULT_TEXT_COLOR),
           textFormat: { ...DEFAULT_TEXT_FORMAT },
           mirrorPrint: true,
           images: {
@@ -697,15 +1138,21 @@
           leftName: document.querySelector("#leftName"),
           centerName: document.querySelector("#centerName"),
           rightName: document.querySelector("#rightName"),
+          removeButtons: Array.from(document.querySelectorAll("[data-remove-slot]")),
+          layoutButtons: Array.from(document.querySelectorAll("[data-layout]")),
           fitButtons: Array.from(document.querySelectorAll("[data-fit-slot]")),
+          positionControls: Array.from(document.querySelectorAll("[data-position-slot]")),
           textInput: document.querySelector("#textInput"),
           fontSelect: document.querySelector("#fontSelect"),
           fontSize: document.querySelector("#fontSize"),
           fontSizeValue: document.querySelector("#fontSizeValue"),
           textColor: document.querySelector("#textColor"),
           textFormatButtons: Array.from(document.querySelectorAll("[data-text-format]")),
-          colorPresetButtons: Array.from(document.querySelectorAll(".swatch")),
+          textPositionButtons: Array.from(document.querySelectorAll("[data-text-position]")),
+          colorPresetButtons: Array.from(document.querySelectorAll("[data-color]")),
+          outlineColorButtons: Array.from(document.querySelectorAll("[data-outline-color]")),
           downloadButton: document.querySelector("#downloadButton"),
+          downloadMirrorButton: document.querySelector("#downloadMirrorButton"),
           printButton: document.querySelector("#printButton"),
           mirrorPrint: document.querySelector("#mirrorPrint"),
           clearButton: document.querySelector("#clearButton"),
@@ -734,9 +1181,27 @@
         elements.centerImage.addEventListener("change", (event) => handleFile(event, "center"));
         elements.rightImage.addEventListener("change", (event) => handleFile(event, "right"));
 
+        elements.removeButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            removeImage(button.dataset.removeSlot);
+          });
+        });
+
+        elements.layoutButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setLayoutPreset(button.dataset.layout);
+          });
+        });
+
         elements.fitButtons.forEach((button) => {
           button.addEventListener("click", () => {
             setFitMode(button.dataset.fitSlot, button.dataset.fitMode);
+          });
+        });
+
+        elements.positionControls.forEach((control) => {
+          control.addEventListener("click", () => {
+            setImagePosition(control.dataset.positionSlot, control.dataset.positionAxis, control.dataset.positionValue);
           });
         });
 
@@ -768,6 +1233,12 @@
           });
         });
 
+        elements.textPositionButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setTextPosition(button.dataset.textPosition);
+          });
+        });
+
         elements.colorPresetButtons.forEach((button) => {
           button.addEventListener("click", () => {
             setTextColor(button.dataset.color);
@@ -775,13 +1246,26 @@
           });
         });
 
+        elements.outlineColorButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setOutlineColor(button.dataset.outlineColor);
+            setStatus("Contour choisi");
+          });
+        });
+
         elements.downloadButton.addEventListener("click", downloadPng);
+        elements.downloadMirrorButton.addEventListener("click", () => downloadPng({ mirror: true }));
         elements.printButton.addEventListener("click", printMug);
         elements.mirrorPrint.addEventListener("change", () => {
           state.mirrorPrint = elements.mirrorPrint.checked;
         });
         elements.clearButton.addEventListener("click", clearAll);
 
+        updateLayoutButtons();
+        updatePositionControls();
+        updateRemoveButtons();
+        updateOutlineColorButtons();
+        renderIcons();
         resizeStage();
         render();
         if (document.fonts) document.fonts.ready.then(render);
@@ -789,6 +1273,40 @@
         function setStatus(message, isWarning = false) {
           elements.status.textContent = message;
           elements.status.classList.toggle("warning", isWarning);
+        }
+
+        function cloneImagePositions(source) {
+          return {
+            left: { ...source.left },
+            center: { ...source.center },
+            right: { ...source.right },
+          };
+        }
+
+        function getZones() {
+          return LAYOUT_PRESETS[state.layoutPreset] || LAYOUT_PRESETS[DEFAULT_LAYOUT];
+        }
+
+        function renderIcons() {
+          if (!window.lucide) return;
+          window.lucide.createIcons({
+            attrs: {
+              "aria-hidden": "true",
+              focusable: "false",
+            },
+          });
+        }
+
+        function setLayoutPreset(layout) {
+          state.layoutPreset = LAYOUT_PRESETS[layout] ? layout : DEFAULT_LAYOUT;
+          updateLayoutButtons();
+          render();
+        }
+
+        function updateLayoutButtons() {
+          elements.layoutButtons.forEach((button) => {
+            button.setAttribute("aria-pressed", state.layoutPreset === button.dataset.layout ? "true" : "false");
+          });
         }
 
         function setFitMode(slot, mode) {
@@ -804,18 +1322,229 @@
           });
         }
 
-        function setTextColor(color) {
-          state.textColor = color;
-          elements.textColor.value = color;
-          elements.colorPresetButtons.forEach((button) => {
-            button.setAttribute("aria-pressed", button.dataset.color === color ? "true" : "false");
-          });
+        function setImagePosition(slot, axis, value) {
+          if (!state.imagePositions[slot] || !["x", "y"].includes(axis)) return;
+
+          state.imagePositions[slot][axis] = Number(value);
+          updatePositionControls();
           render();
+        }
+
+        function removeImage(slot) {
+          if (!state.images.hasOwnProperty(slot)) return;
+
+          state.images[slot] = null;
+          state.imagePositions[slot] = { ...DEFAULT_IMAGE_POSITION };
+          getImageInput(slot).value = "";
+          setFileName(slot, DEFAULT_FILE_LABELS[slot]);
+          updateRemoveButtons();
+          updatePositionControls();
+          setStatus("Image retirée");
+          render();
+        }
+
+        function getImageInput(slot) {
+          return {
+            left: elements.leftImage,
+            center: elements.centerImage,
+            right: elements.rightImage,
+          }[slot];
+        }
+
+        function updatePositionControls() {
+          elements.positionControls.forEach((control) => {
+            const position = state.imagePositions[control.dataset.positionSlot];
+            if (!position) return;
+            const current = position[control.dataset.positionAxis];
+            const target = Number(control.dataset.positionValue);
+            const isActive = Math.abs(current - target) < 0.0001;
+            control.setAttribute("aria-pressed", isActive ? "true" : "false");
+          });
+        }
+
+        function normalizeHex(color) {
+          const value = String(color || "").trim().toLowerCase();
+          if (/^#[0-9a-f]{6}$/.test(value)) return value;
+          if (/^#[0-9a-f]{3}$/.test(value)) {
+            return `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`;
+          }
+          return DEFAULT_TEXT_COLOR;
+        }
+
+        function getDefaultOutlineColor(textColor) {
+          return getOutlineColorOptions(textColor)[0];
+        }
+
+        function getOutlineColorOptions(textColor) {
+          const normalized = normalizeHex(textColor);
+          return getGeneratedOutlineColorOptions(normalized);
+        }
+
+        function getGeneratedOutlineColorOptions(textColor) {
+          const rgb = hexToRgb(textColor);
+          const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+          return uniqueColors(
+            OUTLINE_HARMONIES.map((harmony) => getContrastingHarmonyColor(hsl, harmony.offset, textColor)),
+          );
+        }
+
+        function getContrastingHarmonyColor(baseHsl, hueOffset, textColor) {
+          const hue = baseHsl.h + hueOffset;
+          const saturation = Math.min(94, Math.max(72, baseHsl.s + 8));
+          const lightnessSteps = [12, 16, 22, 28, 34, 42, 58, 66, 74, 82, 88];
+          let best = null;
+
+          lightnessSteps.forEach((lightness) => {
+            const candidate = hslToHex(hue, saturation, lightness);
+            const textContrast = getContrastRatio(candidate, textColor);
+            const whiteContrast = getContrastRatio(candidate, "#ffffff");
+            const score = textContrast + Math.min(whiteContrast, 5) * 0.12;
+            if (!best || score > best.score) best = { color: candidate, score };
+          });
+
+          return best.color;
+        }
+
+        function uniqueColors(colors) {
+          const seen = new Set();
+          return colors.map(normalizeHex).filter((color) => {
+            if (seen.has(color)) return false;
+            seen.add(color);
+            return true;
+          });
+        }
+
+        function hexToRgb(hex) {
+          const value = normalizeHex(hex).slice(1);
+          return {
+            r: parseInt(value.slice(0, 2), 16),
+            g: parseInt(value.slice(2, 4), 16),
+            b: parseInt(value.slice(4, 6), 16),
+          };
+        }
+
+        function getContrastRatio(firstColor, secondColor) {
+          const first = getRelativeLuminance(hexToRgb(firstColor));
+          const second = getRelativeLuminance(hexToRgb(secondColor));
+          return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+        }
+
+        function getRelativeLuminance(rgb) {
+          const channels = [rgb.r, rgb.g, rgb.b].map((value) => {
+            const channel = value / 255;
+            return channel <= 0.03928
+              ? channel / 12.92
+              : Math.pow((channel + 0.055) / 1.055, 2.4);
+          });
+          return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+        }
+
+        function rgbToHsl(red, green, blue) {
+          const r = red / 255;
+          const g = green / 255;
+          const b = blue / 255;
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          const lightness = (max + min) / 2;
+          let hue = 0;
+          let saturation = 0;
+
+          if (max !== min) {
+            const delta = max - min;
+            saturation = lightness > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+            if (max === r) hue = (g - b) / delta + (g < b ? 6 : 0);
+            if (max === g) hue = (b - r) / delta + 2;
+            if (max === b) hue = (r - g) / delta + 4;
+            hue *= 60;
+          }
+
+          return { h: hue, s: saturation * 100, l: lightness * 100 };
+        }
+
+        function hslToHex(hue, saturation, lightness) {
+          const h = ((hue % 360) + 360) % 360;
+          const s = Math.max(0, Math.min(100, saturation)) / 100;
+          const l = Math.max(0, Math.min(100, lightness)) / 100;
+          const c = (1 - Math.abs(2 * l - 1)) * s;
+          const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+          const m = l - c / 2;
+          let r = 0;
+          let g = 0;
+          let b = 0;
+
+          if (h < 60) [r, g, b] = [c, x, 0];
+          else if (h < 120) [r, g, b] = [x, c, 0];
+          else if (h < 180) [r, g, b] = [0, c, x];
+          else if (h < 240) [r, g, b] = [0, x, c];
+          else if (h < 300) [r, g, b] = [x, 0, c];
+          else [r, g, b] = [c, 0, x];
+
+          return rgbToHex(
+            Math.round((r + m) * 255),
+            Math.round((g + m) * 255),
+            Math.round((b + m) * 255),
+          );
+        }
+
+        function rgbToHex(red, green, blue) {
+          return `#${[red, green, blue]
+            .map((value) => value.toString(16).padStart(2, "0"))
+            .join("")}`;
+        }
+
+        function setTextColor(color, options = {}) {
+          const normalized = normalizeHex(color);
+          state.textColor = normalized;
+          elements.textColor.value = normalized;
+          if (options.syncOutline !== false) {
+            state.outlineColor = getDefaultOutlineColor(normalized);
+          }
+          elements.colorPresetButtons.forEach((button) => {
+            button.setAttribute("aria-pressed", normalizeHex(button.dataset.color) === normalized ? "true" : "false");
+          });
+          updateOutlineColorButtons();
+          render();
+        }
+
+        function setOutlineColor(color) {
+          state.outlineColor = normalizeHex(color);
+          state.textFormat.outline = true;
+          updateTextFormatButtons();
+          updateOutlineColorButtons();
+          render();
+        }
+
+        function updateOutlineColorButtons() {
+          const options = getOutlineColorOptions(state.textColor);
+          if (!options.includes(state.outlineColor)) state.outlineColor = options[0];
+          elements.outlineColorButtons.forEach((button, index) => {
+            const color = options[index] || options[0];
+            const harmony = OUTLINE_HARMONIES[index] || OUTLINE_HARMONIES[0];
+            button.dataset.outlineColor = color;
+            button.style.background = color;
+            button.setAttribute("aria-label", `Contour ${harmony.label}`);
+            button.title = `Contour ${harmony.label}`;
+            button.setAttribute("aria-pressed", state.outlineColor === color ? "true" : "false");
+          });
         }
 
         function updateTextFormatButtons() {
           elements.textFormatButtons.forEach((button) => {
             button.setAttribute("aria-pressed", state.textFormat[button.dataset.textFormat] ? "true" : "false");
+          });
+        }
+
+        function setTextPosition(position) {
+          if (!["top", "center", "bottom"].includes(position)) return;
+
+          state.textPosition = position;
+          updateTextPositionButtons();
+          render();
+        }
+
+        function updateTextPositionButtons() {
+          elements.textPositionButtons.forEach((button) => {
+            button.setAttribute("aria-pressed", state.textPosition === button.dataset.textPosition ? "true" : "false");
           });
         }
 
@@ -849,6 +1578,7 @@
               height: image.naturalHeight,
             };
             setFileName(slot, file.name);
+            updateRemoveButtons();
             setStatus("Image chargée");
             render();
           } catch (error) {
@@ -878,7 +1608,13 @@
             right: elements.rightName,
           }[slot];
           target.textContent = name;
-          target.title = name;
+          target.title = state.images[slot] ? name : "";
+        }
+
+        function updateRemoveButtons() {
+          elements.removeButtons.forEach((button) => {
+            button.hidden = !state.images[button.dataset.removeSlot];
+          });
         }
 
         function resizeStage() {
@@ -923,7 +1659,7 @@
 
         function renderImageSlot(slot) {
           const item = state.images[slot];
-          const zone = ZONES[slot];
+          const zone = getZones()[slot];
           const group = new Konva.Group({
             clip: {
               x: zone.x,
@@ -944,7 +1680,7 @@
             return;
           }
 
-          const placement = getPlacement(item, zone, state.fitModes[slot]);
+          const placement = getPlacement(item, zone, state.fitModes[slot], state.imagePositions[slot]);
           group.add(
             new Konva.Image({
               image: item.image,
@@ -978,11 +1714,17 @@
           return /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]/.test(text) ? "rtl" : "ltr";
         }
 
+        function getTextTop(zone, textHeight, padding) {
+          if (state.textPosition === "top") return zone.y + padding;
+          if (state.textPosition === "bottom") return zone.y + zone.height - padding - textHeight;
+          return zone.y + (zone.height - textHeight) / 2;
+        }
+
         function renderText() {
           const text = state.text.trim();
           if (!text) return;
 
-          const zone = ZONES.center;
+          const zone = getZones().center;
           const padding = 46;
           const maxWidth = zone.width - padding * 2;
           const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
@@ -1000,7 +1742,7 @@
             align: "center",
             direction: getTextDirection(text),
             fill: state.textColor,
-            stroke: "#ffffff",
+            stroke: state.outlineColor,
             strokeWidth,
             shadowColor: "rgba(0,0,0,0.22)",
             shadowBlur,
@@ -1008,11 +1750,12 @@
             shadowOpacity: state.textFormat.shadow ? 0.45 : 0,
             listening: false,
           });
-          node.y((EXPORT_HEIGHT - node.height()) / 2);
+          node.y(getTextTop(zone, node.height(), padding));
           contentLayer.add(node);
         }
 
         function renderGuides() {
+          const zones = getZones();
           const lineColor = "rgba(20, 33, 61, 0.24)";
           guideLayer.add(
             new Konva.Rect({
@@ -1025,7 +1768,7 @@
             }),
           );
 
-          [ZONES.center.x, ZONES.right.x].forEach((x) => {
+          [zones.center.x, zones.right.x].forEach((x) => {
             guideLayer.add(
               new Konva.Line({
                 points: [x, 0, x, EXPORT_HEIGHT],
@@ -1037,7 +1780,7 @@
           });
         }
 
-        function getPlacement(item, zone, mode) {
+        function getPlacement(item, zone, mode, position = DEFAULT_IMAGE_POSITION) {
           const scale =
             mode === "cut"
               ? Math.max(zone.width / item.width, zone.height / item.height)
@@ -1045,16 +1788,16 @@
           const width = item.width * scale;
           const height = item.height * scale;
           return {
-            x: zone.x + (zone.width - width) / 2,
-            y: zone.y + (zone.height - height) / 2,
+            x: zone.x + (zone.width - width) * position.x,
+            y: zone.y + (zone.height - height) * position.y,
             width,
             height,
           };
         }
 
-        async function downloadPng() {
+        async function downloadPng(options = {}) {
           await ensureTextFontLoaded();
-          const canvas = createExportCanvas();
+          const canvas = createExportCanvas({ mirror: Boolean(options.mirror) });
 
           canvas.toBlob((blob) => {
             if (!blob) {
@@ -1065,7 +1808,8 @@
             const url = URL.createObjectURL(blob);
             const anchor = document.createElement("a");
             anchor.href = url;
-            anchor.download = `creation-mug-${new Date().toISOString().slice(0, 10)}.png`;
+            const suffix = options.mirror ? "-miroir" : "";
+            anchor.download = `creation-mug${suffix}-${new Date().toISOString().slice(0, 10)}.png`;
             document.body.appendChild(anchor);
             anchor.click();
             anchor.remove();
@@ -1161,8 +1905,8 @@
           const item = state.images[slot];
           if (!item) return;
 
-          const zone = ZONES[slot];
-          const placement = getPlacement(item, zone, state.fitModes[slot]);
+          const zone = getZones()[slot];
+          const placement = getPlacement(item, zone, state.fitModes[slot], state.imagePositions[slot]);
           context.save();
           context.beginPath();
           context.rect(zone.x, zone.y, zone.width, zone.height);
@@ -1181,7 +1925,7 @@
           const text = state.text.trim();
           if (!text) return;
 
-          const zone = ZONES.center;
+          const zone = getZones().center;
           const padding = 46;
           const maxWidth = zone.width - padding * 2;
           const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
@@ -1189,7 +1933,7 @@
           const lineHeight = layout.lineHeight;
           const lines = layout.lines;
           const totalHeight = lines.length * lineHeight;
-          let y = zone.y + (zone.height - totalHeight) / 2 + fontSize;
+          let y = getTextTop(zone, totalHeight, padding) + fontSize;
 
           context.save();
           context.font = getCanvasFont(fontSize);
@@ -1197,7 +1941,7 @@
           context.textBaseline = "alphabetic";
           context.direction = getTextDirection(text);
           context.lineJoin = "round";
-          context.strokeStyle = "#ffffff";
+          context.strokeStyle = state.outlineColor;
           context.lineWidth = Math.max(8, Math.round(fontSize * 0.12));
           context.fillStyle = state.textColor;
           context.shadowColor = state.textFormat.shadow ? "rgba(0, 0, 0, 0.22)" : "rgba(0, 0, 0, 0)";
@@ -1297,25 +2041,33 @@
           state.images.left = null;
           state.images.center = null;
           state.images.right = null;
+          state.layoutPreset = DEFAULT_LAYOUT;
           state.fitModes = { ...DEFAULT_FIT_MODES };
+          state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
           state.text = "";
+          state.textPosition = "center";
           state.textFont = DEFAULT_TEXT_FONT;
           state.fontSize = 138;
-          state.textColor = "#17202a";
+          state.textColor = DEFAULT_TEXT_COLOR;
+          state.outlineColor = getDefaultOutlineColor(DEFAULT_TEXT_COLOR);
           state.textFormat = { ...DEFAULT_TEXT_FORMAT };
           state.mirrorPrint = true;
           elements.leftImage.value = "";
           elements.centerImage.value = "";
           elements.rightImage.value = "";
-          elements.leftName.textContent = "Aucune image choisie";
-          elements.centerName.textContent = "Facultatif";
-          elements.rightName.textContent = "Aucune image choisie";
+          setFileName("left", DEFAULT_FILE_LABELS.left);
+          setFileName("center", DEFAULT_FILE_LABELS.center);
+          setFileName("right", DEFAULT_FILE_LABELS.right);
           elements.textInput.value = "";
+          updateLayoutButtons();
+          updatePositionControls();
+          updateRemoveButtons();
           elements.fontSelect.value = state.textFont;
           elements.fontSize.value = String(state.fontSize);
           elements.fontSizeValue.textContent = String(state.fontSize);
           elements.mirrorPrint.checked = state.mirrorPrint;
           updateTextFormatButtons();
+          updateTextPositionButtons();
           setTextColor(state.textColor);
           updateFitButtons();
           setStatus("Prêt");
