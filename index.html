@@ -173,6 +173,70 @@
         display: grid;
       }
 
+      .minimal-mode .minimal-mode-toggle {
+        width: max-content;
+        min-height: 34px;
+        justify-self: end;
+        padding: 4px 8px;
+        border-color: transparent;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.76rem;
+        opacity: 0.58;
+      }
+
+      .minimal-mode .minimal-mode-toggle:hover {
+        opacity: 1;
+        background: #f8fafc;
+        border-color: var(--line);
+      }
+
+      .minimal-mode .minimal-mode-toggle input {
+        width: 14px;
+        height: 14px;
+      }
+
+      .minimal-mode .minimal-mode-toggle .icon {
+        display: none;
+      }
+
+      .minimal-mode .upload-main {
+        grid-template-columns: 1fr;
+      }
+
+      .minimal-mode .upload-button {
+        min-height: 94px;
+        font-size: 1.08rem;
+      }
+
+      .minimal-mode .upload-button .icon,
+      .minimal-mode .upload-button .icon svg {
+        inline-size: 28px;
+        block-size: 28px;
+      }
+
+      .minimal-mode .upload-main .mode-button {
+        min-height: 68px;
+        font-size: 0.98rem;
+      }
+
+      .minimal-mode textarea {
+        min-height: 172px;
+        border: 2px solid var(--accent);
+        background: #ffffff;
+        color: #0f172a;
+        font-size: 1.1rem;
+        box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+      }
+
+      .minimal-mode textarea::placeholder {
+        color: #526171;
+      }
+
+      .minimal-mode .print-row {
+        grid-template-columns: 1fr;
+      }
+
       .control-block {
         display: grid;
         gap: 10px;
@@ -993,6 +1057,21 @@
         display: block;
       }
 
+      .preview-action {
+        position: absolute;
+        z-index: 4;
+        left: 50%;
+        bottom: 14px;
+        min-width: min(280px, calc(100% - 28px));
+        transform: translateX(-50%);
+        box-shadow: 0 12px 28px rgba(23, 32, 42, 0.22);
+        display: none;
+      }
+
+      .minimal-mode .preview-action {
+        display: inline-flex;
+      }
+
       .image-shift-overlay {
         position: absolute;
         inset: 0;
@@ -1247,17 +1326,17 @@
                 </div>
                 <div class="upload-main">
                   <label class="upload-button" for="leftImage">
-                    <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
+                    <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
                     <span class="button-text">Image gauche</span>
                   </label>
                   <div class="segmented" role="group" aria-label="Ajustement de l'image gauche">
                     <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="cut" aria-pressed="true">
                       <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
-                      <span class="button-text">Couper</span>
+                      <span class="button-text">Remplir</span>
                     </button>
                     <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="resize" aria-pressed="false">
                       <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
-                      <span class="button-text">Voir tout</span>
+                      <span class="button-text">Image entière</span>
                     </button>
                   </div>
                 </div>
@@ -1310,17 +1389,17 @@
                 </div>
                 <div class="upload-main">
                   <label class="upload-button" for="centerImage">
-                    <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
+                    <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
                     <span class="button-text">Image centrale</span>
                   </label>
                   <div class="segmented" role="group" aria-label="Ajustement de l'image centrale">
                     <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="cut" aria-pressed="true">
                       <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
-                      <span class="button-text">Couper</span>
+                      <span class="button-text">Remplir</span>
                     </button>
                     <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="resize" aria-pressed="false">
                       <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
-                      <span class="button-text">Voir tout</span>
+                      <span class="button-text">Image entière</span>
                     </button>
                   </div>
                 </div>
@@ -1373,17 +1452,17 @@
                 </div>
                 <div class="upload-main">
                   <label class="upload-button" for="rightImage">
-                    <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
+                    <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
                     <span class="button-text">Image droite</span>
                   </label>
                   <div class="segmented" role="group" aria-label="Ajustement de l'image droite">
                     <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="cut" aria-pressed="true">
                       <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
-                      <span class="button-text">Couper</span>
+                      <span class="button-text">Remplir</span>
                     </button>
                     <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="resize" aria-pressed="false">
                       <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
-                      <span class="button-text">Voir tout</span>
+                      <span class="button-text">Image entière</span>
                     </button>
                   </div>
                 </div>
@@ -1564,30 +1643,30 @@
           </section>
 
           <section class="actions" aria-label="Actions" data-wizard-step="done">
-            <button id="downloadButton" class="button primary" type="button">
-              <span class="icon" aria-hidden="true"><i data-lucide="download"></i></span>
-              <span class="button-text">Télécharger PNG</span>
-            </button>
-            <button id="downloadMirrorButton" class="button secondary" type="button">
-              <span class="icon" aria-hidden="true"><i data-lucide="flip-horizontal"></i></span>
-              <span class="button-text">Télécharger miroir</span>
-            </button>
             <div class="print-row">
-              <button id="printButton" class="button secondary" type="button">
+              <button id="printButton" class="button primary" type="button">
                 <span class="icon" aria-hidden="true"><i data-lucide="printer"></i></span>
                 <span class="button-text">Imprimer</span>
               </button>
-              <label class="checkbox-card" for="mirrorPrint">
+              <label class="checkbox-card" for="mirrorPrint" data-advanced-control>
                 <input id="mirrorPrint" type="checkbox" checked>
                 <span class="icon" aria-hidden="true"><i data-lucide="flip-horizontal"></i></span>
                 <span class="button-text">Miroir</span>
               </label>
             </div>
-            <button id="addToPageButton" class="button secondary" type="button">
+            <button id="downloadButton" class="button secondary" type="button">
+              <span class="icon" aria-hidden="true"><i data-lucide="download"></i></span>
+              <span class="button-text">Télécharger PNG</span>
+            </button>
+            <button id="downloadMirrorButton" class="button secondary" type="button" data-advanced-control>
+              <span class="icon" aria-hidden="true"><i data-lucide="flip-horizontal"></i></span>
+              <span class="button-text">Télécharger miroir</span>
+            </button>
+            <button id="addToPageButton" class="button secondary" type="button" data-advanced-control>
               <span class="icon" aria-hidden="true"><i data-lucide="copy-plus"></i></span>
               <span class="button-text">Ajouter à la page</span>
             </button>
-            <div id="queuePanel" class="queue-panel" hidden>
+            <div id="queuePanel" class="queue-panel" hidden data-advanced-control>
               <div class="queue-nav">
                 <button id="queuePrev" class="queue-arrow" type="button" aria-label="Création précédente"><i data-lucide="chevron-left"></i></button>
                 <span id="queueLabel" class="queue-label">Création 1 / 1</span>
@@ -1598,7 +1677,7 @@
                 <button id="queueRemove" class="button danger small" type="button">Retirer cette création</button>
               </div>
             </div>
-            <button id="clearButton" class="button danger" type="button">
+            <button id="clearButton" class="button danger" type="button" data-advanced-control>
               <span class="icon" aria-hidden="true"><i data-lucide="trash-2"></i></span>
               <span class="button-text">Supprimer</span>
             </button>
@@ -1625,7 +1704,7 @@
           </div>
           <div class="preview-dims">
             <div class="preview-meta">9 × 3,5 po · 229 × 89 mm (mug 11 oz)</div>
-            <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4">
+            <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4" data-advanced-control>
               <button type="button" class="sheet-option" data-sheet-layout="3up" aria-pressed="true">3 / page · 210×82 mm</button>
               <button type="button" class="sheet-option" data-sheet-layout="4up" aria-pressed="false">4 / page · 210×74 mm</button>
             </div>
@@ -1635,6 +1714,10 @@
           <div class="stage-frame">
             <div id="stage"></div>
             <div id="imageShiftOverlay" class="image-shift-overlay" aria-label="Déplacement des images dans l'aperçu"></div>
+            <button id="previewActionButton" class="button primary preview-action" type="button">
+              <span id="previewActionIcon" class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
+              <span id="previewActionText" class="button-text">Image gauche</span>
+            </button>
           </div>
         </div>
       </section>
@@ -1671,6 +1754,7 @@
           "3up": { perPage: 3, widthMm: 210, heightMm: 82, gapMm: 8 },
           "4up": { perPage: 4, widthMm: 210, heightMm: 74, gapMm: 0 },
         };
+        const PREFERENCES_STORAGE_KEY = "mugCreator.defaultPreferences.v1";
         const WIZARD_STEPS = ["left", "right", "text", "done"];
         let printQueue = [];
         let queueIndex = 0;
@@ -1712,6 +1796,7 @@
           outline: false,
           shadow: false,
         };
+        const DEFAULT_FONT_SIZE = 138;
         const DEFAULT_TEXT_COLOR = "#17202a";
         const OUTLINE_PRESETS = [
           { id: "tonal", label: "ton sur ton", tonal: true },
@@ -1762,19 +1847,21 @@
             keys: ["noto-naskh-arabic", "noto-kufi-arabic", "cairo", "tajawal", "amiri", "changa"],
           },
         ];
+        const savedPreferences = loadDefaultPreferences();
+        sheetLayout = savedPreferences.sheetLayout;
 
         const state = {
           layoutPreset: DEFAULT_LAYOUT,
-          fitModes: { ...DEFAULT_FIT_MODES },
+          fitModes: { ...savedPreferences.fitModes },
           imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS),
           minimalMode: true,
           text: "",
-          textPosition: "center",
-          textFont: DEFAULT_TEXT_FONT,
-          fontSize: 138,
-          textColor: DEFAULT_TEXT_COLOR,
-          outlineColor: getDefaultOutlineColor(DEFAULT_TEXT_COLOR),
-          textFormat: { ...DEFAULT_TEXT_FORMAT },
+          textPosition: savedPreferences.textPosition,
+          textFont: savedPreferences.textFont,
+          fontSize: savedPreferences.fontSize,
+          textColor: savedPreferences.textColor,
+          outlineColor: savedPreferences.outlineColor,
+          textFormat: { ...savedPreferences.textFormat },
           mirrorPrint: true,
           images: {
             left: null,
@@ -1787,6 +1874,9 @@
           stage: document.querySelector("#stage"),
           stageFrame: document.querySelector(".stage-frame"),
           imageShiftOverlay: document.querySelector("#imageShiftOverlay"),
+          previewActionButton: document.querySelector("#previewActionButton"),
+          previewActionIcon: document.querySelector("#previewActionIcon"),
+          previewActionText: document.querySelector("#previewActionText"),
           leftImage: document.querySelector("#leftImage"),
           centerImage: document.querySelector("#centerImage"),
           rightImage: document.querySelector("#rightImage"),
@@ -1881,6 +1971,9 @@
 
         elements.wizardBack.addEventListener("click", goToPreviousWizardStep);
         elements.wizardNext.addEventListener("click", goToNextWizardStep);
+        elements.previewActionButton.addEventListener("click", handlePreviewAction);
+        elements.stageFrame.addEventListener("click", handleStageFrameClick);
+        document.addEventListener("keydown", handleWizardEnterKey);
 
         elements.fitButtons.forEach((button) => {
           button.addEventListener("click", () => {
@@ -1954,6 +2047,7 @@
         elements.fontSize.addEventListener("input", () => {
           state.fontSize = Number(elements.fontSize.value);
           elements.fontSizeValue.textContent = String(state.fontSize);
+          saveDefaultPreferences();
           render();
         });
 
@@ -1974,6 +2068,7 @@
             state.textFormat[key] = !state.textFormat[key];
             updateTextFormatButtons();
             updateFontPreviewSamples();
+            saveDefaultPreferences();
             render();
           });
         });
@@ -2012,13 +2107,11 @@
         });
         elements.clearButton.addEventListener("click", clearAll);
 
-        updateLayoutButtons();
-        updateMinimalMode();
-        updatePositionControls();
-        updateRemoveButtons();
-        updateColorControls();
         buildImageShiftOverlay();
         buildFontPreviewList();
+        syncPreferenceControls();
+        updatePositionControls();
+        updateRemoveButtons();
         updateFontPreviewSamples();
         renderIcons();
         updateWizardUI();
@@ -2032,6 +2125,105 @@
           if (!elements.status) return;
           elements.status.textContent = message;
           elements.status.classList.toggle("warning", isWarning);
+        }
+
+        function getFactoryPreferences() {
+          return {
+            fitModes: { ...DEFAULT_FIT_MODES },
+            textPosition: "center",
+            textFont: DEFAULT_TEXT_FONT,
+            fontSize: DEFAULT_FONT_SIZE,
+            textColor: DEFAULT_TEXT_COLOR,
+            outlineColor: getDefaultOutlineColor(DEFAULT_TEXT_COLOR),
+            textFormat: { ...DEFAULT_TEXT_FORMAT },
+            sheetLayout: "3up",
+          };
+        }
+
+        function loadDefaultPreferences() {
+          const fallback = getFactoryPreferences();
+
+          try {
+            const raw = window.localStorage?.getItem(PREFERENCES_STORAGE_KEY);
+            if (!raw) return fallback;
+
+            return normalizePreferences(JSON.parse(raw), fallback);
+          } catch (error) {
+            console.warn("Default preference loading failed", error);
+            return fallback;
+          }
+        }
+
+        function normalizePreferences(input, fallback = getFactoryPreferences()) {
+          const saved = input && typeof input === "object" ? input : {};
+          const textColor = normalizeHex(saved.textColor || fallback.textColor);
+          const fontSize = Number(saved.fontSize);
+
+          return {
+            fitModes: normalizeFitModePreferences(saved.fitModes, fallback.fitModes),
+            textPosition: ["top", "center", "bottom"].includes(saved.textPosition)
+              ? saved.textPosition
+              : fallback.textPosition,
+            textFont: FONT_OPTIONS[saved.textFont] ? saved.textFont : fallback.textFont,
+            fontSize: Number.isFinite(fontSize)
+              ? Math.min(220, Math.max(64, Math.round(fontSize)))
+              : fallback.fontSize,
+            textColor,
+            outlineColor: normalizeHex(saved.outlineColor || getDefaultOutlineColor(textColor)),
+            textFormat: normalizeTextFormatPreferences(saved.textFormat, fallback.textFormat),
+            sheetLayout: SHEET_LAYOUTS[saved.sheetLayout] ? saved.sheetLayout : fallback.sheetLayout,
+          };
+        }
+
+        function normalizeFitModePreferences(input, fallback) {
+          const saved = input && typeof input === "object" ? input : {};
+          return Object.fromEntries(
+            Object.keys(DEFAULT_FIT_MODES).map((slot) => [
+              slot,
+              ["cut", "resize"].includes(saved[slot]) ? saved[slot] : fallback[slot],
+            ]),
+          );
+        }
+
+        function normalizeTextFormatPreferences(input, fallback) {
+          const saved = input && typeof input === "object" ? input : {};
+          return Object.fromEntries(
+            Object.keys(DEFAULT_TEXT_FORMAT).map((key) => [key, typeof saved[key] === "boolean" ? saved[key] : fallback[key]]),
+          );
+        }
+
+        function saveDefaultPreferences() {
+          try {
+            window.localStorage?.setItem(
+              PREFERENCES_STORAGE_KEY,
+              JSON.stringify({
+                fitModes: state.fitModes,
+                textPosition: state.textPosition,
+                textFont: state.textFont,
+                fontSize: state.fontSize,
+                textColor: state.textColor,
+                outlineColor: state.outlineColor,
+                textFormat: state.textFormat,
+                sheetLayout,
+              }),
+            );
+          } catch (error) {
+            console.warn("Default preference saving failed", error);
+          }
+        }
+
+        function syncPreferenceControls() {
+          elements.fontSelect.value = state.textFont;
+          elements.fontSize.value = String(state.fontSize);
+          elements.fontSizeValue.textContent = String(state.fontSize);
+          elements.mirrorPrint.checked = state.mirrorPrint;
+          updateLayoutButtons();
+          updateMinimalMode();
+          updateFitButtons();
+          updateTextFormatButtons();
+          updateTextPositionButtons();
+          updateColorControls();
+          updateSheetLayoutButtons();
         }
 
         function cloneImagePositions(source) {
@@ -2280,6 +2472,8 @@
           if (state.minimalMode) {
             state.layoutPreset = DEFAULT_LAYOUT;
             state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
+            state.mirrorPrint = true;
+            elements.mirrorPrint.checked = true;
             clearCenterImageForSimpleMode();
             wizardStep = WIZARD_STEPS[getUnlockedWizardStepIndex()];
             updateLayoutButtons();
@@ -2310,6 +2504,7 @@
 
           wizardStep = step;
           updateWizardUI();
+          focusWizardStep();
         }
 
         function goToPreviousWizardStep() {
@@ -2328,11 +2523,50 @@
           const nextStep = WIZARD_STEPS[Math.min(index + 1, WIZARD_STEPS.length - 1)];
           wizardStep = nextStep;
           updateWizardUI();
+          focusWizardStep();
+        }
+
+        function handleWizardEnterKey(event) {
+          if (
+            !state.minimalMode ||
+            event.key !== "Enter" ||
+            event.shiftKey ||
+            event.altKey ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.isComposing
+          ) {
+            return;
+          }
+
+          const target = event.target instanceof Element ? event.target : null;
+          if (target?.closest(".font-preview-popover")) return;
+          if (target?.closest("button, select, input[type='color']") && target !== elements.textInput) return;
+          if (!canCompleteWizardStep(wizardStep)) return;
+
+          event.preventDefault();
+          goToNextWizardStep();
+        }
+
+        function focusWizardStep() {
+          if (!state.minimalMode) return;
+
+          window.requestAnimationFrame(() => {
+            if (wizardStep === "text") {
+              elements.textInput.focus();
+              const end = elements.textInput.value.length;
+              elements.textInput.setSelectionRange(end, end);
+              return;
+            }
+
+            if (wizardStep === "done") {
+              elements.printButton.focus();
+            }
+          });
         }
 
         function getUnlockedWizardStepIndex() {
-          if (state.images.left && state.images.right && state.text.trim()) return 3;
-          if (state.images.left && state.images.right) return 2;
+          if (state.images.left && state.images.right) return 3;
           if (state.images.left) return 1;
           return 0;
         }
@@ -2340,7 +2574,6 @@
         function canCompleteWizardStep(step) {
           if (step === "left") return Boolean(state.images.left);
           if (step === "right") return Boolean(state.images.right);
-          if (step === "text") return Boolean(state.text.trim());
           return true;
         }
 
@@ -2376,11 +2609,73 @@
           elements.wizardBack.disabled = WIZARD_STEPS.indexOf(wizardStep) === 0;
           elements.wizardNext.disabled = !canCompleteWizardStep(wizardStep);
           elements.wizardNextText.textContent = wizardStep === "text" ? "Accepter" : "Suivant";
+          updatePreviewActionButton();
+        }
+
+        function getPreviewAction() {
+          if (wizardStep === "left") {
+            return state.images.left
+              ? { action: "next", icon: "arrow-right", label: "Suivant" }
+              : { action: "left-upload", icon: "upload", label: "Image gauche" };
+          }
+
+          if (wizardStep === "right") {
+            return state.images.right
+              ? { action: "next", icon: "arrow-right", label: "Suivant" }
+              : { action: "right-upload", icon: "upload", label: "Image droite" };
+          }
+
+          if (wizardStep === "text") {
+            return { action: "next", icon: "check", label: "Accepter" };
+          }
+
+          return { action: "print", icon: "printer", label: "Imprimer" };
+        }
+
+        function updatePreviewActionButton() {
+          const config = getPreviewAction();
+          elements.previewActionButton.dataset.previewAction = config.action;
+          elements.previewActionText.textContent = config.label;
+
+          const currentIcon = elements.previewActionIcon.querySelector("[data-lucide]");
+          if (currentIcon?.dataset.lucide === config.icon) return;
+
+          elements.previewActionIcon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
+          renderIcons();
+        }
+
+        function handlePreviewAction() {
+          if (!state.minimalMode) return;
+
+          const action = elements.previewActionButton.dataset.previewAction;
+          if (action === "left-upload") {
+            elements.leftImage.click();
+            return;
+          }
+          if (action === "right-upload") {
+            elements.rightImage.click();
+            return;
+          }
+          if (action === "print") {
+            printMug();
+            return;
+          }
+
+          goToNextWizardStep();
+        }
+
+        function handleStageFrameClick(event) {
+          if (!state.minimalMode || wizardStep !== "text") return;
+          const target = event.target instanceof Element ? event.target : null;
+          if (target?.closest("#previewActionButton")) return;
+
+          focusWizardStep();
         }
 
         function setFitMode(slot, mode) {
           state.fitModes[slot] = mode;
           updateFitButtons();
+          saveDefaultPreferences();
           render();
         }
 
@@ -2585,6 +2880,7 @@
           }
           updateColorControls();
           updateFontPreviewSamples();
+          saveDefaultPreferences();
           render();
         }
 
@@ -2594,6 +2890,7 @@
           updateTextFormatButtons();
           updateColorControls();
           updateFontPreviewSamples();
+          saveDefaultPreferences();
           render();
         }
 
@@ -2626,6 +2923,7 @@
 
           state.textPosition = position;
           updateTextPositionButtons();
+          saveDefaultPreferences();
           render();
         }
 
@@ -2639,6 +2937,7 @@
           state.textFont = FONT_OPTIONS[fontKey] ? fontKey : DEFAULT_TEXT_FONT;
           elements.fontSelect.value = state.textFont;
           updateFontPreviewSelection();
+          saveDefaultPreferences();
           render();
           ensureTextFontLoaded().then(render);
         }
@@ -2665,6 +2964,7 @@
               width: image.naturalWidth,
               height: image.naturalHeight,
             };
+            autoSetFitModeForImage(slot, state.images[slot]);
             setFileName(slot, file.name);
             updateRemoveButtons();
             updateWizardUI();
@@ -2688,6 +2988,22 @@
             reader.onerror = reject;
             reader.readAsDataURL(file);
           });
+        }
+
+        function autoSetFitModeForImage(slot, item) {
+          if (!state.minimalMode || !item) return;
+
+          state.fitModes[slot] = isTallImageForSlot(slot, item) ? "resize" : DEFAULT_FIT_MODES[slot];
+          updateFitButtons();
+        }
+
+        function isTallImageForSlot(slot, item) {
+          const zone = getZones()[slot];
+          if (!zone || !item.width || !item.height) return false;
+
+          const imageTallness = item.height / item.width;
+          const zoneTallness = zone.height / zone.width;
+          return imageTallness > zoneTallness * 1.12;
         }
 
         function setFileName(slot, name) {
@@ -2941,6 +3257,7 @@
           if (!SHEET_LAYOUTS[layout]) return;
           sheetLayout = layout;
           updateSheetLayoutButtons();
+          saveDefaultPreferences();
           resizeStage();
         }
 
@@ -3257,11 +3574,12 @@
           state.text = "";
           state.textPosition = "center";
           state.textFont = DEFAULT_TEXT_FONT;
-          state.fontSize = 138;
+          state.fontSize = DEFAULT_FONT_SIZE;
           state.textColor = DEFAULT_TEXT_COLOR;
           state.outlineColor = getDefaultOutlineColor(DEFAULT_TEXT_COLOR);
           state.textFormat = { ...DEFAULT_TEXT_FORMAT };
           state.mirrorPrint = true;
+          sheetLayout = "3up";
           elements.leftImage.value = "";
           elements.centerImage.value = "";
           elements.rightImage.value = "";
@@ -3282,6 +3600,8 @@
           updateTextPositionButtons();
           setTextColor(state.textColor);
           updateFitButtons();
+          updateSheetLayoutButtons();
+          saveDefaultPreferences();
           setStatus("Prêt");
           render();
         }
