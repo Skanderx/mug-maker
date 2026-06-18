@@ -238,10 +238,12 @@
       .slot-remove:focus-visible,
       .font-preview-close:focus-visible,
       .font-preview-option:focus-visible,
+      .image-shift-button:focus-visible,
       .swatch:focus-visible,
       textarea:focus-visible,
       select:focus-visible,
       input[type="range"]:focus-visible,
+      input[type="number"]:focus-visible,
       input[type="color"]:focus-visible {
         outline: 3px solid rgba(36, 87, 197, 0.35);
         outline-offset: 2px;
@@ -330,7 +332,7 @@
 
       .position-control {
         display: grid;
-        grid-template-columns: 86px minmax(0, 1fr);
+        grid-template-columns: 86px minmax(0, 1fr) 74px;
         gap: 8px;
         align-items: center;
       }
@@ -353,6 +355,33 @@
 
       .position-button {
         min-width: 0;
+      }
+
+      .position-percent-wrap {
+        min-height: 52px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        padding: 0 9px 0 8px;
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .position-percent {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        font-weight: 800;
+        text-align: right;
+      }
+
+      .position-percent:focus {
+        outline: 0;
       }
 
       .format-controls {
@@ -435,13 +464,6 @@
         color: var(--ink);
         background: #ffffff;
         line-height: 1.35;
-      }
-
-      .inline-controls {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 56px;
-        align-items: center;
-        gap: 12px;
       }
 
       .range-wrap {
@@ -615,7 +637,7 @@
         cursor: pointer;
       }
 
-      .palette-list {
+      .color-controls {
         display: grid;
         gap: 12px;
       }
@@ -625,44 +647,57 @@
         gap: 8px;
       }
 
+      .palette-title-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 56px;
+        align-items: center;
+        gap: 8px;
+      }
+
       .palette-title {
         color: var(--muted);
         font-size: 0.88rem;
         font-weight: 800;
       }
 
-      .palette-hint {
-        margin: 0;
+      .palette-section-title {
         color: var(--muted);
-        font-size: 0.78rem;
-        line-height: 1.4;
+        font-size: 0.76rem;
+        font-weight: 800;
       }
 
       .swatches {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 8px;
-      }
-
-      .outline-swatches {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 7px;
       }
 
       .swatch {
         width: 100%;
-        min-height: 44px;
+        min-height: 34px;
         border: 2px solid #ffffff;
         border-radius: 8px;
         box-shadow:
           0 0 0 1px var(--line),
-          0 4px 10px rgba(23, 32, 42, 0.1);
+          0 3px 8px rgba(23, 32, 42, 0.08);
         cursor: pointer;
       }
 
       .swatch[aria-pressed="true"] {
         box-shadow:
           0 0 0 3px var(--blue),
-          0 5px 14px rgba(36, 87, 197, 0.22);
+          0 4px 12px rgba(36, 87, 197, 0.2);
+      }
+
+      .outline-swatches {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .color-hint {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.78rem;
+        line-height: 1.4;
       }
 
       .actions {
@@ -747,6 +782,7 @@
       }
 
       .stage-frame {
+        position: relative;
         background: var(--canvas);
         border: 1px solid #aebdcb;
         border-radius: 8px;
@@ -757,6 +793,113 @@
 
       #stage {
         display: block;
+      }
+
+      .image-shift-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .image-shift-zone {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        pointer-events: auto;
+      }
+
+      .image-shift-zone[hidden] {
+        display: none;
+      }
+
+      .image-shift-zone::before {
+        content: "";
+        position: absolute;
+        inset: 5px;
+        border: 2px solid rgba(15, 118, 110, 0.42);
+        border-radius: 8px;
+        background: rgba(15, 118, 110, 0.06);
+        opacity: 0;
+        transition: opacity 140ms ease;
+      }
+
+      .image-shift-pad {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(3, 34px);
+        grid-template-rows: repeat(3, 34px);
+        gap: 4px;
+        padding: 7px;
+        border: 1px solid rgba(15, 118, 110, 0.28);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 10px 24px rgba(23, 32, 42, 0.16);
+        opacity: 0;
+        transform: scale(0.96);
+        transition:
+          opacity 140ms ease,
+          transform 140ms ease;
+      }
+
+      .image-shift-zone:hover::before,
+      .image-shift-zone:focus-within::before,
+      .image-shift-zone:hover .image-shift-pad,
+      .image-shift-zone:focus-within .image-shift-pad {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .image-shift-button {
+        inline-size: 34px;
+        block-size: 34px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--accent-strong);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .image-shift-button:hover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .image-shift-button .icon,
+      .image-shift-button .icon svg {
+        inline-size: 17px;
+        block-size: 17px;
+      }
+
+      .image-shift-button[data-nudge-direction="up"] {
+        grid-column: 2;
+        grid-row: 1;
+      }
+
+      .image-shift-button[data-nudge-direction="left"] {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .image-shift-button[data-nudge-direction="right"] {
+        grid-column: 3;
+        grid-row: 2;
+      }
+
+      .image-shift-button[data-nudge-direction="down"] {
+        grid-column: 2;
+        grid-row: 3;
+      }
+
+      @media (hover: none) {
+        .image-shift-zone::before,
+        .image-shift-pad {
+          opacity: 1;
+          transform: scale(1);
+        }
       }
 
       @media (max-width: 880px) {
@@ -872,12 +1015,14 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
                       <span>Horizontal</span>
                     </div>
-                    <div class="button-group five position-buttons" role="group" aria-label="Position horizontale de l'image gauche">
+                    <div class="button-group three position-buttons" role="group" aria-label="Position horizontale de l'image gauche">
                       <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image gauche vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image gauche au premier tiers"><span class="button-text">1/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image gauche centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image gauche au deuxième tiers"><span class="button-text">2/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image gauche vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
+                    </div>
+                    <div class="position-percent-wrap">
+                      <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="left" data-position-axis="x" aria-label="Position horizontale de l'image gauche en pourcentage">
+                      <span aria-hidden="true">%</span>
                     </div>
                   </div>
                   <div class="position-control">
@@ -885,12 +1030,14 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
                       <span>Vertical</span>
                     </div>
-                    <div class="button-group five position-buttons" role="group" aria-label="Position verticale de l'image gauche">
+                    <div class="button-group three position-buttons" role="group" aria-label="Position verticale de l'image gauche">
                       <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image gauche en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image gauche au premier tiers vertical"><span class="button-text">1/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image gauche au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image gauche au deuxième tiers vertical"><span class="button-text">2/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image gauche en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
+                    </div>
+                    <div class="position-percent-wrap">
+                      <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="left" data-position-axis="y" aria-label="Position verticale de l'image gauche en pourcentage">
+                      <span aria-hidden="true">%</span>
                     </div>
                   </div>
                 </div>
@@ -928,12 +1075,14 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
                       <span>Horizontal</span>
                     </div>
-                    <div class="button-group five position-buttons" role="group" aria-label="Position horizontale de l'image centrale">
+                    <div class="button-group three position-buttons" role="group" aria-label="Position horizontale de l'image centrale">
                       <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image centrale vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image centrale au premier tiers"><span class="button-text">1/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image centrale centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image centrale au deuxième tiers"><span class="button-text">2/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image centrale vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
+                    </div>
+                    <div class="position-percent-wrap">
+                      <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="center" data-position-axis="x" aria-label="Position horizontale de l'image centrale en pourcentage">
+                      <span aria-hidden="true">%</span>
                     </div>
                   </div>
                   <div class="position-control">
@@ -941,12 +1090,14 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
                       <span>Vertical</span>
                     </div>
-                    <div class="button-group five position-buttons" role="group" aria-label="Position verticale de l'image centrale">
+                    <div class="button-group three position-buttons" role="group" aria-label="Position verticale de l'image centrale">
                       <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image centrale en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image centrale au premier tiers vertical"><span class="button-text">1/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image centrale au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image centrale au deuxième tiers vertical"><span class="button-text">2/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image centrale en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
+                    </div>
+                    <div class="position-percent-wrap">
+                      <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="center" data-position-axis="y" aria-label="Position verticale de l'image centrale en pourcentage">
+                      <span aria-hidden="true">%</span>
                     </div>
                   </div>
                 </div>
@@ -984,12 +1135,14 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
                       <span>Horizontal</span>
                     </div>
-                    <div class="button-group five position-buttons" role="group" aria-label="Position horizontale de l'image droite">
+                    <div class="button-group three position-buttons" role="group" aria-label="Position horizontale de l'image droite">
                       <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image droite vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image droite au premier tiers"><span class="button-text">1/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image droite centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image droite au deuxième tiers"><span class="button-text">2/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image droite vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
+                    </div>
+                    <div class="position-percent-wrap">
+                      <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="right" data-position-axis="x" aria-label="Position horizontale de l'image droite en pourcentage">
+                      <span aria-hidden="true">%</span>
                     </div>
                   </div>
                   <div class="position-control">
@@ -997,12 +1150,14 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
                       <span>Vertical</span>
                     </div>
-                    <div class="button-group five position-buttons" role="group" aria-label="Position verticale de l'image droite">
+                    <div class="button-group three position-buttons" role="group" aria-label="Position verticale de l'image droite">
                       <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image droite en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0.3333333333333333" aria-pressed="false" aria-label="Image droite au premier tiers vertical"><span class="button-text">1/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image droite au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0.6666666666666666" aria-pressed="false" aria-label="Image droite au deuxième tiers vertical"><span class="button-text">2/3</span></button>
                       <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image droite en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
+                    </div>
+                    <div class="position-percent-wrap">
+                      <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="right" data-position-axis="y" aria-label="Position verticale de l'image droite en pourcentage">
+                      <span aria-hidden="true">%</span>
                     </div>
                   </div>
                 </div>
@@ -1087,43 +1242,38 @@
               </button>
             </div>
 
-            <div class="inline-controls">
-              <div class="range-wrap">
-                <div class="range-row">
-                  <span>Taille</span>
-                  <span id="fontSizeValue">138</span>
-                </div>
-                <input id="fontSize" type="range" min="64" max="220" step="2" value="138">
+            <div class="range-wrap">
+              <div class="range-row">
+                <span>Taille</span>
+                <span id="fontSizeValue">138</span>
               </div>
-              <input id="textColor" type="color" value="#17202a" aria-label="Couleur du texte">
+              <input id="fontSize" type="range" min="64" max="220" step="2" value="138">
             </div>
 
-            <div class="palette-list" aria-label="Couleurs prédéfinies du texte">
+            <div class="color-controls" aria-label="Couleurs">
               <div class="palette-group">
-                <div class="palette-title">Mignon</div>
-                <div class="swatches">
+                <div class="palette-title-row">
+                  <div class="palette-title">Couleur texte</div>
+                  <input id="textColor" type="color" value="#17202a" aria-label="Couleur du texte personnalisée">
+                </div>
+                <div class="palette-section-title">Mignon</div>
+                <div class="swatches" aria-label="Couleurs mignonnes du texte">
                   <button class="swatch" type="button" style="background: #ec4899" data-color="#ec4899" aria-label="Texte rose" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #f472b6" data-color="#f472b6" aria-label="Texte rose bonbon" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #a855f7" data-color="#a855f7" aria-label="Texte lavande" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #fb7185" data-color="#fb7185" aria-label="Texte corail" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #f59e0b" data-color="#f59e0b" aria-label="Texte doré" aria-pressed="false"></button>
                 </div>
-              </div>
-
-              <div class="palette-group">
-                <div class="palette-title">Vif</div>
-                <div class="swatches">
+                <div class="palette-section-title">Vif</div>
+                <div class="swatches" aria-label="Couleurs vives du texte">
                   <button class="swatch" type="button" style="background: #2563eb" data-color="#2563eb" aria-label="Texte bleu" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #0ea5e9" data-color="#0ea5e9" aria-label="Texte bleu ciel" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #14b8a6" data-color="#14b8a6" aria-label="Texte turquoise" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #22c55e" data-color="#22c55e" aria-label="Texte vert" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #f97316" data-color="#f97316" aria-label="Texte orange" aria-pressed="false"></button>
                 </div>
-              </div>
-
-              <div class="palette-group">
-                <div class="palette-title">Professionnel</div>
-                <div class="swatches">
+                <div class="palette-section-title">Professionnel</div>
+                <div class="swatches" aria-label="Couleurs professionnelles du texte">
                   <button class="swatch" type="button" style="background: #17202a" data-color="#17202a" aria-label="Texte encre" aria-pressed="true"></button>
                   <button class="swatch" type="button" style="background: #334155" data-color="#334155" aria-label="Texte ardoise" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #7f1d1d" data-color="#7f1d1d" aria-label="Texte bordeaux" aria-pressed="false"></button>
@@ -1133,16 +1283,18 @@
               </div>
 
               <div class="palette-group">
-                <div class="palette-title">Contour</div>
-                <div id="outlineSwatches" class="swatches outline-swatches" aria-label="Couleurs du contour">
-                  <button class="swatch" type="button" style="background: #7592b3" data-outline-color="#7592b3" aria-label="Contour ton sur ton" aria-pressed="true"></button>
-                  <button class="swatch" type="button" style="background: #1b1b1f" data-outline-color="#1b1b1f" aria-label="Contour charbon" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #ffffff" data-outline-color="#ffffff" aria-label="Contour blanc" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #c9a227" data-outline-color="#c9a227" aria-label="Contour or" aria-pressed="false"></button>
+                <div class="palette-title-row">
+                  <div class="palette-title">Couleur contour</div>
+                  <input id="outlineColor" type="color" value="#7592b3" aria-label="Couleur du contour personnalisée">
                 </div>
-                <input id="outlineColor" type="color" value="#7592b3" aria-label="Couleur du contour personnalisée">
-                <p class="palette-hint">Choisi automatiquement pour s'accorder au texte — ou choisis ta propre teinte.</p>
+                <div class="swatches outline-swatches" aria-label="Couleurs du contour">
+                  <button class="swatch" type="button" style="background: #7592b3" data-outline-preset="tonal" aria-label="Contour ton sur ton" aria-pressed="true"></button>
+                  <button class="swatch" type="button" style="background: #1b1b1f" data-outline-preset="charcoal" aria-label="Contour charbon" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #ffffff" data-outline-preset="white" aria-label="Contour blanc" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #c9a227" data-outline-preset="gold" aria-label="Contour or" aria-pressed="false"></button>
+                </div>
               </div>
+              <p class="color-hint">Le contour ton sur ton s'accorde automatiquement au texte. Les deux pipettes restent disponibles pour une teinte libre.</p>
             </div>
           </section>
 
@@ -1186,6 +1338,7 @@
         <div class="stage-area">
           <div class="stage-frame">
             <div id="stage"></div>
+            <div id="imageShiftOverlay" class="image-shift-overlay" aria-label="Déplacement des images dans l'aperçu"></div>
           </div>
         </div>
       </section>
@@ -1229,6 +1382,18 @@
           center: { ...DEFAULT_IMAGE_POSITION },
           right: { ...DEFAULT_IMAGE_POSITION },
         };
+        const IMAGE_SHIFT_STEP = 0.04;
+        const IMAGE_SHIFT_DIRECTIONS = {
+          up: { axis: "y", delta: -IMAGE_SHIFT_STEP, icon: "arrow-up", label: "Monter l'image" },
+          left: { axis: "x", delta: -IMAGE_SHIFT_STEP, icon: "arrow-left", label: "Décaler l'image à gauche" },
+          right: { axis: "x", delta: IMAGE_SHIFT_STEP, icon: "arrow-right", label: "Décaler l'image à droite" },
+          down: { axis: "y", delta: IMAGE_SHIFT_STEP, icon: "arrow-down", label: "Descendre l'image" },
+        };
+        const IMAGE_SLOT_LABELS = {
+          left: "gauche",
+          center: "centrale",
+          right: "droite",
+        };
         const DEFAULT_FILE_LABELS = {
           left: "Aucune image choisie",
           center: "Facultatif",
@@ -1242,10 +1407,10 @@
         };
         const DEFAULT_TEXT_COLOR = "#17202a";
         const OUTLINE_PRESETS = [
-          { label: "ton sur ton", tonal: true },
-          { label: "charbon", color: "#1b1b1f" },
-          { label: "blanc", color: "#ffffff" },
-          { label: "or", color: "#c9a227" },
+          { id: "tonal", label: "ton sur ton", tonal: true },
+          { id: "charcoal", label: "charbon", color: "#1b1b1f" },
+          { id: "white", label: "blanc", color: "#ffffff" },
+          { id: "gold", label: "or", color: "#c9a227" },
         ];
         const DEFAULT_TEXT_FONT = "geist";
         const FONT_OPTIONS = {
@@ -1313,6 +1478,7 @@
         const elements = {
           stage: document.querySelector("#stage"),
           stageFrame: document.querySelector(".stage-frame"),
+          imageShiftOverlay: document.querySelector("#imageShiftOverlay"),
           leftImage: document.querySelector("#leftImage"),
           centerImage: document.querySelector("#centerImage"),
           rightImage: document.querySelector("#rightImage"),
@@ -1322,7 +1488,8 @@
           removeButtons: Array.from(document.querySelectorAll("[data-remove-slot]")),
           layoutButtons: Array.from(document.querySelectorAll("[data-layout]")),
           fitButtons: Array.from(document.querySelectorAll("[data-fit-slot]")),
-          positionControls: Array.from(document.querySelectorAll("[data-position-slot]")),
+          positionControls: Array.from(document.querySelectorAll("[data-position-value]")),
+          positionInputs: Array.from(document.querySelectorAll("[data-position-input]")),
           textInput: document.querySelector("#textInput"),
           fontSelect: document.querySelector("#fontSelect"),
           fontPreviewButton: document.querySelector("#fontPreviewButton"),
@@ -1333,10 +1500,10 @@
           fontSizeValue: document.querySelector("#fontSizeValue"),
           textColor: document.querySelector("#textColor"),
           outlineColor: document.querySelector("#outlineColor"),
+          colorPresetButtons: Array.from(document.querySelectorAll("[data-color]")),
+          outlinePresetButtons: Array.from(document.querySelectorAll("[data-outline-preset]")),
           textFormatButtons: Array.from(document.querySelectorAll("[data-text-format]")),
           textPositionButtons: Array.from(document.querySelectorAll("[data-text-position]")),
-          colorPresetButtons: Array.from(document.querySelectorAll("[data-color]")),
-          outlineColorButtons: Array.from(document.querySelectorAll("[data-outline-color]")),
           downloadButton: document.querySelector("#downloadButton"),
           downloadMirrorButton: document.querySelector("#downloadMirrorButton"),
           printButton: document.querySelector("#printButton"),
@@ -1391,6 +1558,21 @@
           });
         });
 
+        elements.positionInputs.forEach((input) => {
+          input.addEventListener("input", () => {
+            const position = getPositionFromPercent(input.value);
+            if (position === null) return;
+            setImagePosition(input.dataset.positionSlot, input.dataset.positionAxis, position);
+          });
+        });
+
+        elements.imageShiftOverlay.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-nudge-slot]");
+          if (!button) return;
+
+          nudgeImagePosition(button.dataset.nudgeSlot, button.dataset.nudgeDirection);
+        });
+
         elements.textInput.addEventListener("input", () => {
           state.text = elements.textInput.value;
           updateFontPreviewSamples();
@@ -1441,6 +1623,13 @@
           setTextColor(elements.textColor.value);
         });
 
+        elements.colorPresetButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setTextColor(button.dataset.color);
+            setStatus("Couleur choisie");
+          });
+        });
+
         elements.textFormatButtons.forEach((button) => {
           button.addEventListener("click", () => {
             const key = button.dataset.textFormat;
@@ -1457,16 +1646,9 @@
           });
         });
 
-        elements.colorPresetButtons.forEach((button) => {
+        elements.outlinePresetButtons.forEach((button) => {
           button.addEventListener("click", () => {
-            setTextColor(button.dataset.color);
-            setStatus("Couleur choisie");
-          });
-        });
-
-        elements.outlineColorButtons.forEach((button) => {
-          button.addEventListener("click", () => {
-            setOutlineColor(button.dataset.outlineColor);
+            setOutlineColor(getOutlineColorFromPreset(button.dataset.outlinePreset));
             setStatus("Contour choisi");
           });
         });
@@ -1487,7 +1669,8 @@
         updateLayoutButtons();
         updatePositionControls();
         updateRemoveButtons();
-        updateOutlineColorButtons();
+        updateColorControls();
+        buildImageShiftOverlay();
         buildFontPreviewList();
         updateFontPreviewSamples();
         renderIcons();
@@ -1520,6 +1703,66 @@
               focusable: "false",
             },
           });
+        }
+
+        function buildImageShiftOverlay() {
+          elements.imageShiftOverlay.textContent = "";
+          ["left", "center", "right"].forEach((slot) => {
+            const zone = document.createElement("div");
+            zone.className = "image-shift-zone";
+            zone.dataset.shiftZone = slot;
+            zone.hidden = true;
+
+            const pad = document.createElement("div");
+            pad.className = "image-shift-pad";
+
+            Object.entries(IMAGE_SHIFT_DIRECTIONS).forEach(([direction, config]) => {
+              const button = document.createElement("button");
+              button.type = "button";
+              button.className = "image-shift-button";
+              button.dataset.nudgeSlot = slot;
+              button.dataset.nudgeDirection = direction;
+              button.setAttribute("aria-label", `${config.label} ${IMAGE_SLOT_LABELS[slot]}`);
+
+              const icon = document.createElement("span");
+              icon.className = "icon";
+              icon.setAttribute("aria-hidden", "true");
+              icon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
+              button.appendChild(icon);
+              pad.appendChild(button);
+            });
+
+            zone.appendChild(pad);
+            elements.imageShiftOverlay.appendChild(zone);
+          });
+          updateImageShiftOverlay();
+        }
+
+        function updateImageShiftOverlay() {
+          const scale = stage.width() / EXPORT_WIDTH;
+          const zones = getZones();
+          elements.imageShiftOverlay.querySelectorAll("[data-shift-zone]").forEach((zoneElement) => {
+            const slot = zoneElement.dataset.shiftZone;
+            const zone = zones[slot];
+            const hasImage = Boolean(state.images[slot]);
+            zoneElement.hidden = !hasImage;
+            if (!zone) return;
+
+            zoneElement.style.left = `${Math.round(zone.x * scale)}px`;
+            zoneElement.style.top = `${Math.round(zone.y * scale)}px`;
+            zoneElement.style.width = `${Math.round(zone.width * scale)}px`;
+            zoneElement.style.height = `${Math.round(zone.height * scale)}px`;
+          });
+        }
+
+        function nudgeImagePosition(slot, direction) {
+          const config = IMAGE_SHIFT_DIRECTIONS[direction];
+          if (!config || !state.images[slot] || !state.imagePositions[slot]) return;
+
+          const current = state.imagePositions[slot][config.axis];
+          const next = Math.min(1, Math.max(0, current + config.delta));
+          setImagePosition(slot, config.axis, next);
+          setStatus("Image déplacée");
         }
 
         function buildFontPreviewList() {
@@ -1698,7 +1941,10 @@
         function setImagePosition(slot, axis, value) {
           if (!state.imagePositions[slot] || !["x", "y"].includes(axis)) return;
 
-          state.imagePositions[slot][axis] = Number(value);
+          const position = clampPosition(value);
+          if (position === null) return;
+
+          state.imagePositions[slot][axis] = position;
           updatePositionControls();
           render();
         }
@@ -1733,6 +1979,27 @@
             const isActive = Math.abs(current - target) < 0.0001;
             control.setAttribute("aria-pressed", isActive ? "true" : "false");
           });
+          elements.positionInputs.forEach((input) => {
+            const position = state.imagePositions[input.dataset.positionSlot];
+            if (!position) return;
+            input.value = getPositionPercent(position[input.dataset.positionAxis]);
+          });
+        }
+
+        function clampPosition(value) {
+          const position = Number(value);
+          if (!Number.isFinite(position)) return null;
+          return Math.min(1, Math.max(0, position));
+        }
+
+        function getPositionFromPercent(value) {
+          const percent = Number(value);
+          if (!Number.isFinite(percent)) return null;
+          return Math.min(1, Math.max(0, percent / 100));
+        }
+
+        function getPositionPercent(value) {
+          return String(Math.round((clampPosition(value) ?? DEFAULT_IMAGE_POSITION.x) * 100));
         }
 
         function normalizeHex(color) {
@@ -1861,10 +2128,7 @@
           if (options.syncOutline !== false) {
             state.outlineColor = getDefaultOutlineColor(normalized);
           }
-          elements.colorPresetButtons.forEach((button) => {
-            button.setAttribute("aria-pressed", normalizeHex(button.dataset.color) === normalized ? "true" : "false");
-          });
-          updateOutlineColorButtons();
+          updateColorControls();
           updateFontPreviewSamples();
           render();
         }
@@ -1873,23 +2137,27 @@
           state.outlineColor = normalizeHex(color);
           state.textFormat.outline = true;
           updateTextFormatButtons();
-          updateOutlineColorButtons();
+          updateColorControls();
           updateFontPreviewSamples();
           render();
         }
 
-        function updateOutlineColorButtons() {
-          const options = getOutlineColorOptions(state.textColor);
-          elements.outlineColorButtons.forEach((button, index) => {
-            const color = options[index] || options[0];
-            const preset = OUTLINE_PRESETS[index] || OUTLINE_PRESETS[0];
-            button.dataset.outlineColor = color;
-            button.style.background = color;
-            button.setAttribute("aria-label", `Contour ${preset.label}`);
-            button.title = `Contour ${preset.label}`;
-            button.setAttribute("aria-pressed", state.outlineColor === color ? "true" : "false");
-          });
+        function updateColorControls() {
+          elements.textColor.value = state.textColor;
           elements.outlineColor.value = state.outlineColor;
+          elements.colorPresetButtons.forEach((button) => {
+            button.setAttribute("aria-pressed", normalizeHex(button.dataset.color) === state.textColor ? "true" : "false");
+          });
+          elements.outlinePresetButtons.forEach((button) => {
+            const color = getOutlineColorFromPreset(button.dataset.outlinePreset);
+            button.style.background = color;
+            button.setAttribute("aria-pressed", normalizeHex(color) === state.outlineColor ? "true" : "false");
+          });
+        }
+
+        function getOutlineColorFromPreset(presetId) {
+          const preset = OUTLINE_PRESETS.find((item) => item.id === presetId) || OUTLINE_PRESETS[0];
+          return preset.tonal ? getTonalOutlineColor(state.textColor) : preset.color;
         }
 
         function updateTextFormatButtons() {
@@ -1995,10 +2263,12 @@
           guideLayer.scale({ x: scale, y: scale });
           elements.stageFrame.style.width = `${width}px`;
           elements.stageFrame.style.height = `${height}px`;
+          updateImageShiftOverlay();
           render();
         }
 
         function render() {
+          updateImageShiftOverlay();
           contentLayer.destroyChildren();
           guideLayer.destroyChildren();
 
