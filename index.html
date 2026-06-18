@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Créateur de mugs</title>
+    <script src="https://cdn.jsdelivr.net/npm/konva@10.3.0/konva.min.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #eef3f7;
+        --panel: #ffffff;
+        --ink: #17202a;
+        --muted: #5a6776;
+        --line: #cdd8e3;
+        --accent: #0f766e;
+        --accent-strong: #115e59;
+        --accent-soft: #d8f3ef;
+        --blue: #2457c5;
+        --warning: #b45309;
+        --canvas: #ffffff;
+        --shadow: 0 18px 40px rgba(23, 32, 42, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: minmax(300px, 390px) minmax(0, 1fr);
+      }
+
+      .controls {
+        background: var(--panel);
+        border-right: 1px solid var(--line);
+        padding: 22px;
+        overflow: auto;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.55rem;
+        line-height: 1.1;
+      }
+
+      .size-note {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-top: 4px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .control-block {
+        display: grid;
+        gap: 10px;
+      }
+
+      .control-label {
+        color: var(--ink);
+        font-weight: 750;
+        font-size: 0.98rem;
+      }
+
+      .upload-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .upload-row {
+        display: grid;
+        gap: 7px;
+      }
+
+      .upload-main {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      .file-name {
+        min-height: 1.2em;
+        color: var(--muted);
+        font-size: 0.88rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      input[type="file"] {
+        inline-size: 1px;
+        block-size: 1px;
+        opacity: 0;
+        position: absolute;
+        pointer-events: none;
+      }
+
+      .button,
+      .upload-button,
+      .mode-button {
+        min-height: 56px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 12px 16px;
+        font-weight: 800;
+        cursor: pointer;
+        text-align: center;
+        line-height: 1.15;
+        user-select: none;
+      }
+
+      .button:hover,
+      .upload-button:hover,
+      .mode-button:hover {
+        border-color: #9eb0c2;
+      }
+
+      .button:focus-visible,
+      .upload-button:focus-visible,
+      .mode-button:focus-visible,
+      .swatch:focus-visible,
+      textarea:focus-visible,
+      input[type="range"]:focus-visible,
+      input[type="color"]:focus-visible {
+        outline: 3px solid rgba(36, 87, 197, 0.35);
+        outline-offset: 2px;
+      }
+
+      .button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #ffffff;
+      }
+
+      .button.primary:hover {
+        background: var(--accent-strong);
+      }
+
+      .button.secondary {
+        background: #f8fafc;
+      }
+
+      .button.danger {
+        background: #b91c1c;
+        border-color: #b91c1c;
+        color: #ffffff;
+      }
+
+      .button.danger:hover {
+        background: #991b1b;
+        border-color: #991b1b;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .fit-label {
+        color: var(--muted);
+        font-size: 0.9rem;
+        font-weight: 800;
+      }
+
+      .upload-main .mode-button {
+        min-height: 56px;
+        padding-inline: 8px;
+        font-size: 0.9rem;
+      }
+
+      .format-controls {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .format-controls .mode-button {
+        min-height: 50px;
+        padding-inline: 8px;
+      }
+
+      .mode-button[aria-pressed="true"] {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent-strong);
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 108px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        resize: vertical;
+        padding: 14px;
+        color: var(--ink);
+        background: #ffffff;
+        line-height: 1.35;
+      }
+
+      .inline-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 56px;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .range-wrap {
+        display: grid;
+        gap: 6px;
+      }
+
+      .range-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--blue);
+      }
+
+      input[type="color"] {
+        width: 56px;
+        height: 56px;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+        cursor: pointer;
+      }
+
+      .palette-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .palette-group {
+        display: grid;
+        gap: 8px;
+      }
+
+      .palette-title {
+        color: var(--muted);
+        font-size: 0.88rem;
+        font-weight: 800;
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .swatch {
+        width: 100%;
+        min-height: 44px;
+        border: 2px solid #ffffff;
+        border-radius: 8px;
+        box-shadow:
+          0 0 0 1px var(--line),
+          0 4px 10px rgba(23, 32, 42, 0.1);
+        cursor: pointer;
+      }
+
+      .swatch[aria-pressed="true"] {
+        box-shadow:
+          0 0 0 3px var(--blue),
+          0 5px 14px rgba(36, 87, 197, 0.22);
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .status {
+        min-height: 1.4em;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .status.warning {
+        color: var(--warning);
+        font-weight: 750;
+      }
+
+      .preview {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .preview-top {
+        min-height: 78px;
+        padding: 18px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .preview-title {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+
+      .preview-meta {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .stage-area {
+        flex: 1;
+        min-height: 0;
+        padding: 24px;
+        display: grid;
+        place-items: center;
+        overflow: auto;
+      }
+
+      .stage-frame {
+        background: var(--canvas);
+        border: 1px solid #aebdcb;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        max-width: 100%;
+      }
+
+      #stage {
+        display: block;
+      }
+
+      @media (max-width: 880px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        .controls {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .preview-top {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .controls,
+        .preview-top,
+        .stage-area {
+          padding: 16px;
+        }
+
+        .brand {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .upload-main {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <aside class="controls" aria-label="Commandes de création du mug">
+        <div class="brand">
+          <div>
+            <h1>Créateur de mugs</h1>
+            <div class="size-note">2550 x 1050 PNG</div>
+          </div>
+        </div>
+
+        <div class="stack">
+          <section class="control-block" aria-labelledby="images-heading">
+            <div id="images-heading" class="control-label">Images</div>
+            <div class="upload-list">
+              <div class="upload-row">
+                <div class="fit-label">Gauche</div>
+                <div class="upload-main">
+                  <label class="upload-button" for="leftImage">Image gauche</label>
+                  <div class="segmented" role="group" aria-label="Ajustement de l'image gauche">
+                    <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="cut" aria-pressed="true">Couper</button>
+                    <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="resize" aria-pressed="false">Tout afficher</button>
+                  </div>
+                </div>
+                <input id="leftImage" type="file" accept="image/*">
+                <div id="leftName" class="file-name">Aucune image choisie</div>
+              </div>
+
+              <div class="upload-row">
+                <div class="fit-label">Centre</div>
+                <div class="upload-main">
+                  <label class="upload-button" for="centerImage">Image centrale</label>
+                  <div class="segmented" role="group" aria-label="Ajustement de l'image centrale">
+                    <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="cut" aria-pressed="true">Couper</button>
+                    <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="resize" aria-pressed="false">Tout afficher</button>
+                  </div>
+                </div>
+                <input id="centerImage" type="file" accept="image/*">
+                <div id="centerName" class="file-name">Facultatif</div>
+              </div>
+
+              <div class="upload-row">
+                <div class="fit-label">Droite</div>
+                <div class="upload-main">
+                  <label class="upload-button" for="rightImage">Image droite</label>
+                  <div class="segmented" role="group" aria-label="Ajustement de l'image droite">
+                    <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="cut" aria-pressed="true">Couper</button>
+                    <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="resize" aria-pressed="false">Tout afficher</button>
+                  </div>
+                </div>
+                <input id="rightImage" type="file" accept="image/*">
+                <div id="rightName" class="file-name">Aucune image choisie</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="control-block" aria-labelledby="text-heading">
+            <div id="text-heading" class="control-label">Texte central</div>
+            <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
+
+            <div class="format-controls" aria-label="Options de format du texte">
+              <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">Gras</button>
+              <button class="mode-button" type="button" data-text-format="italic" aria-pressed="false">Italique</button>
+              <button class="mode-button" type="button" data-text-format="outline" aria-pressed="false">Contour</button>
+              <button class="mode-button" type="button" data-text-format="shadow" aria-pressed="false">Ombre</button>
+            </div>
+
+            <div class="inline-controls">
+              <div class="range-wrap">
+                <div class="range-row">
+                  <span>Taille</span>
+                  <span id="fontSizeValue">138</span>
+                </div>
+                <input id="fontSize" type="range" min="64" max="220" step="2" value="138">
+              </div>
+              <input id="textColor" type="color" value="#17202a" aria-label="Couleur du texte">
+            </div>
+
+            <div class="palette-list" aria-label="Couleurs prédéfinies du texte">
+              <div class="palette-group">
+                <div class="palette-title">Mignon</div>
+                <div class="swatches">
+                  <button class="swatch" type="button" style="background: #ec4899" data-color="#ec4899" aria-label="Texte rose" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #f472b6" data-color="#f472b6" aria-label="Texte rose bonbon" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #a855f7" data-color="#a855f7" aria-label="Texte lavande" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #fb7185" data-color="#fb7185" aria-label="Texte corail" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #f59e0b" data-color="#f59e0b" aria-label="Texte doré" aria-pressed="false"></button>
+                </div>
+              </div>
+
+              <div class="palette-group">
+                <div class="palette-title">Vif</div>
+                <div class="swatches">
+                  <button class="swatch" type="button" style="background: #2563eb" data-color="#2563eb" aria-label="Texte bleu" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #0ea5e9" data-color="#0ea5e9" aria-label="Texte bleu ciel" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #14b8a6" data-color="#14b8a6" aria-label="Texte turquoise" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #22c55e" data-color="#22c55e" aria-label="Texte vert" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #f97316" data-color="#f97316" aria-label="Texte orange" aria-pressed="false"></button>
+                </div>
+              </div>
+
+              <div class="palette-group">
+                <div class="palette-title">Professionnel</div>
+                <div class="swatches">
+                  <button class="swatch" type="button" style="background: #17202a" data-color="#17202a" aria-label="Texte encre" aria-pressed="true"></button>
+                  <button class="swatch" type="button" style="background: #334155" data-color="#334155" aria-label="Texte ardoise" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #7f1d1d" data-color="#7f1d1d" aria-label="Texte bordeaux" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #14532d" data-color="#14532d" aria-label="Texte vert forêt" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #0f766e" data-color="#0f766e" aria-label="Texte sarcelle foncé" aria-pressed="false"></button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="actions" aria-label="Actions">
+            <button id="downloadButton" class="button primary" type="button">Télécharger PNG</button>
+            <button id="printButton" class="button secondary" type="button">Imprimer</button>
+            <button id="clearButton" class="button danger" type="button">Supprimer</button>
+            <div id="status" class="status" role="status">Prêt</div>
+          </section>
+        </div>
+      </aside>
+
+      <section class="preview" aria-label="Aperçu du visuel pour mug">
+        <div class="preview-top">
+          <div>
+            <h2 class="preview-title">Aperçu</h2>
+            <div class="preview-meta">Image gauche, texte central, image droite</div>
+          </div>
+          <div class="preview-meta">8,5 x 3,5 pouces à 300 PPP</div>
+        </div>
+        <div class="stage-area">
+          <div class="stage-frame">
+            <div id="stage"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const EXPORT_WIDTH = 2550;
+        const EXPORT_HEIGHT = 1050;
+        const ZONES = {
+          left: { x: 0, y: 0, width: 900, height: EXPORT_HEIGHT },
+          center: { x: 900, y: 0, width: 750, height: EXPORT_HEIGHT },
+          right: { x: 1650, y: 0, width: 900, height: EXPORT_HEIGHT },
+        };
+        const DEFAULT_FIT_MODES = {
+          left: "cut",
+          center: "cut",
+          right: "cut",
+        };
+        const DEFAULT_TEXT_FORMAT = {
+          bold: true,
+          italic: false,
+          outline: false,
+          shadow: false,
+        };
+
+        const state = {
+          fitModes: { ...DEFAULT_FIT_MODES },
+          text: "",
+          fontSize: 138,
+          textColor: "#17202a",
+          textFormat: { ...DEFAULT_TEXT_FORMAT },
+          images: {
+            left: null,
+            center: null,
+            right: null,
+          },
+        };
+
+        const elements = {
+          stage: document.querySelector("#stage"),
+          stageFrame: document.querySelector(".stage-frame"),
+          leftImage: document.querySelector("#leftImage"),
+          centerImage: document.querySelector("#centerImage"),
+          rightImage: document.querySelector("#rightImage"),
+          leftName: document.querySelector("#leftName"),
+          centerName: document.querySelector("#centerName"),
+          rightName: document.querySelector("#rightName"),
+          fitButtons: Array.from(document.querySelectorAll("[data-fit-slot]")),
+          textInput: document.querySelector("#textInput"),
+          fontSize: document.querySelector("#fontSize"),
+          fontSizeValue: document.querySelector("#fontSizeValue"),
+          textColor: document.querySelector("#textColor"),
+          textFormatButtons: Array.from(document.querySelectorAll("[data-text-format]")),
+          colorPresetButtons: Array.from(document.querySelectorAll(".swatch")),
+          downloadButton: document.querySelector("#downloadButton"),
+          printButton: document.querySelector("#printButton"),
+          clearButton: document.querySelector("#clearButton"),
+          status: document.querySelector("#status"),
+        };
+
+        if (!window.Konva) {
+          setStatus("Konva n'a pas chargé. Vérifiez la connexion CDN.", true);
+          return;
+        }
+
+        const stage = new Konva.Stage({
+          container: "stage",
+          width: 1020,
+          height: 420,
+        });
+        const contentLayer = new Konva.Layer();
+        const guideLayer = new Konva.Layer({ listening: false });
+        stage.add(contentLayer);
+        stage.add(guideLayer);
+
+        const resizeObserver = new ResizeObserver(resizeStage);
+        resizeObserver.observe(document.querySelector(".stage-area"));
+
+        elements.leftImage.addEventListener("change", (event) => handleFile(event, "left"));
+        elements.centerImage.addEventListener("change", (event) => handleFile(event, "center"));
+        elements.rightImage.addEventListener("change", (event) => handleFile(event, "right"));
+
+        elements.fitButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setFitMode(button.dataset.fitSlot, button.dataset.fitMode);
+          });
+        });
+
+        elements.textInput.addEventListener("input", () => {
+          state.text = elements.textInput.value;
+          render();
+        });
+
+        elements.fontSize.addEventListener("input", () => {
+          state.fontSize = Number(elements.fontSize.value);
+          elements.fontSizeValue.textContent = String(state.fontSize);
+          render();
+        });
+
+        elements.textColor.addEventListener("input", () => {
+          setTextColor(elements.textColor.value);
+        });
+
+        elements.textFormatButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            const key = button.dataset.textFormat;
+            state.textFormat[key] = !state.textFormat[key];
+            updateTextFormatButtons();
+            render();
+          });
+        });
+
+        elements.colorPresetButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setTextColor(button.dataset.color);
+            setStatus("Couleur choisie");
+          });
+        });
+
+        elements.downloadButton.addEventListener("click", downloadPng);
+        elements.printButton.addEventListener("click", printMug);
+        elements.clearButton.addEventListener("click", clearAll);
+
+        resizeStage();
+        render();
+
+        function setStatus(message, isWarning = false) {
+          elements.status.textContent = message;
+          elements.status.classList.toggle("warning", isWarning);
+        }
+
+        function setFitMode(slot, mode) {
+          state.fitModes[slot] = mode;
+          updateFitButtons();
+          render();
+        }
+
+        function updateFitButtons() {
+          elements.fitButtons.forEach((button) => {
+            const isActive = state.fitModes[button.dataset.fitSlot] === button.dataset.fitMode;
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+          });
+        }
+
+        function setTextColor(color) {
+          state.textColor = color;
+          elements.textColor.value = color;
+          elements.colorPresetButtons.forEach((button) => {
+            button.setAttribute("aria-pressed", button.dataset.color === color ? "true" : "false");
+          });
+          render();
+        }
+
+        function updateTextFormatButtons() {
+          elements.textFormatButtons.forEach((button) => {
+            button.setAttribute("aria-pressed", state.textFormat[button.dataset.textFormat] ? "true" : "false");
+          });
+        }
+
+        async function handleFile(event, slot) {
+          const file = event.target.files && event.target.files[0];
+          if (!file) return;
+
+          try {
+            const image = await loadImage(file);
+            state.images[slot] = {
+              image,
+              name: file.name,
+              width: image.naturalWidth,
+              height: image.naturalHeight,
+            };
+            setFileName(slot, file.name);
+            setStatus("Image chargée");
+            render();
+          } catch (error) {
+            console.error(error);
+            setStatus("Impossible de lire cette image.", true);
+          }
+        }
+
+        function loadImage(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const image = new Image();
+              image.onload = () => resolve(image);
+              image.onerror = reject;
+              image.src = reader.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        }
+
+        function setFileName(slot, name) {
+          const target = {
+            left: elements.leftName,
+            center: elements.centerName,
+            right: elements.rightName,
+          }[slot];
+          target.textContent = name;
+          target.title = name;
+        }
+
+        function resizeStage() {
+          const area = document.querySelector(".stage-area");
+          const availableWidth = Math.max(area.clientWidth - 48, 320);
+          const availableHeight = Math.max(area.clientHeight - 48, 220);
+          const scale = Math.min(availableWidth / EXPORT_WIDTH, availableHeight / EXPORT_HEIGHT, 1);
+          const width = Math.round(EXPORT_WIDTH * scale);
+          const height = Math.round(EXPORT_HEIGHT * scale);
+          stage.width(width);
+          stage.height(height);
+          contentLayer.scale({ x: scale, y: scale });
+          guideLayer.scale({ x: scale, y: scale });
+          elements.stageFrame.style.width = `${width}px`;
+          elements.stageFrame.style.height = `${height}px`;
+          render();
+        }
+
+        function render() {
+          contentLayer.destroyChildren();
+          guideLayer.destroyChildren();
+
+          contentLayer.add(
+            new Konva.Rect({
+              x: 0,
+              y: 0,
+              width: EXPORT_WIDTH,
+              height: EXPORT_HEIGHT,
+              fill: "#ffffff",
+            }),
+          );
+
+          renderImageSlot("left");
+          renderImageSlot("center");
+          renderImageSlot("right");
+          renderText();
+          renderGuides();
+
+          contentLayer.batchDraw();
+          guideLayer.batchDraw();
+        }
+
+        function renderImageSlot(slot) {
+          const item = state.images[slot];
+          const zone = ZONES[slot];
+          const group = new Konva.Group({
+            clip: {
+              x: zone.x,
+              y: zone.y,
+              width: zone.width,
+              height: zone.height,
+            },
+          });
+
+          if (!item) {
+            group.add(
+              new Konva.Rect({
+                ...zone,
+                fill: "#ffffff",
+              }),
+            );
+            contentLayer.add(group);
+            return;
+          }
+
+          const placement = getPlacement(item, zone, state.fitModes[slot]);
+          group.add(
+            new Konva.Image({
+              image: item.image,
+              x: placement.x,
+              y: placement.y,
+              width: placement.width,
+              height: placement.height,
+            }),
+          );
+          contentLayer.add(group);
+        }
+
+        function getKonvaFontStyle() {
+          const styles = [];
+          if (state.textFormat.italic) styles.push("italic");
+          if (state.textFormat.bold) styles.push("bold");
+          return styles.length ? styles.join(" ") : "normal";
+        }
+
+        function getCanvasFont(fontSize) {
+          const style = state.textFormat.italic ? "italic " : "";
+          const weight = state.textFormat.bold ? "700" : "400";
+          return `${style}${weight} ${fontSize}px Arial, Helvetica, sans-serif`;
+        }
+
+        function renderText() {
+          const text = state.text.trim();
+          if (!text) return;
+
+          const zone = ZONES.center;
+          const padding = 46;
+          const maxWidth = zone.width - padding * 2;
+          const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
+          const strokeWidth = state.textFormat.outline ? Math.max(4, Math.round(layout.fontSize * 0.06)) : 0;
+          const shadowBlur = state.textFormat.shadow ? 8 : 0;
+          const node = new Konva.Text({
+            x: zone.x + padding,
+            y: 0,
+            width: maxWidth,
+            text: layout.lines.join("\n"),
+            fontSize: layout.fontSize,
+            fontFamily: "Arial, Helvetica, sans-serif",
+            fontStyle: getKonvaFontStyle(),
+            lineHeight: layout.lineHeight / layout.fontSize,
+            align: "center",
+            fill: state.textColor,
+            stroke: "#ffffff",
+            strokeWidth,
+            shadowColor: "rgba(0,0,0,0.22)",
+            shadowBlur,
+            shadowOffsetY: state.textFormat.shadow ? 4 : 0,
+            shadowOpacity: state.textFormat.shadow ? 0.45 : 0,
+            listening: false,
+          });
+          node.y((EXPORT_HEIGHT - node.height()) / 2);
+          contentLayer.add(node);
+        }
+
+        function renderGuides() {
+          const lineColor = "rgba(20, 33, 61, 0.24)";
+          guideLayer.add(
+            new Konva.Rect({
+              x: 1,
+              y: 1,
+              width: EXPORT_WIDTH - 2,
+              height: EXPORT_HEIGHT - 2,
+              stroke: "rgba(20, 33, 61, 0.42)",
+              strokeWidth: 3,
+            }),
+          );
+
+          [ZONES.center.x, ZONES.right.x].forEach((x) => {
+            guideLayer.add(
+              new Konva.Line({
+                points: [x, 0, x, EXPORT_HEIGHT],
+                stroke: lineColor,
+                strokeWidth: 4,
+                dash: [18, 18],
+              }),
+            );
+          });
+        }
+
+        function getPlacement(item, zone, mode) {
+          const scale =
+            mode === "cut"
+              ? Math.max(zone.width / item.width, zone.height / item.height)
+              : Math.min(zone.width / item.width, zone.height / item.height);
+          const width = item.width * scale;
+          const height = item.height * scale;
+          return {
+            x: zone.x + (zone.width - width) / 2,
+            y: zone.y + (zone.height - height) / 2,
+            width,
+            height,
+          };
+        }
+
+        function downloadPng() {
+          const canvas = createExportCanvas();
+
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              setStatus("Impossible de créer le PNG.", true);
+              return;
+            }
+
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = `creation-mug-${new Date().toISOString().slice(0, 10)}.png`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            URL.revokeObjectURL(url);
+            setStatus("PNG téléchargé");
+          }, "image/png");
+        }
+
+        function printMug() {
+          const canvas = createExportCanvas();
+          const imageUrl = canvas.toDataURL("image/png");
+          const iframe = document.createElement("iframe");
+          iframe.style.position = "fixed";
+          iframe.style.right = "0";
+          iframe.style.bottom = "0";
+          iframe.style.width = "0";
+          iframe.style.height = "0";
+          iframe.style.border = "0";
+          iframe.setAttribute("aria-hidden", "true");
+          document.body.appendChild(iframe);
+
+          const printDocument = iframe.contentWindow.document;
+          printDocument.open();
+          printDocument.write(`<!doctype html>
+            <html>
+              <head>
+                <title>Impression du mug</title>
+                <style>
+                  @page { size: A4 landscape; margin: 0; }
+                  html, body {
+                    width: 297mm;
+                    height: 210mm;
+                    margin: 0;
+                  }
+                  body {
+                    display: grid;
+                    place-items: center;
+                  }
+                  img {
+                    display: block;
+                    width: 8.5in;
+                    height: 3.5in;
+                  }
+                </style>
+              </head>
+              <body>
+                <img src="${imageUrl}" alt="Design du mug">
+              </body>
+            </html>`);
+          printDocument.close();
+
+          let didPrint = false;
+          const runPrint = () => {
+            if (didPrint) return;
+            didPrint = true;
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            setTimeout(() => iframe.remove(), 1000);
+          };
+          const printImage = printDocument.querySelector("img");
+          printImage.addEventListener("load", runPrint, { once: true });
+          if (printImage.complete) setTimeout(runPrint, 0);
+          setStatus("Fenêtre d'impression ouverte");
+        }
+
+        function createExportCanvas() {
+          const canvas = document.createElement("canvas");
+          canvas.width = EXPORT_WIDTH;
+          canvas.height = EXPORT_HEIGHT;
+          const context = canvas.getContext("2d");
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+
+          drawImageSlot(context, "left");
+          drawImageSlot(context, "center");
+          drawImageSlot(context, "right");
+          drawExportText(context);
+
+          return canvas;
+        }
+
+        function drawImageSlot(context, slot) {
+          const item = state.images[slot];
+          if (!item) return;
+
+          const zone = ZONES[slot];
+          const placement = getPlacement(item, zone, state.fitModes[slot]);
+          context.save();
+          context.beginPath();
+          context.rect(zone.x, zone.y, zone.width, zone.height);
+          context.clip();
+          context.drawImage(
+            item.image,
+            placement.x,
+            placement.y,
+            placement.width,
+            placement.height,
+          );
+          context.restore();
+        }
+
+        function drawExportText(context) {
+          const text = state.text.trim();
+          if (!text) return;
+
+          const zone = ZONES.center;
+          const padding = 46;
+          const maxWidth = zone.width - padding * 2;
+          const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
+          const fontSize = layout.fontSize;
+          const lineHeight = layout.lineHeight;
+          const lines = layout.lines;
+          const totalHeight = lines.length * lineHeight;
+          let y = zone.y + (zone.height - totalHeight) / 2 + fontSize;
+
+          context.save();
+          context.font = getCanvasFont(fontSize);
+          context.textAlign = "center";
+          context.textBaseline = "alphabetic";
+          context.lineJoin = "round";
+          context.strokeStyle = "#ffffff";
+          context.lineWidth = Math.max(8, Math.round(fontSize * 0.12));
+          context.fillStyle = state.textColor;
+          context.shadowColor = state.textFormat.shadow ? "rgba(0, 0, 0, 0.22)" : "rgba(0, 0, 0, 0)";
+          context.shadowBlur = state.textFormat.shadow ? 8 : 0;
+          context.shadowOffsetY = state.textFormat.shadow ? 4 : 0;
+
+          lines.forEach((line) => {
+            const x = zone.x + zone.width / 2;
+            if (state.textFormat.outline) context.strokeText(line, x, y);
+            context.fillText(line, x, y);
+            y += lineHeight;
+          });
+          context.restore();
+        }
+
+        function getTextLayout(text, maxWidth, maxHeight, requestedFontSize) {
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          let fontSize = requestedFontSize;
+          let lines = wrapText(context, text, maxWidth, fontSize);
+          let lineHeight = fontSize * 1.14;
+
+          while (fontSize > 34 && lines.length * lineHeight > maxHeight) {
+            fontSize -= 2;
+            lines = wrapText(context, text, maxWidth, fontSize);
+            lineHeight = fontSize * 1.14;
+          }
+
+          return { fontSize, lineHeight, lines };
+        }
+
+        function wrapText(context, text, maxWidth, fontSize) {
+          context.font = getCanvasFont(fontSize);
+          const output = [];
+
+          text.split(/\n/).forEach((paragraph) => {
+            const words = paragraph.trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) {
+              output.push("");
+              return;
+            }
+
+            let line = "";
+            words.forEach((word) => {
+              if (context.measureText(word).width > maxWidth) {
+                if (line) {
+                  output.push(line);
+                  line = "";
+                }
+
+                const chunks = splitLongWord(context, word, maxWidth);
+                output.push(...chunks.slice(0, -1));
+                line = chunks[chunks.length - 1] || "";
+                return;
+              }
+
+              const test = line ? `${line} ${word}` : word;
+              if (context.measureText(test).width <= maxWidth) {
+                line = test;
+                return;
+              }
+
+              if (line) output.push(line);
+              line = word;
+            });
+            if (line) output.push(line);
+          });
+
+          return output;
+        }
+
+        function splitLongWord(context, word, maxWidth) {
+          const chunks = [];
+          let current = "";
+          [...word].forEach((character) => {
+            const test = current + character;
+            if (context.measureText(test).width <= maxWidth) {
+              current = test;
+              return;
+            }
+            if (current) chunks.push(current);
+            current = character;
+          });
+          if (current) chunks.push(current);
+          return chunks;
+        }
+
+        function clearAll() {
+          const confirmed = window.confirm(
+            "Supprimer tout le design ? Cette action efface les images, le texte et les réglages.",
+          );
+          if (!confirmed) {
+            setStatus("Suppression annulée");
+            return;
+          }
+
+          state.images.left = null;
+          state.images.center = null;
+          state.images.right = null;
+          state.fitModes = { ...DEFAULT_FIT_MODES };
+          state.text = "";
+          state.fontSize = 138;
+          state.textColor = "#17202a";
+          state.textFormat = { ...DEFAULT_TEXT_FORMAT };
+          elements.leftImage.value = "";
+          elements.centerImage.value = "";
+          elements.rightImage.value = "";
+          elements.leftName.textContent = "Aucune image choisie";
+          elements.centerName.textContent = "Facultatif";
+          elements.rightName.textContent = "Aucune image choisie";
+          elements.textInput.value = "";
+          elements.fontSize.value = String(state.fontSize);
+          elements.fontSizeValue.textContent = String(state.fontSize);
+          updateTextFormatButtons();
+          setTextColor(state.textColor);
+          updateFitButtons();
+          setStatus("Prêt");
+          render();
+        }
+      })();
+    </script>
+  </body>
+</html>
