@@ -783,6 +783,96 @@
         font-size: 0.95rem;
       }
 
+      .preview-dims {
+        display: grid;
+        gap: 6px;
+        justify-items: end;
+        text-align: right;
+      }
+
+      .sheet-layout {
+        display: flex;
+        gap: 6px;
+      }
+
+      .sheet-option {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--muted);
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: 0.74rem;
+        cursor: pointer;
+      }
+
+      .sheet-option[aria-pressed="true"] {
+        border-color: var(--blue);
+        color: var(--ink);
+        box-shadow: 0 0 0 2px rgba(36, 87, 197, 0.18);
+      }
+
+      .queue-panel {
+        margin-top: 4px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        display: grid;
+        gap: 10px;
+        background: var(--panel);
+      }
+
+      .queue-panel[hidden] {
+        display: none;
+      }
+
+      .queue-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .queue-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      .queue-arrow {
+        width: 38px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        cursor: pointer;
+      }
+
+      .queue-arrow:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+
+      .queue-thumb {
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .queue-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .button.small {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+      }
+
       .stage-area {
         flex: 1;
         min-height: 0;
@@ -1367,6 +1457,21 @@
                 <span class="button-text">Miroir</span>
               </label>
             </div>
+            <button id="addToPageButton" class="button secondary" type="button">
+              <span class="icon" aria-hidden="true"><i data-lucide="copy-plus"></i></span>
+              <span class="button-text">Ajouter à la page</span>
+            </button>
+            <div id="queuePanel" class="queue-panel" hidden>
+              <div class="queue-nav">
+                <button id="queuePrev" class="queue-arrow" type="button" aria-label="Création précédente"><i data-lucide="chevron-left"></i></button>
+                <span id="queueLabel" class="queue-label">Création 1 / 1</span>
+                <button id="queueNext" class="queue-arrow" type="button" aria-label="Création suivante"><i data-lucide="chevron-right"></i></button>
+              </div>
+              <img id="queueThumb" class="queue-thumb" alt="Aperçu de la création en file d'attente">
+              <div class="queue-actions">
+                <button id="queueRemove" class="button danger small" type="button">Retirer cette création</button>
+              </div>
+            </div>
             <button id="clearButton" class="button danger" type="button">
               <span class="icon" aria-hidden="true"><i data-lucide="trash-2"></i></span>
               <span class="button-text">Supprimer</span>
@@ -1381,7 +1486,13 @@
             <h2 class="preview-title">Aperçu</h2>
             <div class="preview-meta">Image gauche, texte central, image droite</div>
           </div>
-          <div class="preview-meta">9 x 3,5 pouces à 300 PPP (mug 11 oz)</div>
+          <div class="preview-dims">
+            <div class="preview-meta">9 × 3,5 po · 229 × 89 mm (mug 11 oz)</div>
+            <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4">
+              <button type="button" class="sheet-option" data-sheet-layout="3up" aria-pressed="true">3 / page · 210×82 mm</button>
+              <button type="button" class="sheet-option" data-sheet-layout="4up" aria-pressed="false">4 / page · 190×74 mm</button>
+            </div>
+          </div>
         </div>
         <div class="stage-area">
           <div class="stage-frame">
@@ -1419,6 +1530,13 @@
           },
         };
         const DEFAULT_LAYOUT = "classic";
+        const SHEET_LAYOUTS = {
+          "3up": { perPage: 3, widthMm: 210, gapMm: 8 },
+          "4up": { perPage: 4, widthMm: 190, gapMm: 0 },
+        };
+        let printQueue = [];
+        let queueIndex = 0;
+        let sheetLayout = "3up";
         const DEFAULT_FIT_MODES = {
           left: "cut",
           center: "cut",
@@ -1550,6 +1668,14 @@
           fontSizeValue: document.querySelector("#fontSizeValue"),
           textColor: document.querySelector("#textColor"),
           outlineColor: document.querySelector("#outlineColor"),
+          addToPageButton: document.querySelector("#addToPageButton"),
+          queuePanel: document.querySelector("#queuePanel"),
+          queuePrev: document.querySelector("#queuePrev"),
+          queueNext: document.querySelector("#queueNext"),
+          queueLabel: document.querySelector("#queueLabel"),
+          queueThumb: document.querySelector("#queueThumb"),
+          queueRemove: document.querySelector("#queueRemove"),
+          sheetOptions: Array.from(document.querySelectorAll("[data-sheet-layout]")),
           colorPresetButtons: Array.from(document.querySelectorAll("[data-color]")),
           outlinePresetButtons: Array.from(document.querySelectorAll("[data-outline-preset]")),
           textFormatButtons: Array.from(document.querySelectorAll("[data-text-format]")),
@@ -1712,6 +1838,14 @@
           setStatus("Contour personnalisé");
         });
 
+        elements.addToPageButton.addEventListener("click", addToPage);
+        elements.queuePrev.addEventListener("click", () => { queueIndex -= 1; updateQueueUI(); });
+        elements.queueNext.addEventListener("click", () => { queueIndex += 1; updateQueueUI(); });
+        elements.queueRemove.addEventListener("click", removeFromQueue);
+        elements.sheetOptions.forEach((button) => {
+          button.addEventListener("click", () => setSheetLayout(button.dataset.sheetLayout));
+        });
+
         elements.downloadButton.addEventListener("click", downloadPng);
         elements.downloadMirrorButton.addEventListener("click", () => downloadPng({ mirror: true }));
         elements.printButton.addEventListener("click", printMug);
@@ -1731,6 +1865,8 @@
         renderIcons();
         resizeStage();
         render();
+        updateSheetLayoutButtons();
+        updateQueueUI();
         if (document.fonts) document.fonts.ready.then(render);
 
         function setStatus(message, isWarning = false) {
@@ -2526,10 +2662,66 @@
           }, "image/png");
         }
 
+        async function addToPage() {
+          await ensureTextFontLoaded();
+          printQueue.push(createExportCanvas().toDataURL("image/png"));
+          queueIndex = printQueue.length - 1;
+          updateQueueUI();
+          setStatus(`Ajouté à la page (${printQueue.length})`);
+        }
+
+        function removeFromQueue() {
+          if (!printQueue.length) return;
+          printQueue.splice(queueIndex, 1);
+          updateQueueUI();
+          setStatus("Création retirée de la page");
+        }
+
+        function setSheetLayout(layout) {
+          if (!SHEET_LAYOUTS[layout]) return;
+          sheetLayout = layout;
+          updateSheetLayoutButtons();
+        }
+
+        function updateSheetLayoutButtons() {
+          elements.sheetOptions.forEach((button) => {
+            button.setAttribute("aria-pressed", button.dataset.sheetLayout === sheetLayout ? "true" : "false");
+          });
+        }
+
+        function updateQueueUI() {
+          const count = printQueue.length;
+          elements.queuePanel.hidden = count === 0;
+          const printText = elements.printButton.querySelector(".button-text");
+          if (printText) printText.textContent = count ? `Imprimer la page (${count})` : "Imprimer";
+          if (!count) return;
+          queueIndex = Math.max(0, Math.min(queueIndex, count - 1));
+          elements.queueLabel.textContent = `Création ${queueIndex + 1} / ${count}`;
+          elements.queueThumb.src = printQueue[queueIndex];
+          elements.queuePrev.disabled = queueIndex === 0;
+          elements.queueNext.disabled = queueIndex === count - 1;
+        }
+
         async function printMug() {
           await ensureTextFontLoaded();
-          const canvas = createExportCanvas({ mirror: state.mirrorPrint });
-          const imageUrl = canvas.toDataURL("image/png");
+          const single = printQueue.length === 0;
+          const images = single
+            ? [createExportCanvas().toDataURL("image/png")]
+            : printQueue.slice();
+          const layout = single ? SHEET_LAYOUTS["3up"] : SHEET_LAYOUTS[sheetLayout];
+          const perPage = single ? 1 : layout.perPage;
+          const cutOffset = layout.gapMm > 0 ? `-${layout.gapMm / 2}mm` : "0";
+          const mirrorClass = state.mirrorPrint ? " mirror" : "";
+
+          const sheets = [];
+          for (let index = 0; index < images.length; index += perPage) {
+            const cells = images
+              .slice(index, index + perPage)
+              .map((url) => `<div class="cell${mirrorClass}"><img src="${url}" alt="Création pour mug"></div>`)
+              .join("");
+            sheets.push(`<div class="sheet">${cells}</div>`);
+          }
+
           const iframe = document.createElement("iframe");
           iframe.style.position = "fixed";
           iframe.style.right = "0";
@@ -2540,10 +2732,6 @@
           iframe.setAttribute("aria-hidden", "true");
           document.body.appendChild(iframe);
 
-          const COPIES_PER_SHEET = 1;
-          const cells = Array.from({ length: COPIES_PER_SHEET }, () =>
-            `<div class="cell"><img src="${imageUrl}" alt="Design du mug"></div>`,
-          ).join("");
           const printDocument = iframe.contentWindow.document;
           printDocument.open();
           printDocument.write(`<!doctype html>
@@ -2552,33 +2740,43 @@
                 <title>Impression du mug</title>
                 <style>
                   @page { size: A4 portrait; margin: 0; }
-                  html, body {
+                  html, body { margin: 0; }
+                  .sheet {
                     width: 210mm;
                     height: 297mm;
-                    margin: 0;
+                    box-sizing: border-box;
+                    page-break-after: always;
+                    break-after: page;
+                  }
+                  .sheet:last-child {
+                    page-break-after: auto;
+                    break-after: auto;
                   }
                   .cell {
                     position: relative;
-                    width: 210mm;
-                    margin-bottom: 8mm;
+                    width: ${layout.widthMm}mm;
+                    margin: 0 auto ${layout.gapMm}mm auto;
                   }
                   .cell img {
                     display: block;
-                    width: 210mm;
+                    width: 100%;
                     height: auto;
+                  }
+                  .cell.mirror img {
+                    transform: scaleX(-1);
                   }
                   .cell::after {
                     content: "";
                     position: absolute;
                     left: 0;
                     right: 0;
-                    bottom: -4mm;
+                    bottom: ${cutOffset};
                     border-bottom: 0.2mm dashed rgba(23, 32, 42, 0.45);
                   }
                 </style>
               </head>
               <body>
-                ${cells}
+                ${sheets.join("")}
               </body>
             </html>`);
           printDocument.close();
@@ -2591,10 +2789,18 @@
             iframe.contentWindow.print();
             setTimeout(() => iframe.remove(), 1000);
           };
-          const printImage = printDocument.querySelector("img");
-          printImage.addEventListener("load", runPrint, { once: true });
-          if (printImage.complete) setTimeout(runPrint, 0);
-          setStatus("Fenêtre d'impression ouverte");
+          const printImages = Array.from(printDocument.querySelectorAll("img"));
+          Promise.all(
+            printImages.map((image) =>
+              image.complete
+                ? Promise.resolve()
+                : new Promise((resolve) => {
+                    image.addEventListener("load", resolve, { once: true });
+                    image.addEventListener("error", resolve, { once: true });
+                  }),
+            ),
+          ).then(runPrint);
+          setStatus(single ? "Fenêtre d'impression ouverte" : `Impression de ${images.length} création(s)`);
         }
 
         function createExportCanvas(options = {}) {
