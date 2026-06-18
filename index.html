@@ -990,7 +990,7 @@
         <div class="brand">
           <div>
             <h1>Créateur de mugs</h1>
-            <div class="size-note">2550 x 1050 PNG</div>
+            <div class="size-note">2700 x 1050 PNG</div>
           </div>
         </div>
 
@@ -1381,7 +1381,7 @@
             <h2 class="preview-title">Aperçu</h2>
             <div class="preview-meta">Image gauche, texte central, image droite</div>
           </div>
-          <div class="preview-meta">8,5 x 3,5 pouces à 300 PPP</div>
+          <div class="preview-meta">9 x 3,5 pouces à 300 PPP (mug 11 oz)</div>
         </div>
         <div class="stage-area">
           <div class="stage-frame">
@@ -1394,28 +1394,28 @@
 
     <script>
       (() => {
-        const EXPORT_WIDTH = 2550;
+        const EXPORT_WIDTH = 2700;
         const EXPORT_HEIGHT = 1050;
         const LAYOUT_PRESETS = {
           classic: {
-            left: { x: 0, y: 0, width: 900, height: EXPORT_HEIGHT },
-            center: { x: 900, y: 0, width: 750, height: EXPORT_HEIGHT },
-            right: { x: 1650, y: 0, width: 900, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 953, height: EXPORT_HEIGHT },
+            center: { x: 953, y: 0, width: 794, height: EXPORT_HEIGHT },
+            right: { x: 1747, y: 0, width: 953, height: EXPORT_HEIGHT },
           },
           equal: {
-            left: { x: 0, y: 0, width: 850, height: EXPORT_HEIGHT },
-            center: { x: 850, y: 0, width: 850, height: EXPORT_HEIGHT },
-            right: { x: 1700, y: 0, width: 850, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 900, height: EXPORT_HEIGHT },
+            center: { x: 900, y: 0, width: 900, height: EXPORT_HEIGHT },
+            right: { x: 1800, y: 0, width: 900, height: EXPORT_HEIGHT },
           },
           textWide: {
-            left: { x: 0, y: 0, width: 750, height: EXPORT_HEIGHT },
-            center: { x: 750, y: 0, width: 1050, height: EXPORT_HEIGHT },
-            right: { x: 1800, y: 0, width: 750, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 794, height: EXPORT_HEIGHT },
+            center: { x: 794, y: 0, width: 1112, height: EXPORT_HEIGHT },
+            right: { x: 1906, y: 0, width: 794, height: EXPORT_HEIGHT },
           },
           imagesWide: {
-            left: { x: 0, y: 0, width: 1050, height: EXPORT_HEIGHT },
-            center: { x: 1050, y: 0, width: 450, height: EXPORT_HEIGHT },
-            right: { x: 1500, y: 0, width: 1050, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 1112, height: EXPORT_HEIGHT },
+            center: { x: 1112, y: 0, width: 476, height: EXPORT_HEIGHT },
+            right: { x: 1588, y: 0, width: 1112, height: EXPORT_HEIGHT },
           },
         };
         const DEFAULT_LAYOUT = "classic";
@@ -2540,6 +2540,10 @@
           iframe.setAttribute("aria-hidden", "true");
           document.body.appendChild(iframe);
 
+          const COPIES_PER_SHEET = 1;
+          const cells = Array.from({ length: COPIES_PER_SHEET }, () =>
+            `<div class="cell"><img src="${imageUrl}" alt="Design du mug"></div>`,
+          ).join("");
           const printDocument = iframe.contentWindow.document;
           printDocument.open();
           printDocument.write(`<!doctype html>
@@ -2547,25 +2551,34 @@
               <head>
                 <title>Impression du mug</title>
                 <style>
-                  @page { size: A4 landscape; margin: 0; }
+                  @page { size: A4 portrait; margin: 0; }
                   html, body {
-                    width: 297mm;
-                    height: 210mm;
+                    width: 210mm;
+                    height: 297mm;
                     margin: 0;
                   }
-                  body {
-                    display: grid;
-                    place-items: center;
+                  .cell {
+                    position: relative;
+                    width: 210mm;
+                    margin-bottom: 8mm;
                   }
-                  img {
+                  .cell img {
                     display: block;
-                    width: 8.5in;
-                    height: 3.5in;
+                    width: 210mm;
+                    height: auto;
+                  }
+                  .cell::after {
+                    content: "";
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    bottom: -4mm;
+                    border-bottom: 0.2mm dashed rgba(23, 32, 42, 0.45);
                   }
                 </style>
               </head>
               <body>
-                <img src="${imageUrl}" alt="Design du mug">
+                ${cells}
               </body>
             </html>`);
           printDocument.close();
