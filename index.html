@@ -567,13 +567,15 @@
         -webkit-appearance: none;
       }
 
-      .format-controls {
+      .format-controls,
+      .text-shape-controls {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 0;
       }
 
-      .format-controls .mode-button {
+      .format-controls .mode-button,
+      .text-shape-controls .mode-button {
         min-height: 66px;
         flex-direction: column;
         gap: 5px;
@@ -581,12 +583,15 @@
       }
 
       .format-controls .icon,
-      .format-controls .icon svg {
+      .format-controls .icon svg,
+      .text-shape-controls .icon,
+      .text-shape-controls .icon svg {
         inline-size: 18px;
         block-size: 18px;
       }
 
-      .format-controls .button-text {
+      .format-controls .button-text,
+      .text-shape-controls .button-text {
         display: block;
         line-height: 1.05;
       }
@@ -1601,6 +1606,28 @@
               <input id="fontSize" type="range" min="64" max="220" step="2" value="138">
             </div>
 
+            <div class="palette-group" aria-label="Formes autour du texte">
+              <div class="palette-title">Formes autour du texte</div>
+              <div class="button-group four text-shape-controls" role="group" aria-label="Formes autour du texte">
+                <button class="mode-button" type="button" data-text-shape="none" aria-pressed="true">
+                  <span class="icon" aria-hidden="true"><i data-lucide="ban"></i></span>
+                  <span class="button-text">Aucune</span>
+                </button>
+                <button class="mode-button" type="button" data-text-shape="hearts" aria-pressed="false">
+                  <span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span>
+                  <span class="button-text">Coeurs</span>
+                </button>
+                <button class="mode-button" type="button" data-text-shape="stars" aria-pressed="false">
+                  <span class="icon" aria-hidden="true"><i data-lucide="star"></i></span>
+                  <span class="button-text">Etoiles</span>
+                </button>
+                <button class="mode-button" type="button" data-text-shape="sparkles" aria-pressed="false">
+                  <span class="icon" aria-hidden="true"><i data-lucide="sparkles"></i></span>
+                  <span class="button-text">Eclats</span>
+                </button>
+              </div>
+            </div>
+
             <div class="color-controls" aria-label="Couleurs">
               <div class="palette-group">
                 <div class="palette-title-row">
@@ -1802,6 +1829,25 @@
           outline: false,
           shadow: false,
         };
+        const DEFAULT_TEXT_SHAPE = "none";
+        const TEXT_SHAPES = {
+          none: null,
+          hearts: {
+            glyphs: ["♥", "♡", "♥", "♡"],
+            colors: ["#ec4899", "#fb7185", "#f472b6", "#f59e0b"],
+            rotations: [-14, 12, 10, -8],
+          },
+          stars: {
+            glyphs: ["★", "☆", "★", "☆"],
+            colors: ["#f59e0b", "#2563eb", "#facc15", "#14b8a6"],
+            rotations: [-10, 12, 8, -12],
+          },
+          sparkles: {
+            glyphs: ["✦", "✧", "✦", "✧"],
+            colors: ["#a855f7", "#0ea5e9", "#f59e0b", "#ec4899"],
+            rotations: [-8, 12, 10, -10],
+          },
+        };
         const DEFAULT_FONT_SIZE = 138;
         const DEFAULT_TEXT_COLOR = "#17202a";
         const OUTLINE_PRESETS = [
@@ -1868,6 +1914,7 @@
           textColor: savedPreferences.textColor,
           outlineColor: savedPreferences.outlineColor,
           textFormat: { ...savedPreferences.textFormat },
+          textShape: savedPreferences.textShape,
           mirrorPrint: true,
           images: {
             left: null,
@@ -1923,6 +1970,7 @@
           outlinePresetButtons: Array.from(document.querySelectorAll("[data-outline-preset]")),
           textFormatButtons: Array.from(document.querySelectorAll("[data-text-format]")),
           textPositionButtons: Array.from(document.querySelectorAll("[data-text-position]")),
+          textShapeButtons: Array.from(document.querySelectorAll("[data-text-shape]")),
           downloadButton: document.querySelector("#downloadButton"),
           downloadMirrorButton: document.querySelector("#downloadMirrorButton"),
           printButton: document.querySelector("#printButton"),
@@ -2085,6 +2133,12 @@
           });
         });
 
+        elements.textShapeButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setTextShape(button.dataset.textShape);
+          });
+        });
+
         elements.outlinePresetButtons.forEach((button) => {
           button.addEventListener("click", () => {
             setOutlineColor(getOutlineColorFromPreset(button.dataset.outlinePreset));
@@ -2142,6 +2196,7 @@
             textColor: DEFAULT_TEXT_COLOR,
             outlineColor: getDefaultOutlineColor(DEFAULT_TEXT_COLOR),
             textFormat: { ...DEFAULT_TEXT_FORMAT },
+            textShape: DEFAULT_TEXT_SHAPE,
             sheetLayout: "3up",
           };
         }
@@ -2177,6 +2232,7 @@
             textColor,
             outlineColor: normalizeHex(saved.outlineColor || getDefaultOutlineColor(textColor)),
             textFormat: normalizeTextFormatPreferences(saved.textFormat, fallback.textFormat),
+            textShape: Object.prototype.hasOwnProperty.call(TEXT_SHAPES, saved.textShape) ? saved.textShape : fallback.textShape,
             sheetLayout: SHEET_LAYOUTS[saved.sheetLayout] ? saved.sheetLayout : fallback.sheetLayout,
           };
         }
@@ -2210,6 +2266,7 @@
                 textColor: state.textColor,
                 outlineColor: state.outlineColor,
                 textFormat: state.textFormat,
+                textShape: state.textShape,
                 sheetLayout,
               }),
             );
@@ -2228,6 +2285,7 @@
           updateFitButtons();
           updateTextFormatButtons();
           updateTextPositionButtons();
+          updateTextShapeButtons();
           updateColorControls();
           updateSheetLayoutButtons();
         }
@@ -2939,6 +2997,21 @@
           });
         }
 
+        function setTextShape(shape) {
+          if (!Object.prototype.hasOwnProperty.call(TEXT_SHAPES, shape)) return;
+
+          state.textShape = shape;
+          updateTextShapeButtons();
+          saveDefaultPreferences();
+          render();
+        }
+
+        function updateTextShapeButtons() {
+          elements.textShapeButtons.forEach((button) => {
+            button.setAttribute("aria-pressed", state.textShape === button.dataset.textShape ? "true" : "false");
+          });
+        }
+
         function setTextFont(fontKey) {
           state.textFont = FONT_OPTIONS[fontKey] ? fontKey : DEFAULT_TEXT_FONT;
           elements.fontSelect.value = state.textFont;
@@ -3154,6 +3227,83 @@
           return zone.y + (zone.height - textHeight) / 2;
         }
 
+        function getTextBlock(zone, layout, padding) {
+          const maxWidth = zone.width - padding * 2;
+          const lineWidths = measureTextLineWidths(layout.lines, layout.fontSize);
+          const contentWidth = Math.max(...lineWidths, 1);
+          const width = Math.min(maxWidth, Math.max(contentWidth, layout.fontSize * 1.2));
+          const height = layout.lines.length * layout.lineHeight;
+
+          return {
+            x: zone.x + (zone.width - width) / 2,
+            y: getTextTop(zone, height, padding),
+            width,
+            height,
+          };
+        }
+
+        function measureTextLineWidths(lines, fontSize) {
+          const canvas = measureTextLineWidths.canvas || document.createElement("canvas");
+          measureTextLineWidths.canvas = canvas;
+          const context = canvas.getContext("2d");
+          context.font = getCanvasFont(fontSize);
+          return lines.map((line) => context.measureText(line).width);
+        }
+
+        function getTextShapePlacements(zone, textBlock, fontSize) {
+          const config = TEXT_SHAPES[state.textShape];
+          if (!config) return [];
+
+          const baseSize = Math.max(30, Math.min(62, Math.round(fontSize * 0.32)));
+          const gap = Math.max(18, Math.round(fontSize * 0.15));
+          const minX = zone.x + baseSize * 0.72;
+          const maxX = zone.x + zone.width - baseSize * 0.72;
+          const minY = zone.y + baseSize * 0.72;
+          const maxY = zone.y + zone.height - baseSize * 0.72;
+          const left = textBlock.x - gap;
+          const right = textBlock.x + textBlock.width + gap;
+          const top = textBlock.y - gap * 0.45;
+          const bottom = textBlock.y + textBlock.height + gap * 0.7;
+
+          return [
+            { x: left, y: top, size: baseSize },
+            { x: right, y: top + baseSize * 0.18, size: Math.round(baseSize * 0.86) },
+            { x: left + baseSize * 0.18, y: bottom, size: Math.round(baseSize * 0.78) },
+            { x: right - baseSize * 0.12, y: bottom - baseSize * 0.08, size: baseSize },
+          ].map((placement, index) => ({
+            ...placement,
+            x: Math.min(maxX, Math.max(minX, placement.x)),
+            y: Math.min(maxY, Math.max(minY, placement.y)),
+            glyph: config.glyphs[index % config.glyphs.length],
+            color: config.colors[index % config.colors.length],
+            rotation: config.rotations[index % config.rotations.length],
+          }));
+        }
+
+        function renderTextShapes(zone, textBlock, fontSize) {
+          getTextShapePlacements(zone, textBlock, fontSize).forEach((placement) => {
+            const width = placement.size * 1.45;
+            const height = placement.size * 1.25;
+            const shapeNode = new Konva.Text({
+              x: placement.x,
+              y: placement.y,
+              width,
+              height,
+              offsetX: width / 2,
+              offsetY: height / 2,
+              text: placement.glyph,
+              fontSize: placement.size,
+              fontFamily: "Arial, Helvetica, sans-serif",
+              fontStyle: "700",
+              align: "center",
+              fill: placement.color,
+              rotation: placement.rotation,
+              listening: false,
+            });
+            contentLayer.add(shapeNode);
+          });
+        }
+
         function renderText() {
           const text = state.text.trim();
           if (!text) return;
@@ -3162,8 +3312,10 @@
           const padding = 46;
           const maxWidth = zone.width - padding * 2;
           const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
+          const textBlock = getTextBlock(zone, layout, padding);
           const strokeWidth = state.textFormat.outline ? Math.max(4, Math.round(layout.fontSize * 0.06)) : 0;
           const shadowBlur = state.textFormat.shadow ? 8 : 0;
+          renderTextShapes(zone, textBlock, layout.fontSize);
           const node = new Konva.Text({
             x: zone.x + padding,
             y: 0,
@@ -3184,7 +3336,7 @@
             shadowOpacity: state.textFormat.shadow ? 0.45 : 0,
             listening: false,
           });
-          node.y(getTextTop(zone, node.height(), padding));
+          node.y(textBlock.y);
           contentLayer.add(node);
         }
 
@@ -3531,10 +3683,11 @@
           const fontSize = layout.fontSize;
           const lineHeight = layout.lineHeight;
           const lines = layout.lines;
-          const totalHeight = lines.length * lineHeight;
-          let y = getTextTop(zone, totalHeight, padding) + fontSize;
+          const textBlock = getTextBlock(zone, layout, padding);
+          let y = textBlock.y + fontSize;
 
           context.save();
+          drawCanvasTextShapes(context, zone, textBlock, fontSize);
           context.font = getCanvasFont(fontSize);
           context.textAlign = "center";
           context.textBaseline = "alphabetic";
@@ -3552,6 +3705,28 @@
             if (state.textFormat.outline) context.strokeText(line, x, y);
             context.fillText(line, x, y);
             y += lineHeight;
+          });
+          context.restore();
+        }
+
+        function drawCanvasTextShapes(context, zone, textBlock, fontSize) {
+          const placements = getTextShapePlacements(zone, textBlock, fontSize);
+          if (!placements.length) return;
+
+          context.save();
+          context.textAlign = "center";
+          context.textBaseline = "middle";
+          context.shadowColor = "rgba(0, 0, 0, 0)";
+          context.lineWidth = 0;
+
+          placements.forEach((placement) => {
+            context.save();
+            context.translate(placement.x, placement.y);
+            context.rotate((placement.rotation * Math.PI) / 180);
+            context.font = `700 ${placement.size}px Arial, Helvetica, sans-serif`;
+            context.fillStyle = placement.color;
+            context.fillText(placement.glyph, 0, 0);
+            context.restore();
           });
           context.restore();
         }
@@ -3669,6 +3844,7 @@
           state.textColor = DEFAULT_TEXT_COLOR;
           state.outlineColor = getDefaultOutlineColor(DEFAULT_TEXT_COLOR);
           state.textFormat = { ...DEFAULT_TEXT_FORMAT };
+          state.textShape = DEFAULT_TEXT_SHAPE;
           state.mirrorPrint = true;
           sheetLayout = "3up";
           elements.leftImage.value = "";
@@ -3689,6 +3865,7 @@
           elements.mirrorPrint.checked = state.mirrorPrint;
           updateTextFormatButtons();
           updateTextPositionButtons();
+          updateTextShapeButtons();
           setTextColor(state.textColor);
           updateFitButtons();
           updateSheetLayoutButtons();
