@@ -102,7 +102,8 @@
 
       .minimal-mode .wizard-panel {
         display: grid;
-        gap: 10px;
+        gap: 8px;
+        padding: 10px;
       }
 
       .wizard-steps {
@@ -207,14 +208,18 @@
       }
 
       .minimal-mode .upload-button {
-        min-height: 94px;
-        font-size: 1.08rem;
+        min-height: 122px;
+        border: 3px solid #1e3a8a;
+        background: #2457c5;
+        color: #ffffff;
+        font-size: 1.22rem;
+        box-shadow: 0 12px 24px rgba(36, 87, 197, 0.28);
       }
 
       .minimal-mode .upload-button .icon,
       .minimal-mode .upload-button .icon svg {
-        inline-size: 28px;
-        block-size: 28px;
+        inline-size: 34px;
+        block-size: 34px;
       }
 
       .minimal-mode .upload-main .mode-button {
@@ -223,7 +228,7 @@
       }
 
       .minimal-mode textarea {
-        min-height: 172px;
+        min-height: 136px;
         border: 2px solid var(--accent);
         background: #ffffff;
         color: #0f172a;
@@ -237,6 +242,40 @@
 
       .minimal-mode .print-row {
         grid-template-columns: 1fr;
+      }
+
+      .minimal-mode[data-wizard-step="text"] #images-heading,
+      .minimal-mode[data-wizard-step="text"] #images-heading + .control-block {
+        display: none;
+      }
+
+      .minimal-mode[data-wizard-step="text"] .color-controls {
+        gap: 8px;
+      }
+
+      .minimal-mode[data-wizard-step="text"] .color-controls .palette-group {
+        gap: 6px;
+      }
+
+      .minimal-mode[data-wizard-step="text"] .color-controls .palette-title-row {
+        grid-template-columns: minmax(0, 1fr) 48px;
+      }
+
+      .minimal-mode[data-wizard-step="text"] input[type="color"] {
+        width: 48px;
+        height: 48px;
+      }
+
+      .minimal-mode[data-wizard-step="text"] .palette-section-title {
+        display: none;
+      }
+
+      .minimal-mode[data-wizard-step="text"] .swatches {
+        gap: 6px;
+      }
+
+      .minimal-mode[data-wizard-step="text"] .swatch {
+        min-height: 38px;
       }
 
       .control-block {
@@ -865,16 +904,36 @@
         min-height: 34px;
         border: 2px solid #ffffff;
         border-radius: 8px;
+        position: relative;
         box-shadow:
           0 0 0 1px var(--line),
           0 3px 8px rgba(23, 32, 42, 0.08);
         cursor: pointer;
       }
 
+      .swatch::after {
+        content: "";
+        position: absolute;
+        inset: 50% auto auto 50%;
+        inline-size: 12px;
+        block-size: 12px;
+        border-radius: 999px;
+        background: #ffffff;
+        box-shadow:
+          0 0 0 2px #0f172a,
+          0 1px 4px rgba(15, 23, 42, 0.35);
+        opacity: 0;
+        transform: translate(-50%, -50%);
+      }
+
       .swatch[aria-pressed="true"] {
         box-shadow:
           0 0 0 3px var(--blue),
           0 4px 12px rgba(36, 87, 197, 0.2);
+      }
+
+      .swatch[aria-pressed="true"]::after {
+        opacity: 1;
       }
 
       .outline-swatches {
@@ -1077,6 +1136,36 @@
 
       .minimal-mode .preview-action {
         display: inline-flex;
+      }
+
+      .preview-skip-text {
+        min-height: 64px;
+        min-width: min(340px, calc(100% - 28px));
+        max-width: 100%;
+        box-shadow: 0 10px 22px rgba(23, 32, 42, 0.16);
+        display: none;
+      }
+
+      .minimal-mode .preview-skip-text:not([hidden]) {
+        display: inline-flex;
+      }
+
+      .minimal-mode .preview-action[data-preview-action="left-upload"],
+      .minimal-mode .preview-action[data-preview-action="right-upload"] {
+        min-height: 78px;
+        min-width: min(340px, calc(100% - 28px));
+        border: 3px solid #1e3a8a;
+        background: #2457c5;
+        color: #ffffff;
+        font-size: 1.18rem;
+        box-shadow: 0 14px 30px rgba(36, 87, 197, 0.32);
+      }
+
+      .minimal-mode .preview-action[data-preview-action="left-upload"]:hover,
+      .minimal-mode .preview-action[data-preview-action="right-upload"]:hover,
+      .minimal-mode .upload-button:hover {
+        border-color: #172554;
+        background: #1d4ed8;
       }
 
       .image-shift-overlay {
@@ -1606,7 +1695,7 @@
               <input id="fontSize" type="range" min="64" max="220" step="2" value="138">
             </div>
 
-            <div class="palette-group" aria-label="Formes autour du texte">
+            <div class="palette-group" aria-label="Formes autour du texte" data-advanced-control>
               <div class="palette-title">Formes autour du texte</div>
               <div class="button-group four text-shape-controls" role="group" aria-label="Formes autour du texte">
                 <button class="mode-button" type="button" data-text-shape="none" aria-pressed="true">
@@ -1751,6 +1840,10 @@
           <button id="previewActionButton" class="button primary preview-action" type="button">
             <span id="previewActionIcon" class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
             <span id="previewActionText" class="button-text">Image gauche</span>
+          </button>
+          <button id="previewSkipTextButton" class="button secondary preview-skip-text" type="button" hidden>
+            <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
+            <span class="button-text">Accepter sans texte</span>
           </button>
         </div>
       </section>
@@ -1930,6 +2023,7 @@
           previewActionButton: document.querySelector("#previewActionButton"),
           previewActionIcon: document.querySelector("#previewActionIcon"),
           previewActionText: document.querySelector("#previewActionText"),
+          previewSkipTextButton: document.querySelector("#previewSkipTextButton"),
           leftImage: document.querySelector("#leftImage"),
           centerImage: document.querySelector("#centerImage"),
           rightImage: document.querySelector("#rightImage"),
@@ -2026,6 +2120,7 @@
         elements.wizardBack.addEventListener("click", goToPreviousWizardStep);
         elements.wizardNext.addEventListener("click", goToNextWizardStep);
         elements.previewActionButton.addEventListener("click", handlePreviewAction);
+        elements.previewSkipTextButton.addEventListener("click", skipWizardText);
         elements.stageFrame.addEventListener("click", handleStageFrameClick);
         document.addEventListener("keydown", handleWizardEnterKey);
 
@@ -2577,8 +2672,9 @@
           setWizardStep(WIZARD_STEPS[index - 1]);
         }
 
-        function goToNextWizardStep() {
-          if (!canCompleteWizardStep(wizardStep)) {
+        function goToNextWizardStep(options = {}) {
+          const isSkippingEmptyText = options.allowEmptyText && wizardStep === "text";
+          if (!isSkippingEmptyText && !canCompleteWizardStep(wizardStep)) {
             updateWizardUI();
             return;
           }
@@ -2588,6 +2684,14 @@
           wizardStep = nextStep;
           updateWizardUI();
           focusWizardStep();
+        }
+
+        function skipWizardText() {
+          if (!canSkipWizardText()) return;
+          state.text = "";
+          elements.textInput.value = "";
+          setStatus("Texte ignoré");
+          goToNextWizardStep({ allowEmptyText: true });
         }
 
         function handleWizardEnterKey(event) {
@@ -2638,7 +2742,16 @@
         function canCompleteWizardStep(step) {
           if (step === "left") return Boolean(state.images.left);
           if (step === "right") return Boolean(state.images.right);
+          if (step === "text") return hasTextContent();
           return true;
+        }
+
+        function canSkipWizardText() {
+          return state.minimalMode && wizardStep === "text" && !hasTextContent();
+        }
+
+        function hasTextContent() {
+          return Boolean(state.text.trim());
         }
 
         function updateWizardUI() {
@@ -2647,6 +2760,9 @@
           if (currentIndex === -1 || currentIndex > unlockedIndex) {
             wizardStep = WIZARD_STEPS[unlockedIndex];
           }
+          document.body.dataset.wizardStep = state.minimalMode ? wizardStep : "advanced";
+          const skipTextVisible = canSkipWizardText();
+          const wasPreviewSkipHidden = elements.previewSkipTextButton.hidden;
 
           elements.wizardStepPanels.forEach((panel) => {
             if (!state.minimalMode) {
@@ -2673,7 +2789,9 @@
           elements.wizardBack.disabled = WIZARD_STEPS.indexOf(wizardStep) === 0;
           elements.wizardNext.disabled = !canCompleteWizardStep(wizardStep);
           elements.wizardNextText.textContent = wizardStep === "text" ? "Accepter" : "Suivant";
+          elements.previewSkipTextButton.hidden = !skipTextVisible;
           updatePreviewActionButton();
+          if (wasPreviewSkipHidden !== elements.previewSkipTextButton.hidden) resizeStage();
         }
 
         function getPreviewAction() {
@@ -2699,6 +2817,7 @@
         function updatePreviewActionButton() {
           const config = getPreviewAction();
           elements.previewActionButton.dataset.previewAction = config.action;
+          elements.previewActionButton.disabled = config.action === "next" && !canCompleteWizardStep(wizardStep);
           elements.previewActionText.textContent = config.label;
 
           const currentIcon = elements.previewActionIcon.querySelector("[data-lucide]");
@@ -3135,8 +3254,9 @@
         function getPreviewActionReserve() {
           if (!state.minimalMode) return 0;
 
-          const height = elements.previewActionButton.offsetHeight || 56;
-          return height + 12;
+          const actionHeight = elements.previewActionButton.offsetHeight || 56;
+          const skipHeight = elements.previewSkipTextButton.hidden ? 0 : (elements.previewSkipTextButton.offsetHeight || 64) + 12;
+          return actionHeight + skipHeight + 12;
         }
 
         function render() {
@@ -3734,17 +3854,39 @@
         function getTextLayout(text, maxWidth, maxHeight, requestedFontSize) {
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
-          let fontSize = requestedFontSize;
+          let fontSize = getFontSizeForUnbrokenWords(context, text, maxWidth, requestedFontSize);
           let lines = wrapText(context, text, maxWidth, fontSize);
           let lineHeight = fontSize * 1.14;
 
           while (fontSize > 34 && lines.length * lineHeight > maxHeight) {
             fontSize -= 2;
+            fontSize = getFontSizeForUnbrokenWords(context, text, maxWidth, fontSize);
             lines = wrapText(context, text, maxWidth, fontSize);
             lineHeight = fontSize * 1.14;
           }
 
           return { fontSize, lineHeight, lines };
+        }
+
+        function getFontSizeForUnbrokenWords(context, text, maxWidth, requestedFontSize) {
+          let fontSize = requestedFontSize;
+          while (fontSize > 34) {
+            context.font = getCanvasFont(fontSize);
+            const widestWord = getTextWords(text).reduce(
+              (widest, word) => Math.max(widest, context.measureText(word).width),
+              0,
+            );
+            if (widestWord <= maxWidth) return fontSize;
+            fontSize -= 2;
+          }
+          return fontSize;
+        }
+
+        function getTextWords(text) {
+          return text
+            .split(/\s+/)
+            .map((word) => word.trim())
+            .filter(Boolean);
         }
 
         function wrapText(context, text, maxWidth, fontSize) {
@@ -3760,18 +3902,6 @@
 
             let line = "";
             words.forEach((word) => {
-              if (context.measureText(word).width > maxWidth) {
-                if (line) {
-                  output.push(line);
-                  line = "";
-                }
-
-                const chunks = splitLongWord(context, word, maxWidth);
-                output.push(...chunks.slice(0, -1));
-                line = chunks[chunks.length - 1] || "";
-                return;
-              }
-
               const test = line ? `${line} ${word}` : word;
               if (context.measureText(test).width <= maxWidth) {
                 line = test;
@@ -3785,22 +3915,6 @@
           });
 
           return output;
-        }
-
-        function splitLongWord(context, word, maxWidth) {
-          const chunks = [];
-          let current = "";
-          [...word].forEach((character) => {
-            const test = current + character;
-            if (context.measureText(test).width <= maxWidth) {
-              current = test;
-              return;
-            }
-            if (current) chunks.push(current);
-            current = character;
-          });
-          if (current) chunks.push(current);
-          return chunks;
         }
 
         function hasCreationInProgress() {
