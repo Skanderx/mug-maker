@@ -222,6 +222,43 @@
         block-size: 34px;
       }
 
+      .minimal-mode .upload-row[data-image-loaded="true"] .upload-button {
+        min-height: 56px;
+        border-width: 2px;
+        font-size: 0.98rem;
+        box-shadow: none;
+      }
+
+      .minimal-mode .upload-row[data-image-loaded="true"] .upload-button .icon,
+      .minimal-mode .upload-row[data-image-loaded="true"] .upload-button .icon svg {
+        inline-size: 22px;
+        block-size: 22px;
+      }
+
+      .minimal-mode .image-shape-options .mode-button {
+        min-height: 46px;
+        padding: 4px;
+      }
+
+      .minimal-mode .image-shape-control .fit-label {
+        display: none;
+      }
+
+      .minimal-mode .image-shape-options {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 4px;
+      }
+
+      .minimal-mode .image-shape-options .button-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
       .minimal-mode .upload-main .mode-button {
         min-height: 68px;
         font-size: 0.98rem;
@@ -542,6 +579,37 @@
       .position-grid {
         display: grid;
         gap: 8px;
+      }
+
+      .image-shape-control {
+        display: grid;
+        gap: 7px;
+        padding-top: 3px;
+      }
+
+      .image-shape-control[hidden] {
+        display: none;
+      }
+
+      .image-shape-options {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .image-shape-options .mode-button {
+        min-width: 0;
+        min-height: 60px;
+        flex-direction: column;
+        gap: 4px;
+        padding: 7px 5px;
+        font-size: 0.78rem;
+      }
+
+      .image-shape-options .icon,
+      .image-shape-options .icon svg {
+        inline-size: 18px;
+        block-size: 18px;
       }
 
       .position-control {
@@ -1448,6 +1516,17 @@
                     <span class="button-text">Retirer</span>
                   </button>
                 </div>
+                <div class="image-shape-control" data-image-shape-control="left" hidden>
+                  <div class="fit-label">Découpe de l'image</div>
+                  <div class="image-shape-options" role="group" aria-label="Forme de l'image gauche">
+                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
+                  </div>
+                </div>
                 <div class="position-grid" aria-label="Position de l'image gauche">
                   <div class="position-control">
                     <div class="axis-label">
@@ -1511,6 +1590,17 @@
                     <span class="button-text">Retirer</span>
                   </button>
                 </div>
+                <div class="image-shape-control" data-image-shape-control="center" hidden>
+                  <div class="fit-label">Découpe de l'image</div>
+                  <div class="image-shape-options" role="group" aria-label="Forme de l'image centrale">
+                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
+                  </div>
+                </div>
                 <div class="position-grid" aria-label="Position de l'image centrale">
                   <div class="position-control">
                     <div class="axis-label">
@@ -1573,6 +1663,17 @@
                     <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
                     <span class="button-text">Retirer</span>
                   </button>
+                </div>
+                <div class="image-shape-control" data-image-shape-control="right" hidden>
+                  <div class="fit-label">Découpe de l'image</div>
+                  <div class="image-shape-options" role="group" aria-label="Forme de l'image droite">
+                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
+                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
+                  </div>
                 </div>
                 <div class="position-grid" aria-label="Position de l'image droite">
                   <div class="position-control">
@@ -1911,6 +2012,20 @@
           center: "centrale",
           right: "droite",
         };
+        const IMAGE_SHAPES = {
+          rectangle: { label: "Rectangle" },
+          circle: { label: "Cercle" },
+          square: { label: "Carré" },
+          heart: { label: "Cœur" },
+          star: { label: "Étoile" },
+          hexagon: { label: "Hexagone" },
+        };
+        const DEFAULT_IMAGE_SHAPE = "rectangle";
+        const DEFAULT_IMAGE_SHAPES = {
+          left: DEFAULT_IMAGE_SHAPE,
+          center: DEFAULT_IMAGE_SHAPE,
+          right: DEFAULT_IMAGE_SHAPE,
+        };
         const DEFAULT_FILE_LABELS = {
           left: "Aucune image choisie",
           center: "Aucune image choisie",
@@ -1998,6 +2113,7 @@
         const state = {
           layoutPreset: DEFAULT_LAYOUT,
           fitModes: { ...savedPreferences.fitModes },
+          imageShapes: { ...savedPreferences.imageShapes },
           imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS),
           minimalMode: true,
           text: "",
@@ -2034,6 +2150,8 @@
           layoutButtons: Array.from(document.querySelectorAll("[data-layout]")),
           minimalMode: document.querySelector("#minimalMode"),
           fitButtons: Array.from(document.querySelectorAll("[data-fit-slot]")),
+          imageShapeControls: Array.from(document.querySelectorAll("[data-image-shape-control]")),
+          imageShapeButtons: Array.from(document.querySelectorAll("[data-image-shape-slot]")),
           positionControls: Array.from(document.querySelectorAll("[data-position-value]")),
           positionInputs: Array.from(document.querySelectorAll("[data-position-input]")),
           textInput: document.querySelector("#textInput"),
@@ -2127,6 +2245,12 @@
         elements.fitButtons.forEach((button) => {
           button.addEventListener("click", () => {
             setFitMode(button.dataset.fitSlot, button.dataset.fitMode);
+          });
+        });
+
+        elements.imageShapeButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            setImageShape(button.dataset.imageShapeSlot, button.dataset.imageShape);
           });
         });
 
@@ -2267,6 +2391,7 @@
         syncPreferenceControls();
         updatePositionControls();
         updateRemoveButtons();
+        updateImageShapeControls();
         updateFontPreviewSamples();
         renderIcons();
         updateWizardUI();
@@ -2285,6 +2410,7 @@
         function getFactoryPreferences() {
           return {
             fitModes: { ...DEFAULT_FIT_MODES },
+            imageShapes: { ...DEFAULT_IMAGE_SHAPES },
             textPosition: "center",
             textFont: DEFAULT_TEXT_FONT,
             fontSize: DEFAULT_FONT_SIZE,
@@ -2317,6 +2443,7 @@
 
           return {
             fitModes: normalizeFitModePreferences(saved.fitModes, fallback.fitModes),
+            imageShapes: normalizeImageShapePreferences(saved.imageShapes, fallback.imageShapes),
             textPosition: ["top", "center", "bottom"].includes(saved.textPosition)
               ? saved.textPosition
               : fallback.textPosition,
@@ -2342,6 +2469,16 @@
           );
         }
 
+        function normalizeImageShapePreferences(input, fallback) {
+          const saved = input && typeof input === "object" ? input : {};
+          return Object.fromEntries(
+            Object.keys(DEFAULT_IMAGE_SHAPES).map((slot) => [
+              slot,
+              Object.prototype.hasOwnProperty.call(IMAGE_SHAPES, saved[slot]) ? saved[slot] : fallback[slot],
+            ]),
+          );
+        }
+
         function normalizeTextFormatPreferences(input, fallback) {
           const saved = input && typeof input === "object" ? input : {};
           return Object.fromEntries(
@@ -2355,6 +2492,7 @@
               PREFERENCES_STORAGE_KEY,
               JSON.stringify({
                 fitModes: state.fitModes,
+                imageShapes: state.imageShapes,
                 textPosition: state.textPosition,
                 textFont: state.textFont,
                 fontSize: state.fontSize,
@@ -2378,6 +2516,7 @@
           updateLayoutButtons();
           updateMinimalMode();
           updateFitButtons();
+          updateImageShapeControls();
           updateTextFormatButtons();
           updateTextPositionButtons();
           updateTextShapeButtons();
@@ -2655,6 +2794,7 @@
           elements.centerImage.value = "";
           setFileName("center", DEFAULT_FILE_LABELS.center);
           updateRemoveButtons();
+          updateImageShapeControls();
         }
 
         function setWizardStep(step) {
@@ -2869,6 +3009,27 @@
           });
         }
 
+        function setImageShape(slot, shape) {
+          if (!state.imageShapes[slot] || !Object.prototype.hasOwnProperty.call(IMAGE_SHAPES, shape)) return;
+
+          state.imageShapes[slot] = shape;
+          updateImageShapeControls();
+          saveDefaultPreferences();
+          render();
+        }
+
+        function updateImageShapeControls() {
+          elements.imageShapeControls.forEach((control) => {
+            const hasImage = Boolean(state.images[control.dataset.imageShapeControl]);
+            control.hidden = !hasImage;
+            control.closest(".upload-row")?.setAttribute("data-image-loaded", String(hasImage));
+          });
+          elements.imageShapeButtons.forEach((button) => {
+            const isActive = state.imageShapes[button.dataset.imageShapeSlot] === button.dataset.imageShape;
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+          });
+        }
+
         function setImagePosition(slot, axis, value) {
           if (state.minimalMode) return;
           if (!state.imagePositions[slot] || !["x", "y"].includes(axis)) return;
@@ -2889,6 +3050,7 @@
           getImageInput(slot).value = "";
           setFileName(slot, DEFAULT_FILE_LABELS[slot]);
           updateRemoveButtons();
+          updateImageShapeControls();
           updatePositionControls();
           updateWizardUI();
           setStatus("Image retirée");
@@ -3165,6 +3327,7 @@
             autoSetFitModeForImage(slot, state.images[slot]);
             setFileName(slot, file.name);
             updateRemoveButtons();
+            updateImageShapeControls();
             updateWizardUI();
             setStatus("Image chargée");
             render();
@@ -3287,12 +3450,12 @@
         function renderImageSlot(slot) {
           const item = state.images[slot];
           const zone = getZones()[slot];
+          const shape = state.imageShapes[slot];
+          const shapeBounds = getImageShapeBounds(zone, shape);
           const group = new Konva.Group({
-            clip: {
-              x: zone.x,
-              y: zone.y,
-              width: zone.width,
-              height: zone.height,
+            clipFunc: (context) => {
+              context.beginPath();
+              drawImageShapePath(context, shape, shapeBounds);
             },
           });
 
@@ -3307,7 +3470,7 @@
             return;
           }
 
-          const placement = getPlacement(item, zone, state.fitModes[slot], state.imagePositions[slot]);
+          const placement = getPlacement(item, shapeBounds, state.fitModes[slot], state.imagePositions[slot]);
           group.add(
             new Konva.Image({
               image: item.image,
@@ -3318,6 +3481,83 @@
             }),
           );
           contentLayer.add(group);
+        }
+
+        function getImageShapeBounds(zone, shape) {
+          if (shape === "rectangle") return { ...zone };
+
+          const size = Math.min(zone.width, zone.height);
+          return {
+            x: zone.x + (zone.width - size) / 2,
+            y: zone.y + (zone.height - size) / 2,
+            width: size,
+            height: size,
+          };
+        }
+
+        function drawImageShapePath(context, shape, bounds) {
+          const { x, y, width, height } = bounds;
+          const centerX = x + width / 2;
+          const centerY = y + height / 2;
+
+          if (shape === "circle") {
+            context.arc(centerX, centerY, Math.min(width, height) / 2, 0, Math.PI * 2);
+            return;
+          }
+
+          if (shape === "heart") {
+            context.moveTo(centerX, y + height * 0.9);
+            context.bezierCurveTo(
+              centerX - width * 0.42,
+              y + height * 0.64,
+              x,
+              y + height * 0.4,
+              x,
+              y + height * 0.18,
+            );
+            context.bezierCurveTo(x, y + height * 0.02, x + width * 0.2, y, centerX, y + height * 0.22);
+            context.bezierCurveTo(x + width * 0.8, y, x + width, y + height * 0.02, x + width, y + height * 0.18);
+            context.bezierCurveTo(
+              x + width,
+              y + height * 0.4,
+              centerX + width * 0.42,
+              y + height * 0.64,
+              centerX,
+              y + height * 0.9,
+            );
+            context.closePath();
+            return;
+          }
+
+          if (shape === "star") {
+            const outerRadius = Math.min(width, height) / 2;
+            const innerRadius = outerRadius * 0.42;
+            for (let point = 0; point < 10; point += 1) {
+              const radius = point % 2 === 0 ? outerRadius : innerRadius;
+              const angle = -Math.PI / 2 + (point * Math.PI) / 5;
+              const pointX = centerX + Math.cos(angle) * radius;
+              const pointY = centerY + Math.sin(angle) * radius;
+              if (point === 0) context.moveTo(pointX, pointY);
+              else context.lineTo(pointX, pointY);
+            }
+            context.closePath();
+            return;
+          }
+
+          if (shape === "hexagon") {
+            const radius = Math.min(width, height) / 2;
+            for (let point = 0; point < 6; point += 1) {
+              const angle = (point * Math.PI) / 3;
+              const pointX = centerX + Math.cos(angle) * radius;
+              const pointY = centerY + Math.sin(angle) * radius;
+              if (point === 0) context.moveTo(pointX, pointY);
+              else context.lineTo(pointX, pointY);
+            }
+            context.closePath();
+            return;
+          }
+
+          context.rect(x, y, width, height);
         }
 
         function getKonvaFontStyle() {
@@ -3777,10 +4017,12 @@
           if (!item) return;
 
           const zone = getZones()[slot];
-          const placement = getPlacement(item, zone, state.fitModes[slot], state.imagePositions[slot]);
+          const shape = state.imageShapes[slot];
+          const shapeBounds = getImageShapeBounds(zone, shape);
+          const placement = getPlacement(item, shapeBounds, state.fitModes[slot], state.imagePositions[slot]);
           context.save();
           context.beginPath();
-          context.rect(zone.x, zone.y, zone.width, zone.height);
+          drawImageShapePath(context, shape, shapeBounds);
           context.clip();
           context.drawImage(
             item.image,
@@ -3948,6 +4190,7 @@
           state.images.right = null;
           state.layoutPreset = DEFAULT_LAYOUT;
           state.fitModes = { ...DEFAULT_FIT_MODES };
+          state.imageShapes = { ...DEFAULT_IMAGE_SHAPES };
           state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
           state.minimalMode = true;
           wizardStep = "left";
@@ -3973,6 +4216,7 @@
           updateWizardUI();
           updatePositionControls();
           updateRemoveButtons();
+          updateImageShapeControls();
           elements.fontSelect.value = state.textFont;
           elements.fontSize.value = String(state.fontSize);
           elements.fontSizeValue.textContent = String(state.fontSize);
