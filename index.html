@@ -235,6 +235,21 @@
         block-size: 22px;
       }
 
+      .minimal-mode .slot-crop {
+        min-width: 36px;
+        padding-inline: 8px;
+      }
+
+      .minimal-mode .slot-crop .button-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
       .minimal-mode .image-shape-options .mode-button {
         min-height: 46px;
         padding: 4px;
@@ -379,17 +394,16 @@
       .file-row {
         min-height: 38px;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto auto;
         gap: 8px;
         align-items: center;
       }
 
-      .slot-remove {
+      .slot-remove,
+      .slot-crop {
         min-height: 34px;
-        border: 1px solid #f2a7a7;
+        border: 1px solid var(--line);
         border-radius: 8px;
-        background: #fff5f5;
-        color: #991b1b;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -399,7 +413,19 @@
         cursor: pointer;
       }
 
-      .slot-remove[hidden] {
+      .slot-remove {
+        border-color: #f2a7a7;
+        background: #fff5f5;
+        color: #991b1b;
+      }
+
+      .slot-crop {
+        background: #f0fdfa;
+        color: var(--accent-strong);
+      }
+
+      .slot-remove[hidden],
+      .slot-crop[hidden] {
         display: none;
       }
 
@@ -408,8 +434,15 @@
         border-color: #dc2626;
       }
 
+      .slot-crop:hover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+
       .slot-remove .icon,
-      .slot-remove .icon svg {
+      .slot-remove .icon svg,
+      .slot-crop .icon,
+      .slot-crop .icon svg {
         inline-size: 16px;
         block-size: 16px;
       }
@@ -1335,6 +1368,170 @@
         grid-row: 3;
       }
 
+      .image-crop-dialog {
+        width: min(680px, calc(100vw - 28px));
+        max-width: none;
+        max-height: calc(100dvh - 28px);
+        margin: auto;
+        padding: 0;
+        border: 1px solid #9eb0c2;
+        border-radius: 14px;
+        background: #ffffff;
+        color: var(--ink);
+        box-shadow: 0 28px 72px rgba(15, 23, 42, 0.28);
+        overflow: hidden;
+      }
+
+      .image-crop-dialog::backdrop {
+        background: rgba(15, 23, 42, 0.58);
+      }
+
+      .crop-dialog-content {
+        display: grid;
+        max-height: calc(100dvh - 28px);
+        overflow: auto;
+      }
+
+      .crop-dialog-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 20px 12px;
+      }
+
+      .crop-dialog-title {
+        margin: 0;
+        font-size: 1.16rem;
+      }
+
+      .crop-dialog-copy {
+        margin: 5px 0 0;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .crop-preview-stage {
+        min-height: 188px;
+        padding: 12px 20px;
+        display: grid;
+        place-items: center;
+        background: #e7eef5;
+      }
+
+      .crop-viewport {
+        position: relative;
+        overflow: hidden;
+        background:
+          linear-gradient(45deg, #d7e1ea 25%, transparent 25%) 0 0 / 22px 22px,
+          linear-gradient(-45deg, #d7e1ea 25%, transparent 25%) 0 11px / 22px 22px,
+          linear-gradient(45deg, transparent 75%, #d7e1ea 75%) 11px -11px / 22px 22px,
+          linear-gradient(-45deg, transparent 75%, #d7e1ea 75%) -11px 0 / 22px 22px,
+          #eef3f7;
+        border: 3px solid #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(23, 32, 42, 0.2);
+        touch-action: none;
+        cursor: grab;
+        user-select: none;
+      }
+
+      .crop-viewport.is-dragging {
+        cursor: grabbing;
+      }
+
+      .crop-preview-image {
+        position: absolute;
+        max-width: none;
+        max-height: none;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .crop-viewport::before,
+      .crop-viewport::after {
+        content: "";
+        position: absolute;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .crop-viewport::before {
+        inset: 0;
+        border: 1px solid rgba(255, 255, 255, 0.82);
+      }
+
+      .crop-viewport::after {
+        inset: 0;
+        background:
+          linear-gradient(to right, transparent 33.1%, rgba(255, 255, 255, 0.46) 33.1%, rgba(255, 255, 255, 0.46) 33.7%, transparent 33.7%, transparent 66.3%, rgba(255, 255, 255, 0.46) 66.3%, rgba(255, 255, 255, 0.46) 66.9%, transparent 66.9%),
+          linear-gradient(to bottom, transparent 33.1%, rgba(255, 255, 255, 0.46) 33.1%, rgba(255, 255, 255, 0.46) 33.7%, transparent 33.7%, transparent 66.3%, rgba(255, 255, 255, 0.46) 66.3%, rgba(255, 255, 255, 0.46) 66.9%, transparent 66.9%);
+      }
+
+      .crop-controls {
+        display: grid;
+        gap: 12px;
+        padding: 16px 20px;
+      }
+
+      .crop-zoom-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) 50px;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .crop-zoom-row input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+
+      .crop-zoom-value {
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+
+      .crop-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .crop-actions .button {
+        min-height: 46px;
+      }
+
+      .crop-dialog-footer {
+        display: grid;
+        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+        gap: 8px;
+        padding: 14px 20px 20px;
+        border-top: 1px solid var(--line);
+      }
+
+      @media (max-width: 520px) {
+        .crop-dialog-head,
+        .crop-controls,
+        .crop-dialog-footer {
+          padding-inline: 14px;
+        }
+
+        .crop-preview-stage {
+          padding-inline: 14px;
+        }
+
+        .crop-dialog-footer {
+          grid-template-columns: 1fr;
+        }
+
+        .crop-actions .button {
+          flex: 1 1 140px;
+        }
+      }
+
       @media (hover: none) {
         .image-shift-zone::before,
         .image-shift-pad {
@@ -1511,6 +1708,10 @@
                 <input id="leftImage" type="file" accept="image/*">
                 <div class="file-row">
                   <div id="leftName" class="file-name">Aucune image choisie</div>
+                  <button class="slot-crop" type="button" data-crop-slot="left" hidden aria-label="Cadrer l'image gauche">
+                    <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
+                    <span class="button-text">Cadrer</span>
+                  </button>
                   <button class="slot-remove" type="button" data-remove-slot="left" hidden aria-label="Retirer l'image gauche">
                     <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
                     <span class="button-text">Retirer</span>
@@ -1585,6 +1786,10 @@
                 <input id="centerImage" type="file" accept="image/*">
                 <div class="file-row">
                   <div id="centerName" class="file-name">Aucune image choisie</div>
+                  <button class="slot-crop" type="button" data-crop-slot="center" hidden aria-label="Cadrer l'image centrale">
+                    <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
+                    <span class="button-text">Cadrer</span>
+                  </button>
                   <button class="slot-remove" type="button" data-remove-slot="center" hidden aria-label="Retirer l'image centrale">
                     <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
                     <span class="button-text">Retirer</span>
@@ -1659,6 +1864,10 @@
                 <input id="rightImage" type="file" accept="image/*">
                 <div class="file-row">
                   <div id="rightName" class="file-name">Aucune image choisie</div>
+                  <button class="slot-crop" type="button" data-crop-slot="right" hidden aria-label="Cadrer l'image droite">
+                    <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
+                    <span class="button-text">Cadrer</span>
+                  </button>
                   <button class="slot-remove" type="button" data-remove-slot="right" hidden aria-label="Retirer l'image droite">
                     <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
                     <span class="button-text">Retirer</span>
@@ -1950,6 +2159,46 @@
       </section>
     </main>
 
+    <dialog id="imageCropDialog" class="image-crop-dialog" aria-labelledby="imageCropDialogTitle" aria-describedby="imageCropDialogCopy">
+      <div class="crop-dialog-content">
+        <div class="crop-dialog-head">
+          <div>
+            <h2 id="imageCropDialogTitle" class="crop-dialog-title">Cadrer l'image</h2>
+            <p id="imageCropDialogCopy" class="crop-dialog-copy">Glissez l'image pour placer le sujet, puis utilisez le zoom si nécessaire.</p>
+          </div>
+        </div>
+        <div id="cropPreviewStage" class="crop-preview-stage">
+          <div id="cropViewport" class="crop-viewport" aria-label="Zone de cadrage. Faites glisser l'image pour la repositionner.">
+            <img id="cropPreviewImage" class="crop-preview-image" alt="Aperçu de l'image à cadrer">
+          </div>
+        </div>
+        <div class="crop-controls">
+          <label class="crop-zoom-row" for="cropZoom">
+            <span>Zoom</span>
+            <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1">
+            <output id="cropZoomValue" class="crop-zoom-value" for="cropZoom">100 %</output>
+          </label>
+          <div class="crop-actions">
+            <button id="cropCenterButton" class="button secondary" type="button">
+              <span class="icon" aria-hidden="true"><i data-lucide="crosshair"></i></span>
+              <span class="button-text">Centrer</span>
+            </button>
+            <button id="cropResetButton" class="button secondary" type="button">
+              <span class="icon" aria-hidden="true"><i data-lucide="rotate-ccw"></i></span>
+              <span class="button-text">Réinitialiser</span>
+            </button>
+          </div>
+        </div>
+        <div class="crop-dialog-footer">
+          <button id="cropCancelButton" class="button secondary" type="button">Annuler</button>
+          <button id="cropApplyButton" class="button primary" type="button">
+            <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
+            <span class="button-text">Utiliser l'image</span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+
     <script>
       (() => {
         const EXPORT_WIDTH = 2550;
@@ -1989,6 +2238,9 @@
         let wizardStep = "left";
         let previewScale = 1;
         let previewOffset = { x: 0, y: 0 };
+        let cropDraft = null;
+        let cropDrag = null;
+        let cropDialogOpener = null;
         const DEFAULT_FIT_MODES = {
           left: "cut",
           center: "cut",
@@ -1999,6 +2251,12 @@
           left: { ...DEFAULT_IMAGE_POSITION },
           center: { ...DEFAULT_IMAGE_POSITION },
           right: { ...DEFAULT_IMAGE_POSITION },
+        };
+        const DEFAULT_IMAGE_SCALE = 1;
+        const DEFAULT_IMAGE_SCALES = {
+          left: DEFAULT_IMAGE_SCALE,
+          center: DEFAULT_IMAGE_SCALE,
+          right: DEFAULT_IMAGE_SCALE,
         };
         const IMAGE_SHIFT_STEP = 0.04;
         const IMAGE_SHIFT_DIRECTIONS = {
@@ -2115,6 +2373,7 @@
           fitModes: { ...savedPreferences.fitModes },
           imageShapes: { ...savedPreferences.imageShapes },
           imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS),
+          imageScales: { ...DEFAULT_IMAGE_SCALES },
           minimalMode: true,
           text: "",
           textPosition: savedPreferences.textPosition,
@@ -2147,6 +2406,7 @@
           centerName: document.querySelector("#centerName"),
           rightName: document.querySelector("#rightName"),
           removeButtons: Array.from(document.querySelectorAll("[data-remove-slot]")),
+          cropButtons: Array.from(document.querySelectorAll("[data-crop-slot]")),
           layoutButtons: Array.from(document.querySelectorAll("[data-layout]")),
           minimalMode: document.querySelector("#minimalMode"),
           fitButtons: Array.from(document.querySelectorAll("[data-fit-slot]")),
@@ -2189,6 +2449,16 @@
           mirrorPrint: document.querySelector("#mirrorPrint"),
           clearButton: document.querySelector("#clearButton"),
           status: document.querySelector("#status"),
+          cropDialog: document.querySelector("#imageCropDialog"),
+          cropPreviewStage: document.querySelector("#cropPreviewStage"),
+          cropViewport: document.querySelector("#cropViewport"),
+          cropPreviewImage: document.querySelector("#cropPreviewImage"),
+          cropZoom: document.querySelector("#cropZoom"),
+          cropZoomValue: document.querySelector("#cropZoomValue"),
+          cropCenterButton: document.querySelector("#cropCenterButton"),
+          cropResetButton: document.querySelector("#cropResetButton"),
+          cropCancelButton: document.querySelector("#cropCancelButton"),
+          cropApplyButton: document.querySelector("#cropApplyButton"),
         };
 
         if (!window.Konva) {
@@ -2216,6 +2486,13 @@
         elements.removeButtons.forEach((button) => {
           button.addEventListener("click", () => {
             removeImage(button.dataset.removeSlot);
+          });
+        });
+
+        elements.cropButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            const item = state.images[button.dataset.cropSlot];
+            if (item) openImageCropDialog(button.dataset.cropSlot, item, button);
           });
         });
 
@@ -2273,6 +2550,29 @@
           if (!button) return;
 
           nudgeImagePosition(button.dataset.nudgeSlot, button.dataset.nudgeDirection);
+        });
+
+        elements.cropZoom.addEventListener("input", () => {
+          if (!cropDraft) return;
+          cropDraft.scale = Number(elements.cropZoom.value);
+          renderCropPreview();
+        });
+        elements.cropCenterButton.addEventListener("click", centerCropImage);
+        elements.cropResetButton.addEventListener("click", resetCropImage);
+        elements.cropCancelButton.addEventListener("click", cancelImageCrop);
+        elements.cropApplyButton.addEventListener("click", applyImageCrop);
+        elements.cropDialog.addEventListener("cancel", (event) => {
+          event.preventDefault();
+          cancelImageCrop();
+        });
+        elements.cropViewport.addEventListener("pointerdown", startCropDrag);
+        elements.cropViewport.addEventListener("pointermove", moveCropDrag);
+        elements.cropViewport.addEventListener("pointerup", endCropDrag);
+        elements.cropViewport.addEventListener("pointercancel", endCropDrag);
+        window.addEventListener("resize", () => {
+          if (!elements.cropDialog.open) return;
+          layoutCropViewport();
+          renderCropPreview();
         });
 
         elements.textInput.addEventListener("input", () => {
@@ -2391,6 +2691,7 @@
         syncPreferenceControls();
         updatePositionControls();
         updateRemoveButtons();
+        updateCropButtons();
         updateImageShapeControls();
         updateFontPreviewSamples();
         renderIcons();
@@ -2791,9 +3092,11 @@
         function clearCenterImageForSimpleMode() {
           state.images.center = null;
           state.imagePositions.center = { ...DEFAULT_IMAGE_POSITION };
+          state.imageScales.center = DEFAULT_IMAGE_SCALE;
           elements.centerImage.value = "";
           setFileName("center", DEFAULT_FILE_LABELS.center);
           updateRemoveButtons();
+          updateCropButtons();
           updateImageShapeControls();
         }
 
@@ -2997,6 +3300,11 @@
 
         function setFitMode(slot, mode) {
           state.fitModes[slot] = mode;
+          if (mode === "resize") {
+            state.imageScales[slot] = DEFAULT_IMAGE_SCALE;
+            state.imagePositions[slot] = { ...DEFAULT_IMAGE_POSITION };
+            updatePositionControls();
+          }
           updateFitButtons();
           saveDefaultPreferences();
           render();
@@ -3047,9 +3355,11 @@
 
           state.images[slot] = null;
           state.imagePositions[slot] = { ...DEFAULT_IMAGE_POSITION };
+          state.imageScales[slot] = DEFAULT_IMAGE_SCALE;
           getImageInput(slot).value = "";
           setFileName(slot, DEFAULT_FILE_LABELS[slot]);
           updateRemoveButtons();
+          updateCropButtons();
           updateImageShapeControls();
           updatePositionControls();
           updateWizardUI();
@@ -3318,21 +3628,16 @@
 
           try {
             const image = await loadImage(file);
-            state.images[slot] = {
+            const item = {
               image,
               name: file.name,
               width: image.naturalWidth,
               height: image.naturalHeight,
             };
-            autoSetFitModeForImage(slot, state.images[slot]);
-            setFileName(slot, file.name);
-            updateRemoveButtons();
-            updateImageShapeControls();
-            updateWizardUI();
-            setStatus("Image chargée");
-            render();
+            openImageCropDialog(slot, item);
           } catch (error) {
             console.error(error);
+            event.target.value = "";
             setStatus("Impossible de lire cette image.", true);
           }
         }
@@ -3351,20 +3656,181 @@
           });
         }
 
-        function autoSetFitModeForImage(slot, item) {
-          if (!state.minimalMode || !item) return;
+        function openImageCropDialog(slot, item, opener = null) {
+          const existingItem = state.images[slot];
+          const isReframingCurrentImage = existingItem === item;
+          cropDialogOpener = opener || document.activeElement;
+          cropDraft = {
+            slot,
+            item,
+            position: isReframingCurrentImage
+              ? { ...state.imagePositions[slot] }
+              : { ...DEFAULT_IMAGE_POSITION },
+            scale: isReframingCurrentImage ? state.imageScales[slot] : DEFAULT_IMAGE_SCALE,
+          };
+          elements.cropPreviewImage.src = item.image.src;
+          elements.cropZoom.value = String(cropDraft.scale);
 
-          state.fitModes[slot] = isTallImageForSlot(slot, item) ? "resize" : DEFAULT_FIT_MODES[slot];
-          updateFitButtons();
+          if (!elements.cropDialog.open) elements.cropDialog.showModal();
+
+          window.requestAnimationFrame(() => {
+            layoutCropViewport();
+            renderCropPreview();
+            elements.cropZoom.focus();
+          });
         }
 
-        function isTallImageForSlot(slot, item) {
+        function getCropTargetBounds(slot) {
           const zone = getZones()[slot];
-          if (!zone || !item.width || !item.height) return false;
+          return getImageShapeBounds(zone, state.imageShapes[slot]);
+        }
 
-          const imageTallness = item.height / item.width;
-          const zoneTallness = zone.height / zone.width;
-          return imageTallness > zoneTallness * 1.12;
+        function layoutCropViewport() {
+          if (!cropDraft) return;
+
+          const target = getCropTargetBounds(cropDraft.slot);
+          const aspectRatio = target.width / target.height;
+          const availableWidth = Math.max(220, Math.min(560, elements.cropPreviewStage.clientWidth - 40));
+          const availableHeight = Math.max(190, Math.min(410, Math.round(window.innerHeight * 0.42)));
+          let width = availableWidth;
+          let height = width / aspectRatio;
+
+          if (height > availableHeight) {
+            height = availableHeight;
+            width = height * aspectRatio;
+          }
+
+          elements.cropViewport.style.width = `${Math.round(width)}px`;
+          elements.cropViewport.style.height = `${Math.round(height)}px`;
+        }
+
+        function getCropImageFrame() {
+          if (!cropDraft) return null;
+
+          const viewport = elements.cropViewport.getBoundingClientRect();
+          if (!viewport.width || !viewport.height) return null;
+
+          const baseScale = Math.max(
+            viewport.width / cropDraft.item.width,
+            viewport.height / cropDraft.item.height,
+          );
+          const width = cropDraft.item.width * baseScale * cropDraft.scale;
+          const height = cropDraft.item.height * baseScale * cropDraft.scale;
+          return {
+            viewport,
+            width,
+            height,
+            x: (viewport.width - width) * cropDraft.position.x,
+            y: (viewport.height - height) * cropDraft.position.y,
+          };
+        }
+
+        function renderCropPreview() {
+          const frame = getCropImageFrame();
+          if (!frame) return;
+
+          elements.cropPreviewImage.style.width = `${frame.width}px`;
+          elements.cropPreviewImage.style.height = `${frame.height}px`;
+          elements.cropPreviewImage.style.left = `${frame.x}px`;
+          elements.cropPreviewImage.style.top = `${frame.y}px`;
+          elements.cropZoom.value = String(cropDraft.scale);
+          elements.cropZoomValue.textContent = `${Math.round(cropDraft.scale * 100)} %`;
+        }
+
+        function startCropDrag(event) {
+          if (!cropDraft || event.button !== 0) return;
+
+          const frame = getCropImageFrame();
+          if (!frame) return;
+
+          event.preventDefault();
+          cropDrag = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            frame,
+          };
+          elements.cropViewport.setPointerCapture(event.pointerId);
+          elements.cropViewport.classList.add("is-dragging");
+        }
+
+        function moveCropDrag(event) {
+          if (!cropDraft || !cropDrag || cropDrag.pointerId !== event.pointerId) return;
+
+          const deltaX = event.clientX - cropDrag.startX;
+          const deltaY = event.clientY - cropDrag.startY;
+          const horizontalRange = cropDrag.frame.viewport.width - cropDrag.frame.width;
+          const verticalRange = cropDrag.frame.viewport.height - cropDrag.frame.height;
+
+          cropDraft.position.x = Math.abs(horizontalRange) < 0.001
+            ? DEFAULT_IMAGE_POSITION.x
+            : Math.min(1, Math.max(0, (cropDrag.frame.x + deltaX) / horizontalRange));
+          cropDraft.position.y = Math.abs(verticalRange) < 0.001
+            ? DEFAULT_IMAGE_POSITION.y
+            : Math.min(1, Math.max(0, (cropDrag.frame.y + deltaY) / verticalRange));
+          renderCropPreview();
+        }
+
+        function endCropDrag(event) {
+          if (!cropDrag || cropDrag.pointerId !== event.pointerId) return;
+
+          if (elements.cropViewport.hasPointerCapture(event.pointerId)) {
+            elements.cropViewport.releasePointerCapture(event.pointerId);
+          }
+          cropDrag = null;
+          elements.cropViewport.classList.remove("is-dragging");
+        }
+
+        function centerCropImage() {
+          if (!cropDraft) return;
+
+          cropDraft.position = { ...DEFAULT_IMAGE_POSITION };
+          renderCropPreview();
+        }
+
+        function resetCropImage() {
+          if (!cropDraft) return;
+
+          cropDraft.position = { ...DEFAULT_IMAGE_POSITION };
+          cropDraft.scale = DEFAULT_IMAGE_SCALE;
+          renderCropPreview();
+        }
+
+        function closeImageCrop() {
+          const input = cropDraft ? getImageInput(cropDraft.slot) : null;
+          if (elements.cropDialog.open) elements.cropDialog.close();
+          if (input) input.value = "";
+          elements.cropPreviewImage.removeAttribute("src");
+          cropDraft = null;
+          cropDrag = null;
+          const opener = cropDialogOpener;
+          cropDialogOpener = null;
+          if (opener instanceof HTMLElement) opener.focus();
+        }
+
+        function cancelImageCrop() {
+          closeImageCrop();
+          setStatus("Cadrage annulé");
+        }
+
+        function applyImageCrop() {
+          if (!cropDraft) return;
+
+          const { slot, item, position, scale } = cropDraft;
+          state.images[slot] = item;
+          state.imagePositions[slot] = { ...position };
+          state.imageScales[slot] = scale;
+          state.fitModes[slot] = "cut";
+          setFileName(slot, item.name);
+          updateFitButtons();
+          updateRemoveButtons();
+          updateCropButtons();
+          updateImageShapeControls();
+          updatePositionControls();
+          updateWizardUI();
+          closeImageCrop();
+          setStatus("Image cadrée");
+          render();
         }
 
         function setFileName(slot, name) {
@@ -3380,6 +3846,12 @@
         function updateRemoveButtons() {
           elements.removeButtons.forEach((button) => {
             button.hidden = !state.images[button.dataset.removeSlot];
+          });
+        }
+
+        function updateCropButtons() {
+          elements.cropButtons.forEach((button) => {
+            button.hidden = !state.images[button.dataset.cropSlot];
           });
         }
 
@@ -3470,7 +3942,13 @@
             return;
           }
 
-          const placement = getPlacement(item, shapeBounds, state.fitModes[slot], state.imagePositions[slot]);
+          const placement = getPlacement(
+            item,
+            shapeBounds,
+            state.fitModes[slot],
+            state.imagePositions[slot],
+            state.imageScales[slot],
+          );
           group.add(
             new Konva.Image({
               image: item.image,
@@ -3726,11 +4204,12 @@
           });
         }
 
-        function getPlacement(item, zone, mode, position = DEFAULT_IMAGE_POSITION) {
-          const scale =
+        function getPlacement(item, zone, mode, position = DEFAULT_IMAGE_POSITION, imageScale = DEFAULT_IMAGE_SCALE) {
+          const fitScale =
             mode === "cut"
               ? Math.max(zone.width / item.width, zone.height / item.height)
               : Math.min(zone.width / item.width, zone.height / item.height);
+          const scale = fitScale * Math.max(DEFAULT_IMAGE_SCALE, Number(imageScale) || DEFAULT_IMAGE_SCALE);
           const width = item.width * scale;
           const height = item.height * scale;
           return {
@@ -4019,7 +4498,13 @@
           const zone = getZones()[slot];
           const shape = state.imageShapes[slot];
           const shapeBounds = getImageShapeBounds(zone, shape);
-          const placement = getPlacement(item, shapeBounds, state.fitModes[slot], state.imagePositions[slot]);
+          const placement = getPlacement(
+            item,
+            shapeBounds,
+            state.fitModes[slot],
+            state.imagePositions[slot],
+            state.imageScales[slot],
+          );
           context.save();
           context.beginPath();
           drawImageShapePath(context, shape, shapeBounds);
@@ -4192,6 +4677,7 @@
           state.fitModes = { ...DEFAULT_FIT_MODES };
           state.imageShapes = { ...DEFAULT_IMAGE_SHAPES };
           state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
+          state.imageScales = { ...DEFAULT_IMAGE_SCALES };
           state.minimalMode = true;
           wizardStep = "left";
           state.text = "";
@@ -4216,6 +4702,7 @@
           updateWizardUI();
           updatePositionControls();
           updateRemoveButtons();
+          updateCropButtons();
           updateImageShapeControls();
           elements.fontSelect.value = state.textFont;
           elements.fontSize.value = String(state.fontSize);
