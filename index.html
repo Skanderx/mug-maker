@@ -4971,17 +4971,30 @@
         }
 
         function createExportCanvas(options = {}) {
-          const canvas = document.createElement("canvas");
-          canvas.width = EXPORT_WIDTH;
-          canvas.height = EXPORT_HEIGHT;
-          const context = canvas.getContext("2d");
-          context.fillStyle = "#ffffff";
-          context.fillRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
-
-          drawImageSlot(context, "left");
-          drawImageSlot(context, "center");
-          drawImageSlot(context, "right");
-          drawExportText(context);
+          // Export the very same Konva layer shown in the preview. Keeping a
+          // second Canvas renderer here caused custom fonts to be rasterised
+          // differently in print than in the editor.
+          const previewTransform = {
+            x: contentLayer.x(),
+            y: contentLayer.y(),
+            scaleX: contentLayer.scaleX(),
+            scaleY: contentLayer.scaleY(),
+          };
+          contentLayer.position({ x: 0, y: 0 });
+          contentLayer.scale({ x: 1, y: 1 });
+          let canvas;
+          try {
+            canvas = contentLayer.toCanvas({
+              x: 0,
+              y: 0,
+              width: EXPORT_WIDTH,
+              height: EXPORT_HEIGHT,
+              pixelRatio: 1,
+            });
+          } finally {
+            contentLayer.position({ x: previewTransform.x, y: previewTransform.y });
+            contentLayer.scale({ x: previewTransform.scaleX, y: previewTransform.scaleY });
+          }
 
           if (!options.mirror) return canvas;
 
@@ -4993,93 +5006,6 @@
           mirroredContext.scale(-1, 1);
           mirroredContext.drawImage(canvas, 0, 0);
           return mirroredCanvas;
-        }
-
-        function drawImageSlot(context, slot) {
-          const item = state.images[slot];
-          if (!item) return;
-
-          const zone = getZones()[slot];
-          const shape = state.imageShapes[slot];
-          const shapeBounds = getImageShapeBounds(zone, shape);
-          const placement = getPlacement(
-            item,
-            shapeBounds,
-            state.fitModes[slot],
-            state.imagePositions[slot],
-            state.imageScales[slot],
-          );
-          context.save();
-          context.beginPath();
-          drawImageShapePath(context, shape, shapeBounds);
-          context.clip();
-          context.drawImage(
-            item.image,
-            placement.x,
-            placement.y,
-            placement.width,
-            placement.height,
-          );
-          context.restore();
-        }
-
-        function drawExportText(context) {
-          const text = state.text.trim();
-          if (!text) return;
-
-          const zone = getZones().center;
-          const padding = 46;
-          const maxWidth = zone.width - padding * 2;
-          const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
-          const fontSize = layout.fontSize;
-          const lineHeight = layout.lineHeight;
-          const lines = layout.lines;
-          const textBlock = getTextBlock(zone, layout, padding);
-          let y = textBlock.y + fontSize;
-
-          context.save();
-          drawCanvasTextShapes(context, zone, textBlock, fontSize);
-          context.font = getCanvasFont(fontSize);
-          context.textAlign = "center";
-          context.textBaseline = "alphabetic";
-          context.direction = getTextDirection(text);
-          context.lineJoin = "round";
-          context.strokeStyle = state.outlineColor;
-          context.lineWidth = Math.max(8, Math.round(fontSize * 0.12));
-          context.fillStyle = state.textColor;
-          context.shadowColor = state.textFormat.shadow ? "rgba(0, 0, 0, 0.22)" : "rgba(0, 0, 0, 0)";
-          context.shadowBlur = state.textFormat.shadow ? 8 : 0;
-          context.shadowOffsetY = state.textFormat.shadow ? 4 : 0;
-
-          lines.forEach((line) => {
-            const x = zone.x + zone.width / 2;
-            if (state.textFormat.outline) context.strokeText(line, x, y);
-            context.fillText(line, x, y);
-            y += lineHeight;
-          });
-          context.restore();
-        }
-
-        function drawCanvasTextShapes(context, zone, textBlock, fontSize) {
-          const placements = getTextShapePlacements(zone, textBlock, fontSize);
-          if (!placements.length) return;
-
-          context.save();
-          context.textAlign = "center";
-          context.textBaseline = "middle";
-          context.shadowColor = "rgba(0, 0, 0, 0)";
-          context.lineWidth = 0;
-
-          placements.forEach((placement) => {
-            context.save();
-            context.translate(placement.x, placement.y);
-            context.rotate((placement.rotation * Math.PI) / 180);
-            context.font = `700 ${placement.size}px Arial, Helvetica, sans-serif`;
-            context.fillStyle = placement.color;
-            context.fillText(placement.glyph, 0, 0);
-            context.restore();
-          });
-          context.restore();
         }
 
         function getTextLayout(text, maxWidth, maxHeight, requestedFontSize) {
