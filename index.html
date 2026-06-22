@@ -83,14 +83,6 @@
         overflow: auto;
       }
 
-      .brand {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 22px;
-      }
-
       h1 {
         margin: 0;
         font-size: 1.55rem;
@@ -100,13 +92,6 @@
 
       h2 {
         text-wrap: balance;
-      }
-
-      .size-note {
-        color: var(--muted);
-        font-size: 0.9rem;
-        margin-top: 4px;
-        text-wrap: pretty;
       }
 
       .stack {
@@ -323,6 +308,159 @@
         color: #526171;
       }
 
+      .quick-text-edit {
+        display: none;
+      }
+
+      .minimal-mode .quick-text-edit {
+        width: 100%;
+        min-height: 64px;
+      }
+
+      .minimal-mode[data-wizard-step="text"] textarea {
+        display: none;
+      }
+
+      .minimal-mode.quick-text-editor[data-wizard-step="text"] textarea {
+        display: block;
+        min-height: 80px;
+      }
+
+      .minimal-mode[data-wizard-step="text"] .color-controls {
+        display: none;
+      }
+
+      .minimal-mode.quick-text-editor .wizard-panel,
+      .minimal-mode.quick-text-editor .quick-text-edit,
+      .minimal-mode.quick-text-editor .quick-center-image {
+        display: none;
+      }
+
+      .minimal-mode.quick-text-editor .font-picker,
+      .minimal-mode.quick-text-editor .range-wrap,
+      .minimal-mode.quick-text-editor[data-wizard-step="text"] .color-controls {
+        display: grid;
+      }
+
+      .minimal-mode.quick-text-editor .font-picker {
+        display: block;
+      }
+
+      .minimal-mode.quick-text-editor .font-picker .select-wrap {
+        display: none;
+      }
+
+      .minimal-mode.quick-text-editor .font-preview-button {
+        display: inline-flex;
+        width: 100%;
+        min-height: 56px;
+      }
+
+      .minimal-mode.quick-text-editor .control-label {
+        display: none;
+      }
+
+      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .palette-section-title[data-advanced-control] {
+        display: block;
+      }
+
+      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .swatches[data-advanced-control] {
+        display: grid;
+      }
+
+      .minimal-mode.quick-text-editor .color-controls [data-quick-color-palette] {
+        display: none;
+      }
+
+      .minimal-mode.quick-text-editor .wizard-nav {
+        grid-template-columns: 1fr;
+      }
+
+      .minimal-mode.quick-text-editor #wizardBack {
+        display: none;
+      }
+
+      .quick-center-image {
+        display: none;
+      }
+
+      .minimal-mode .quick-center-image {
+        display: grid;
+        gap: 8px;
+        padding: 8px;
+        border-radius: var(--radius-card);
+        background: #f8fbfd;
+        box-shadow: var(--shadow-surface);
+      }
+
+      .quick-center-image-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 2px 2px 0;
+      }
+
+      .quick-center-image-title {
+        color: var(--ink);
+        font-size: 0.98rem;
+        font-weight: 800;
+        text-wrap: balance;
+      }
+
+      .quick-center-image-copy {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+        line-height: 1.35;
+        text-wrap: pretty;
+      }
+
+      .quick-center-image-optional {
+        flex: 0 0 auto;
+        padding: 4px 7px;
+        border-radius: 999px;
+        background: #e7eef5;
+        color: #425466;
+        font-size: 0.72rem;
+        font-weight: 800;
+        line-height: 1.1;
+      }
+
+      .quick-center-upload {
+        width: 100%;
+        min-height: 56px;
+        justify-content: flex-start;
+        padding-inline: 14px 16px;
+      }
+
+      .minimal-mode .quick-center-upload.button.secondary {
+        background: var(--blue);
+        border-color: #1e3a8a;
+        color: #ffffff;
+        box-shadow:
+          0 0 0 1px rgba(30, 58, 138, 0.18),
+          0 10px 20px -12px rgba(36, 87, 197, 0.7);
+      }
+
+      .minimal-mode .quick-center-upload.button.secondary:hover {
+        background: #1d4ed8;
+        border-color: #172554;
+      }
+
+      .quick-center-details {
+        min-height: 40px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 0 2px;
+      }
+
+      .quick-center-details[hidden] {
+        display: none;
+      }
+
       .minimal-mode .print-row {
         grid-template-columns: 1fr;
       }
@@ -358,7 +496,71 @@
       }
 
       .minimal-mode[data-wizard-step="text"] .swatch {
-        min-height: 38px;
+        min-height: 40px;
+      }
+
+      @media (max-height: 640px) {
+        .minimal-mode .controls {
+          padding-top: 12px;
+        }
+
+        .minimal-mode .wizard-panel {
+          display: none;
+        }
+
+        .minimal-mode textarea {
+          min-height: 80px;
+        }
+
+        .minimal-mode .quick-center-image {
+          gap: 6px;
+          padding: 6px;
+        }
+
+        .minimal-mode .quick-center-image-heading {
+          display: none;
+        }
+
+        .minimal-mode .quick-center-upload {
+          min-height: 52px;
+          font-size: 0.94rem;
+        }
+
+        .minimal-mode .quick-center-image[data-image-loaded="true"] .quick-center-upload {
+          display: none;
+        }
+
+        .minimal-mode .quick-center-details {
+          min-height: 40px;
+        }
+
+        .minimal-mode[data-wizard-step="text"] .color-controls,
+        .minimal-mode[data-wizard-step="text"] .color-controls .palette-group {
+          gap: 6px;
+        }
+
+        .minimal-mode[data-wizard-step="text"] .palette-title-row {
+          grid-template-columns: minmax(0, 1fr) 44px;
+        }
+
+        .minimal-mode[data-wizard-step="text"] input[type="color"] {
+          width: 44px;
+          height: 44px;
+        }
+
+      }
+
+      /* At 175% zoom, retain a complete visible choice set without making the
+         text task depend on vertical scrolling. The full preset groups return
+         as soon as the viewport has normal working height. */
+      @media (max-height: 720px) {
+        .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > [data-advanced-control] {
+          display: none;
+        }
+
+        .minimal-mode.quick-text-editor .color-controls .swatches[data-quick-color-palette] {
+          display: grid;
+        }
       }
 
       .control-block {
@@ -1355,18 +1557,6 @@
         display: inline-flex;
       }
 
-      .preview-skip-text {
-        min-height: 64px;
-        min-width: min(340px, calc(100% - 28px));
-        max-width: 100%;
-        box-shadow: 0 10px 22px rgba(23, 32, 42, 0.16);
-        display: none;
-      }
-
-      .minimal-mode .preview-skip-text:not([hidden]) {
-        display: inline-flex;
-      }
-
       .minimal-mode .preview-action[data-preview-action="left-upload"],
       .minimal-mode .preview-action[data-preview-action="right-upload"] {
         min-height: 78px;
@@ -1729,6 +1919,24 @@
           min-height: 0;
           overflow: hidden;
         }
+
+        .minimal-mode .controls {
+          padding-bottom: 120px;
+          scroll-padding-bottom: 120px;
+        }
+
+        .minimal-mode .wizard-nav:not([hidden]) {
+          position: fixed;
+          bottom: 12px;
+          left: 22px;
+          z-index: 10;
+          width: min(346px, calc(100vw - 44px));
+          padding: 8px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.94);
+          box-shadow: var(--shadow-raised);
+          backdrop-filter: blur(12px);
+        }
       }
 
       @media (max-width: 880px) {
@@ -1776,11 +1984,6 @@
           padding: 16px;
         }
 
-        .brand {
-          align-items: flex-start;
-          flex-direction: column;
-        }
-
         .upload-main {
           grid-template-columns: 1fr;
         }
@@ -1810,13 +2013,6 @@
   <body class="minimal-mode">
     <main class="app">
       <aside class="controls" aria-label="Commandes de création du mug">
-        <div class="brand">
-          <div>
-            <h1>Créateur de mugs</h1>
-            <div class="size-note">2550 x 992 PNG</div>
-          </div>
-        </div>
-
         <div id="wizardPanel" class="wizard-panel" aria-label="Assistant de création">
           <div class="wizard-steps" role="group" aria-label="Étapes de création">
             <button class="wizard-step" type="button" data-wizard-go="left" aria-current="step" aria-label="Étape 1 image gauche">
@@ -1867,6 +2063,7 @@
                 <span class="button-text">Mode rapide</span>
               </label>
             </div>
+            <input id="centerImage" type="file" accept="image/*">
             <div class="upload-list">
               <div class="upload-row" data-wizard-step="left" data-wizard-active="true">
                 <div class="fit-label slot-label">
@@ -1967,7 +2164,6 @@
                     </button>
                   </div>
                 </div>
-                <input id="centerImage" type="file" accept="image/*">
                 <div class="file-row">
                   <div id="centerName" class="file-name">Aucune image choisie</div>
                   <button class="slot-crop" type="button" data-crop-slot="center" hidden aria-label="Cadrer l'image centrale">
@@ -2106,7 +2302,32 @@
 
           <section class="control-block" aria-labelledby="text-heading" data-wizard-step="text">
             <div id="text-heading" class="control-label">Texte central</div>
+            <button id="quickTextEditButton" class="button primary quick-text-edit" type="button">
+              <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
+              <span id="quickTextEditButtonText" class="button-text">Ajouter du texte</span>
+            </button>
             <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
+
+            <div id="quickCenterImage" class="quick-center-image" aria-labelledby="quickCenterImageTitle">
+              <div class="quick-center-image-heading">
+                <div>
+                  <div id="quickCenterImageTitle" class="quick-center-image-title">Image centrale</div>
+                  <p class="quick-center-image-copy">Ajoutez une troisième image dans la zone centrale du mug.</p>
+                </div>
+                <span class="quick-center-image-optional">Facultatif</span>
+              </div>
+              <label class="button secondary quick-center-upload" for="centerImage">
+                <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
+                <span id="quickCenterUploadText" class="button-text">Ajouter une image centrale</span>
+              </label>
+              <div id="quickCenterDetails" class="quick-center-details" hidden>
+                <div id="quickCenterName" class="file-name" aria-live="polite">Aucune image choisie</div>
+                <button id="quickCenterRemove" class="slot-remove" type="button" aria-label="Retirer l'image centrale">
+                  <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                  <span class="button-text">Retirer</span>
+                </button>
+              </div>
+            </div>
 
             <div class="font-picker" data-advanced-control>
               <div class="select-wrap">
@@ -2134,7 +2355,7 @@
               </div>
               <button id="fontPreviewButton" class="button secondary font-preview-button" type="button" aria-expanded="false" aria-controls="fontPreviewPopover" title="Aperçu de toutes les polices">
                 <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
-                <span class="button-text">Tout voir</span>
+                <span class="button-text">Choisir la police</span>
               </button>
             </div>
             <div id="fontPreviewPopover" class="font-preview-popover" role="dialog" aria-modal="false" aria-labelledby="fontPreviewTitle" hidden>
@@ -2217,24 +2438,32 @@
                   <div class="palette-title">Couleur texte</div>
                   <input id="textColor" type="color" value="#17202a" aria-label="Couleur du texte personnalisée">
                 </div>
-                <div class="palette-section-title">Mignon</div>
-                <div class="swatches" aria-label="Couleurs mignonnes du texte">
+                <div class="palette-section-title" data-quick-color-palette>Rapides</div>
+                <div class="swatches" aria-label="Couleurs rapides du texte" data-quick-color-palette>
+                  <button class="swatch" type="button" style="background: #17202a" data-color="#17202a" aria-label="Texte encre" aria-pressed="true"></button>
+                  <button class="swatch" type="button" style="background: #ec4899" data-color="#ec4899" aria-label="Texte rose" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #2563eb" data-color="#2563eb" aria-label="Texte bleu" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #14b8a6" data-color="#14b8a6" aria-label="Texte turquoise" aria-pressed="false"></button>
+                  <button class="swatch" type="button" style="background: #f59e0b" data-color="#f59e0b" aria-label="Texte doré" aria-pressed="false"></button>
+                </div>
+                <div class="palette-section-title" data-advanced-control>Mignon</div>
+                <div class="swatches" aria-label="Couleurs mignonnes du texte" data-advanced-control>
                   <button class="swatch" type="button" style="background: #ec4899" data-color="#ec4899" aria-label="Texte rose" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #f472b6" data-color="#f472b6" aria-label="Texte rose bonbon" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #a855f7" data-color="#a855f7" aria-label="Texte lavande" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #fb7185" data-color="#fb7185" aria-label="Texte corail" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #f59e0b" data-color="#f59e0b" aria-label="Texte doré" aria-pressed="false"></button>
                 </div>
-                <div class="palette-section-title">Vif</div>
-                <div class="swatches" aria-label="Couleurs vives du texte">
+                <div class="palette-section-title" data-advanced-control>Vif</div>
+                <div class="swatches" aria-label="Couleurs vives du texte" data-advanced-control>
                   <button class="swatch" type="button" style="background: #2563eb" data-color="#2563eb" aria-label="Texte bleu" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #0ea5e9" data-color="#0ea5e9" aria-label="Texte bleu ciel" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #14b8a6" data-color="#14b8a6" aria-label="Texte turquoise" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #22c55e" data-color="#22c55e" aria-label="Texte vert" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #f97316" data-color="#f97316" aria-label="Texte orange" aria-pressed="false"></button>
                 </div>
-                <div class="palette-section-title">Professionnel</div>
-                <div class="swatches" aria-label="Couleurs professionnelles du texte">
+                <div class="palette-section-title" data-advanced-control>Professionnel</div>
+                <div class="swatches" aria-label="Couleurs professionnelles du texte" data-advanced-control>
                   <button class="swatch" type="button" style="background: #17202a" data-color="#17202a" aria-label="Texte encre" aria-pressed="true"></button>
                   <button class="swatch" type="button" style="background: #334155" data-color="#334155" aria-label="Texte ardoise" aria-pressed="false"></button>
                   <button class="swatch" type="button" style="background: #7f1d1d" data-color="#7f1d1d" aria-label="Texte bordeaux" aria-pressed="false"></button>
@@ -2315,7 +2544,7 @@
       <section class="preview" aria-label="Aperçu du visuel pour mug">
         <div class="preview-top">
           <div>
-            <h2 class="preview-title">Aperçu</h2>
+            <h1 class="preview-title">Créateur de mugs</h1>
             <div class="preview-meta">Image gauche, texte central, image droite</div>
           </div>
           <div class="preview-dims">
@@ -2334,10 +2563,6 @@
           <button id="previewActionButton" class="button primary preview-action" type="button">
             <span id="previewActionIcon" class="icon preview-action-icon" aria-hidden="true"><span class="preview-action-icon-layer is-current"><i data-lucide="upload"></i></span></span>
             <span id="previewActionText" class="button-text">Image gauche</span>
-          </button>
-          <button id="previewSkipTextButton" class="button secondary preview-skip-text" type="button" hidden>
-            <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
-            <span class="button-text">Accepter sans texte</span>
           </button>
         </div>
       </section>
@@ -2422,6 +2647,7 @@
         let queueIndex = 0;
         let sheetLayout = "3up";
         let wizardStep = "left";
+        let quickTextEditing = false;
         let previewScale = 1;
         let previewOffset = { x: 0, y: 0 };
         let cropDraft = null;
@@ -2584,13 +2810,17 @@
           previewActionButton: document.querySelector("#previewActionButton"),
           previewActionIcon: document.querySelector("#previewActionIcon"),
           previewActionText: document.querySelector("#previewActionText"),
-          previewSkipTextButton: document.querySelector("#previewSkipTextButton"),
           leftImage: document.querySelector("#leftImage"),
           centerImage: document.querySelector("#centerImage"),
           rightImage: document.querySelector("#rightImage"),
           leftName: document.querySelector("#leftName"),
           centerName: document.querySelector("#centerName"),
           rightName: document.querySelector("#rightName"),
+          quickCenterImage: document.querySelector("#quickCenterImage"),
+          quickCenterUploadText: document.querySelector("#quickCenterUploadText"),
+          quickCenterDetails: document.querySelector("#quickCenterDetails"),
+          quickCenterName: document.querySelector("#quickCenterName"),
+          quickCenterRemove: document.querySelector("#quickCenterRemove"),
           removeButtons: Array.from(document.querySelectorAll("[data-remove-slot]")),
           cropButtons: Array.from(document.querySelectorAll("[data-crop-slot]")),
           layoutButtons: Array.from(document.querySelectorAll("[data-layout]")),
@@ -2601,6 +2831,8 @@
           positionControls: Array.from(document.querySelectorAll("[data-position-value]")),
           positionInputs: Array.from(document.querySelectorAll("[data-position-input]")),
           textInput: document.querySelector("#textInput"),
+          quickTextEditButton: document.querySelector("#quickTextEditButton"),
+          quickTextEditButtonText: document.querySelector("#quickTextEditButtonText"),
           fontSelect: document.querySelector("#fontSelect"),
           fontPreviewButton: document.querySelector("#fontPreviewButton"),
           fontPreviewPopover: document.querySelector("#fontPreviewPopover"),
@@ -2675,6 +2907,9 @@
           });
         });
 
+        elements.quickCenterRemove.addEventListener("click", () => removeImage("center"));
+        elements.quickTextEditButton.addEventListener("click", () => setQuickTextEditor(true));
+
         elements.cropButtons.forEach((button) => {
           button.addEventListener("click", () => {
             const item = state.images[button.dataset.cropSlot];
@@ -2701,7 +2936,6 @@
         elements.wizardBack.addEventListener("click", goToPreviousWizardStep);
         elements.wizardNext.addEventListener("click", goToNextWizardStep);
         elements.previewActionButton.addEventListener("click", handlePreviewAction);
-        elements.previewSkipTextButton.addEventListener("click", skipWizardText);
         elements.stageFrame.addEventListener("click", handleStageFrameClick);
         document.addEventListener("keydown", handleWizardEnterKey);
 
@@ -3254,12 +3488,15 @@
 
         function setMinimalMode(isEnabled) {
           state.minimalMode = Boolean(isEnabled);
+          if (!state.minimalMode) quickTextEditing = false;
           if (state.minimalMode) {
             state.layoutPreset = DEFAULT_LAYOUT;
             state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
+            state.imageScales.center = DEFAULT_IMAGE_SCALE;
+            state.fitModes.center = DEFAULT_FIT_MODES.center;
+            state.imageShapes.center = DEFAULT_IMAGE_SHAPES.center;
             state.mirrorPrint = true;
             elements.mirrorPrint.checked = true;
-            clearCenterImageForSimpleMode();
             wizardStep = WIZARD_STEPS[getUnlockedWizardStepIndex()];
             updateLayoutButtons();
             updatePositionControls();
@@ -3275,15 +3512,28 @@
           document.body.classList.toggle("minimal-mode", state.minimalMode);
         }
 
-        function clearCenterImageForSimpleMode() {
-          state.images.center = null;
-          state.imagePositions.center = { ...DEFAULT_IMAGE_POSITION };
-          state.imageScales.center = DEFAULT_IMAGE_SCALE;
-          elements.centerImage.value = "";
-          setFileName("center", DEFAULT_FILE_LABELS.center);
-          updateRemoveButtons();
-          updateCropButtons();
-          updateImageShapeControls();
+        function setQuickTextEditor(isEditing) {
+          quickTextEditing = Boolean(isEditing) && state.minimalMode && wizardStep === "text";
+          updateWizardUI();
+
+          window.requestAnimationFrame(() => {
+            if (quickTextEditing) {
+              elements.textInput.focus();
+              const end = elements.textInput.value.length;
+              elements.textInput.setSelectionRange(end, end);
+              return;
+            }
+            elements.quickTextEditButton.focus();
+          });
+        }
+
+        function updateQuickTextEditorUI() {
+          const isAvailable = state.minimalMode && wizardStep === "text";
+          if (!isAvailable) quickTextEditing = false;
+          document.body.classList.toggle("quick-text-editor", quickTextEditing);
+          elements.quickTextEditButtonText.textContent = hasTextContent()
+            ? "Modifier le texte"
+            : "Ajouter du texte";
         }
 
         function setWizardStep(step) {
@@ -3302,7 +3552,13 @@
         }
 
         function goToNextWizardStep(options = {}) {
-          const isSkippingEmptyText = options.allowEmptyText && wizardStep === "text";
+          if (quickTextEditing) {
+            setQuickTextEditor(false);
+            return;
+          }
+
+          const isSkippingEmptyText =
+            wizardStep === "text" && (options.allowEmptyText || canSkipWizardText());
           if (!isSkippingEmptyText && !canCompleteWizardStep(wizardStep)) {
             updateWizardUI();
             return;
@@ -3313,14 +3569,6 @@
           wizardStep = nextStep;
           updateWizardUI();
           focusWizardStep();
-        }
-
-        function skipWizardText() {
-          if (!canSkipWizardText()) return;
-          state.text = "";
-          elements.textInput.value = "";
-          setStatus("Texte ignoré");
-          goToNextWizardStep({ allowEmptyText: true });
         }
 
         function handleWizardEnterKey(event) {
@@ -3339,7 +3587,8 @@
           const target = event.target instanceof Element ? event.target : null;
           if (target?.closest(".font-preview-popover")) return;
           if (target?.closest("button, select, input[type='color']") && target !== elements.textInput) return;
-          if (!canCompleteWizardStep(wizardStep)) return;
+          if (quickTextEditing && target === elements.textInput) return;
+          if (!canProceedWizardStep(wizardStep)) return;
 
           event.preventDefault();
           goToNextWizardStep();
@@ -3350,9 +3599,12 @@
 
           window.requestAnimationFrame(() => {
             if (wizardStep === "text") {
-              elements.textInput.focus();
-              const end = elements.textInput.value.length;
-              elements.textInput.setSelectionRange(end, end);
+              const textControl = quickTextEditing ? elements.textInput : elements.quickTextEditButton;
+              textControl.focus();
+              if (quickTextEditing) {
+                const end = elements.textInput.value.length;
+                elements.textInput.setSelectionRange(end, end);
+              }
               return;
             }
 
@@ -3375,6 +3627,10 @@
           return true;
         }
 
+        function canProceedWizardStep(step) {
+          return canCompleteWizardStep(step) || (step === "text" && canSkipWizardText());
+        }
+
         function canSkipWizardText() {
           return state.minimalMode && wizardStep === "text" && !hasTextContent();
         }
@@ -3390,8 +3646,7 @@
             wizardStep = WIZARD_STEPS[unlockedIndex];
           }
           document.body.dataset.wizardStep = state.minimalMode ? wizardStep : "advanced";
-          const skipTextVisible = canSkipWizardText();
-          const wasPreviewSkipHidden = elements.previewSkipTextButton.hidden;
+          updateQuickTextEditorUI();
 
           elements.wizardStepPanels.forEach((panel) => {
             if (!state.minimalMode) {
@@ -3416,11 +3671,13 @@
           const isDone = wizardStep === "done";
           elements.wizardNav.hidden = !state.minimalMode || isDone;
           elements.wizardBack.disabled = WIZARD_STEPS.indexOf(wizardStep) === 0;
-          elements.wizardNext.disabled = !canCompleteWizardStep(wizardStep);
-          elements.wizardNextText.textContent = wizardStep === "text" ? "Accepter" : "Suivant";
-          elements.previewSkipTextButton.hidden = !skipTextVisible;
+          elements.wizardNext.disabled = !quickTextEditing && !canProceedWizardStep(wizardStep);
+          elements.wizardNextText.textContent = quickTextEditing
+            ? "Terminer le texte"
+            : wizardStep === "text"
+            ? (hasTextContent() ? "Accepter" : "Continuer sans texte")
+            : "Suivant";
           updatePreviewActionButton();
-          if (wasPreviewSkipHidden !== elements.previewSkipTextButton.hidden) resizeStage();
         }
 
         function getPreviewAction() {
@@ -3437,7 +3694,13 @@
           }
 
           if (wizardStep === "text") {
-            return { action: "next", icon: "check", label: "Accepter" };
+            return {
+              action: "next",
+              icon: "check",
+              label: quickTextEditing
+                ? "Terminer le texte"
+                : hasTextContent() ? "Accepter" : "Continuer sans texte",
+            };
           }
 
           return { action: "print", icon: "printer", label: "Imprimer" };
@@ -3446,7 +3709,8 @@
         function updatePreviewActionButton() {
           const config = getPreviewAction();
           elements.previewActionButton.dataset.previewAction = config.action;
-          elements.previewActionButton.disabled = config.action === "next" && !canCompleteWizardStep(wizardStep);
+          elements.previewActionButton.disabled =
+            config.action === "next" && !quickTextEditing && !canProceedWizardStep(wizardStep);
           elements.previewActionText.textContent = config.label;
           updatePreviewActionIcon(config.icon);
         }
@@ -3514,7 +3778,7 @@
             return;
           }
 
-          goToNextWizardStep();
+          goToNextWizardStep({ allowEmptyText: canSkipWizardText() });
         }
 
         function handleStageFrameClick(event) {
@@ -3563,6 +3827,16 @@
             const isActive = state.imageShapes[button.dataset.imageShapeSlot] === button.dataset.imageShape;
             button.setAttribute("aria-pressed", isActive ? "true" : "false");
           });
+          updateQuickCenterImageControl();
+        }
+
+        function updateQuickCenterImageControl() {
+          const hasImage = Boolean(state.images.center);
+          elements.quickCenterImage.dataset.imageLoaded = String(hasImage);
+          elements.quickCenterUploadText.textContent = hasImage
+            ? "Remplacer l'image centrale"
+            : "Ajouter une image centrale (facultatif)";
+          elements.quickCenterDetails.hidden = !hasImage;
         }
 
         function setImagePosition(slot, axis, value) {
@@ -4068,6 +4342,10 @@
           }[slot];
           target.textContent = name;
           target.title = state.images[slot] ? name : "";
+          if (slot === "center") {
+            elements.quickCenterName.textContent = name;
+            elements.quickCenterName.title = state.images.center ? name : "";
+          }
         }
 
         function updateRemoveButtons() {
@@ -4117,8 +4395,7 @@
           if (!state.minimalMode) return 0;
 
           const actionHeight = elements.previewActionButton.offsetHeight || 56;
-          const skipHeight = elements.previewSkipTextButton.hidden ? 0 : (elements.previewSkipTextButton.offsetHeight || 64) + 12;
-          return actionHeight + skipHeight + 12;
+          return actionHeight + 12;
         }
 
         function render() {
