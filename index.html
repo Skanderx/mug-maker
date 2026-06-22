@@ -338,6 +338,7 @@
 
       .minimal-mode.quick-text-editor .font-picker,
       .minimal-mode.quick-text-editor .range-wrap,
+      .minimal-mode.quick-text-editor .format-controls,
       .minimal-mode.quick-text-editor[data-wizard-step="text"] .color-controls {
         display: grid;
       }
@@ -360,15 +361,45 @@
         display: none;
       }
 
-      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .palette-section-title[data-advanced-control] {
-        display: block;
+      .minimal-mode.quick-text-editor .format-controls .mode-button {
+        min-height: 56px;
+        gap: 4px;
       }
 
-      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .swatches[data-advanced-control] {
+      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr);
+        column-gap: 6px;
+        row-gap: 6px;
+      }
+
+      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .palette-title-row {
+        grid-column: 1;
+        grid-row: 1;
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .palette-title-row .palette-title,
+      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .palette-section-title {
+        display: none;
+      }
+
+      .minimal-mode.quick-text-editor[data-wizard-step="text"] .color-controls > .palette-group:first-child > .palette-title-row input[type="color"] {
+        width: 44px;
+        height: 44px;
+      }
+
+      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .swatches {
+        grid-column: 2;
         display: grid;
       }
 
-      .minimal-mode.quick-text-editor .color-controls [data-quick-color-palette] {
+      .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > .swatches[data-quick-color-palette] {
+        display: none;
+      }
+
+      .minimal-mode.quick-text-editor .color-controls > .palette-group[data-advanced-control] {
         display: none;
       }
 
@@ -548,19 +579,6 @@
           height: 44px;
         }
 
-      }
-
-      /* At 175% zoom, retain a complete visible choice set without making the
-         text task depend on vertical scrolling. The full preset groups return
-         as soon as the viewport has normal working height. */
-      @media (max-height: 720px) {
-        .minimal-mode.quick-text-editor .color-controls > .palette-group:first-child > [data-advanced-control] {
-          display: none;
-        }
-
-        .minimal-mode.quick-text-editor .color-controls .swatches[data-quick-color-palette] {
-          display: grid;
-        }
       }
 
       .control-block {
@@ -2306,6 +2324,24 @@
               <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
               <span id="quickTextEditButtonText" class="button-text">Ajouter du texte</span>
             </button>
+            <div class="button-group four format-controls" role="group" aria-label="Options de format du texte" data-advanced-control>
+              <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">
+                <span class="icon" aria-hidden="true"><i data-lucide="bold"></i></span>
+                <span class="button-text">Gras</span>
+              </button>
+              <button class="mode-button" type="button" data-text-format="italic" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="italic"></i></span>
+                <span class="button-text">Italique</span>
+              </button>
+              <button class="mode-button" type="button" data-text-format="outline" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="box-select"></i></span>
+                <span class="button-text">Contour</span>
+              </button>
+              <button class="mode-button" type="button" data-text-format="shadow" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="layers-2"></i></span>
+                <span class="button-text">Ombre</span>
+              </button>
+            </div>
             <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
 
             <div id="quickCenterImage" class="quick-center-image" aria-labelledby="quickCenterImageTitle">
@@ -2366,25 +2402,6 @@
                 </button>
               </div>
               <div id="fontPreviewList" class="font-preview-list" role="listbox" aria-label="Aperçu de toutes les polices"></div>
-            </div>
-
-            <div class="button-group four format-controls" role="group" aria-label="Options de format du texte" data-advanced-control>
-              <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">
-                <span class="icon" aria-hidden="true"><i data-lucide="bold"></i></span>
-                <span class="button-text">Gras</span>
-              </button>
-              <button class="mode-button" type="button" data-text-format="italic" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="italic"></i></span>
-                <span class="button-text">Italique</span>
-              </button>
-              <button class="mode-button" type="button" data-text-format="outline" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="box-select"></i></span>
-                <span class="button-text">Contour</span>
-              </button>
-              <button class="mode-button" type="button" data-text-format="shadow" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="layers-2"></i></span>
-                <span class="button-text">Ombre</span>
-              </button>
             </div>
 
             <div class="button-group three" role="group" aria-label="Position verticale du texte" data-advanced-control>
@@ -2750,6 +2767,15 @@
           tajawal: '"Tajawal", Arial, sans-serif',
           amiri: '"Amiri", Georgia, serif',
           changa: '"Changa", Arial, sans-serif',
+        };
+        const DEFAULT_OUTLINE_STYLE = { strokeScale: 0.06, letterSpacingScale: 0 };
+        const OUTLINE_STYLE_BY_FONT = {
+          geist: { strokeScale: 0.045, letterSpacingScale: 0 },
+          atkinson: { strokeScale: 0.045, letterSpacingScale: 0 },
+          montserrat: { strokeScale: 0.045, letterSpacingScale: 0 },
+          poppins: { strokeScale: 0.045, letterSpacingScale: 0 },
+          lobster: { strokeScale: 0.04, letterSpacingScale: 0.05 },
+          bebas: { strokeScale: 0.04, letterSpacingScale: 0.04 },
         };
         const FONT_LABELS = {
           geist: "Geist (par défaut)",
@@ -4559,6 +4585,27 @@
           return `${style}${weight} ${fontSize}px ${getTextFontFamily()}`;
         }
 
+        function getTextOutlineStyle(fontSize) {
+          if (!state.textFormat.outline) {
+            return { strokeWidth: 0, letterSpacing: 0, lineJoin: "round" };
+          }
+
+          const profile = OUTLINE_STYLE_BY_FONT[state.textFont] || DEFAULT_OUTLINE_STYLE;
+          return {
+            strokeWidth: Math.max(3, Math.round(fontSize * profile.strokeScale)),
+            letterSpacing:
+              state.textFormat.bold
+                ? Math.round(fontSize * profile.letterSpacingScale)
+                : 0,
+            lineJoin: "round",
+          };
+        }
+
+        function measureTextWidth(context, text, fontSize) {
+          const letterSpacing = getTextOutlineStyle(fontSize).letterSpacing;
+          return context.measureText(text).width + Math.max(0, Array.from(text).length - 1) * letterSpacing;
+        }
+
         function getTextDirection(text = state.text) {
           return /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]/.test(text) ? "rtl" : "ltr";
         }
@@ -4589,7 +4636,7 @@
           measureTextLineWidths.canvas = canvas;
           const context = canvas.getContext("2d");
           context.font = getCanvasFont(fontSize);
-          return lines.map((line) => context.measureText(line).width);
+          return lines.map((line) => measureTextWidth(context, line, fontSize));
         }
 
         function getTextShapePlacements(zone, textBlock, fontSize) {
@@ -4655,7 +4702,7 @@
           const maxWidth = zone.width - padding * 2;
           const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
           const textBlock = getTextBlock(zone, layout, padding);
-          const strokeWidth = state.textFormat.outline ? Math.max(4, Math.round(layout.fontSize * 0.06)) : 0;
+          const outlineStyle = getTextOutlineStyle(layout.fontSize);
           const shadowBlur = state.textFormat.shadow ? 8 : 0;
           renderTextShapes(zone, textBlock, layout.fontSize);
           const node = new Konva.Text({
@@ -4671,7 +4718,9 @@
             direction: getTextDirection(text),
             fill: state.textColor,
             stroke: state.outlineColor,
-            strokeWidth,
+            strokeWidth: outlineStyle.strokeWidth,
+            lineJoin: outlineStyle.lineJoin,
+            letterSpacing: outlineStyle.letterSpacing,
             shadowColor: "rgba(0,0,0,0.22)",
             shadowBlur,
             shadowOffsetY: state.textFormat.shadow ? 4 : 0,
@@ -5030,7 +5079,7 @@
           while (fontSize > 34) {
             context.font = getCanvasFont(fontSize);
             const widestWord = getTextWords(text).reduce(
-              (widest, word) => Math.max(widest, context.measureText(word).width),
+              (widest, word) => Math.max(widest, measureTextWidth(context, word, fontSize)),
               0,
             );
             if (widestWord <= maxWidth) return fontSize;
@@ -5060,7 +5109,7 @@
             let line = "";
             words.forEach((word) => {
               const test = line ? `${line} ${word}` : word;
-              if (context.measureText(test).width <= maxWidth) {
+              if (measureTextWidth(context, test, fontSize) <= maxWidth) {
                 line = test;
                 return;
               }
