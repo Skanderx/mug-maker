@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="assets/css/app.css">
 
   </head>
-  <body class="minimal-mode">
+  <body class="minimal-mode" data-product="mug">
     <main class="app">
       <aside class="controls" aria-label="Commandes de création du mug">
         <div id="wizardPanel" class="wizard-panel" aria-label="Assistant de création">
@@ -39,7 +39,7 @@
         <div class="stack">
           <section class="control-block" aria-labelledby="images-heading">
             <div id="images-heading" class="control-label">Images</div>
-            <div class="control-block">
+            <div class="control-block" data-product="mug">
               <div class="fit-label" data-advanced-control>Disposition</div>
               <div class="button-group four layout-group" role="group" aria-label="Disposition du mug" data-advanced-control>
                 <button class="mode-button" type="button" data-layout="classic" aria-pressed="true" aria-label="Disposition classique">
@@ -65,9 +65,34 @@
                 <span class="button-text">Mode rapide</span>
               </label>
             </div>
-            <input id="centerImage" type="file" accept="image/*">
-            <div class="upload-list">
-              <div class="upload-row" data-wizard-step="left" data-wizard-active="true">
+            <div id="mousepadLayoutStep" class="mousepad-layout-step" data-product="mousepad" data-wizard-step="layout">
+              <div class="fit-label">Disposition du tapis souris</div>
+              <div id="mousepadLayoutOptions" class="mousepad-layout-options" role="group" aria-label="Disposition du tapis souris">
+                <button class="mode-button mousepad-layout-button" type="button" data-layout="one" aria-pressed="true" aria-label="Une photo pleine page">
+                  <span class="mousepad-layout-mini one" aria-hidden="true"><span></span></span>
+                  <span class="button-text">1</span>
+                </button>
+                <button class="mode-button mousepad-layout-button" type="button" data-layout="twoSide" aria-pressed="false" aria-label="Deux photos côte à côte">
+                  <span class="mousepad-layout-mini two-side" aria-hidden="true"><span></span><span></span></span>
+                  <span class="button-text">2</span>
+                </button>
+                <button class="mode-button mousepad-layout-button" type="button" data-layout="twoStacked" aria-pressed="false" aria-label="Deux photos haut et bas">
+                  <span class="mousepad-layout-mini two-stacked" aria-hidden="true"><span></span><span></span></span>
+                  <span class="button-text">2</span>
+                </button>
+                <button class="mode-button mousepad-layout-button" type="button" data-layout="threeSide" aria-pressed="false" aria-label="Trois photos côte à côte">
+                  <span class="mousepad-layout-mini three-side" aria-hidden="true"><span></span><span></span><span></span></span>
+                  <span class="button-text">3</span>
+                </button>
+                <button class="mode-button mousepad-layout-button" type="button" data-layout="fourGrid" aria-pressed="false" aria-label="Quatre photos en quartiers">
+                  <span class="mousepad-layout-mini four-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                  <span class="button-text">4</span>
+                </button>
+              </div>
+            </div>
+            <input id="centerImage" type="file" accept="image/*" data-product="mug" data-image-input-slot="center">
+            <div class="upload-list" data-product="mug">
+              <div class="upload-row" data-product="mug" data-wizard-step="left" data-wizard-active="true">
                 <div class="fit-label slot-label">
                   <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
                   <span>Gauche</span>
@@ -88,9 +113,9 @@
                     </button>
                   </div>
                 </div>
-                <input id="leftImage" type="file" accept="image/*">
+                <input id="leftImage" type="file" accept="image/*" data-image-input-slot="left">
                 <div class="file-row">
-                  <div id="leftName" class="file-name">Aucune image choisie</div>
+                  <div id="leftName" class="file-name" data-file-name-slot="left">Aucune image choisie</div>
                   <button class="slot-crop" type="button" data-crop-slot="left" hidden aria-label="Cadrer l'image gauche">
                     <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
                     <span class="button-text">Cadrer</span>
@@ -145,7 +170,7 @@
                 </div>
               </div>
 
-              <div class="upload-row" data-wizard-step="center" data-advanced-control>
+              <div class="upload-row" data-product="mug" data-wizard-step="center" data-advanced-control>
                 <div class="fit-label slot-label">
                   <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
                   <span>Centre</span>
@@ -167,7 +192,7 @@
                   </div>
                 </div>
                 <div class="file-row">
-                  <div id="centerName" class="file-name">Aucune image choisie</div>
+                  <div id="centerName" class="file-name" data-file-name-slot="center">Aucune image choisie</div>
                   <button class="slot-crop" type="button" data-crop-slot="center" hidden aria-label="Cadrer l'image centrale">
                     <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
                     <span class="button-text">Cadrer</span>
@@ -222,7 +247,7 @@
                 </div>
               </div>
 
-              <div class="upload-row" data-wizard-step="right">
+              <div class="upload-row" data-product="mug" data-wizard-step="right">
                 <div class="fit-label slot-label">
                   <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
                   <span>Droite</span>
@@ -243,9 +268,9 @@
                     </button>
                   </div>
                 </div>
-                <input id="rightImage" type="file" accept="image/*">
+                <input id="rightImage" type="file" accept="image/*" data-image-input-slot="right">
                 <div class="file-row">
-                  <div id="rightName" class="file-name">Aucune image choisie</div>
+                  <div id="rightName" class="file-name" data-file-name-slot="right">Aucune image choisie</div>
                   <button class="slot-crop" type="button" data-crop-slot="right" hidden aria-label="Cadrer l'image droite">
                     <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
                     <span class="button-text">Cadrer</span>
@@ -300,6 +325,7 @@
                 </div>
               </div>
             </div>
+            <div id="mousepadUploadList" class="upload-list" data-product="mousepad"></div>
           </section>
 
           <section class="control-block" aria-labelledby="text-heading" data-wizard-step="text">
@@ -328,7 +354,7 @@
             </div>
             <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
 
-            <div id="quickCenterImage" class="quick-center-image" aria-labelledby="quickCenterImageTitle">
+            <div id="quickCenterImage" class="quick-center-image" data-product="mug" aria-labelledby="quickCenterImageTitle">
               <div class="quick-center-image-heading">
                 <div>
                   <div id="quickCenterImageTitle" class="quick-center-image-title">Image centrale</div>
@@ -544,13 +570,18 @@
 
       <section class="preview" aria-label="Aperçu du visuel pour mug">
         <div class="preview-top">
-          <div>
-            <h1 class="preview-title">Créateur de mugs</h1>
-            <div class="preview-meta">Image gauche, texte central, image droite</div>
+          <div class="preview-heading">
+            <div id="currentProductLabel" class="current-product-label">Mode mug · 229 × 89 mm</div>
+            <h1 id="previewTitle" class="preview-title">Créateur de mugs</h1>
+            <div id="previewMeta" class="preview-meta">Image gauche, texte central, image droite</div>
           </div>
           <div class="preview-dims">
-            <div class="preview-meta">9 × 3,5 po · 229 × 89 mm (mug 11 oz)</div>
-            <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4" data-advanced-control>
+            <button id="productSwitchButton" class="button primary product-switch" type="button" aria-label="Passer au mode tapis souris">
+              <span id="productSwitchIcon" class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span>
+              <span id="productSwitchText" class="button-text">Tapis souris</span>
+            </button>
+            <div id="previewSizeMeta" class="preview-meta">9 × 3,5 po · 229 × 89 mm (mug 11 oz)</div>
+            <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4" data-product="mug" data-advanced-control>
               <button type="button" class="sheet-option" data-sheet-layout="3up" aria-pressed="true">3 / page · 210×82 mm</button>
               <button type="button" class="sheet-option" data-sheet-layout="4up" aria-pressed="false">4 / page · 210×74 mm</button>
             </div>

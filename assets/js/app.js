@@ -1,7 +1,16 @@
 import {
+  DEFAULT_MOUSE_PAD_LAYOUT,
+  MOUSE_PAD_EXPORT_HEIGHT,
+  MOUSE_PAD_EXPORT_WIDTH,
+  MOUSE_PAD_HEIGHT_MM,
+  MOUSE_PAD_LAYOUTS,
+  MOUSE_PAD_WIDTH_MM,
   OUTLINE_PRESETS,
   clampPosition,
   getDefaultOutlineColor,
+  getMousePadGuideLines,
+  getMousePadPhotoSlots,
+  getMousePadZones,
   getOutlineColorOptions,
   getPositionFromPercent,
   getPositionPercent,
@@ -10,37 +19,77 @@ import {
 } from "./mug-core.js";
 
 (() => {
-        const EXPORT_WIDTH = 2550;
-        const EXPORT_HEIGHT = 992;
-        const LAYOUT_PRESETS = {
+        const PRODUCT_MUG = "mug";
+        const PRODUCT_MOUSEPAD = "mousepad";
+        const MUG_EXPORT_WIDTH = 2550;
+        const MUG_EXPORT_HEIGHT = 992;
+        const MUG_LAYOUT_PRESETS = {
           classic: {
-            left: { x: 0, y: 0, width: 900, height: EXPORT_HEIGHT },
-            center: { x: 900, y: 0, width: 750, height: EXPORT_HEIGHT },
-            right: { x: 1650, y: 0, width: 900, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 900, height: MUG_EXPORT_HEIGHT },
+            center: { x: 900, y: 0, width: 750, height: MUG_EXPORT_HEIGHT },
+            right: { x: 1650, y: 0, width: 900, height: MUG_EXPORT_HEIGHT },
           },
           equal: {
-            left: { x: 0, y: 0, width: 850, height: EXPORT_HEIGHT },
-            center: { x: 850, y: 0, width: 850, height: EXPORT_HEIGHT },
-            right: { x: 1700, y: 0, width: 850, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 850, height: MUG_EXPORT_HEIGHT },
+            center: { x: 850, y: 0, width: 850, height: MUG_EXPORT_HEIGHT },
+            right: { x: 1700, y: 0, width: 850, height: MUG_EXPORT_HEIGHT },
           },
           textWide: {
-            left: { x: 0, y: 0, width: 750, height: EXPORT_HEIGHT },
-            center: { x: 750, y: 0, width: 1050, height: EXPORT_HEIGHT },
-            right: { x: 1800, y: 0, width: 750, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 750, height: MUG_EXPORT_HEIGHT },
+            center: { x: 750, y: 0, width: 1050, height: MUG_EXPORT_HEIGHT },
+            right: { x: 1800, y: 0, width: 750, height: MUG_EXPORT_HEIGHT },
           },
           imagesWide: {
-            left: { x: 0, y: 0, width: 1050, height: EXPORT_HEIGHT },
-            center: { x: 1050, y: 0, width: 450, height: EXPORT_HEIGHT },
-            right: { x: 1500, y: 0, width: 1050, height: EXPORT_HEIGHT },
+            left: { x: 0, y: 0, width: 1050, height: MUG_EXPORT_HEIGHT },
+            center: { x: 1050, y: 0, width: 450, height: MUG_EXPORT_HEIGHT },
+            right: { x: 1500, y: 0, width: 1050, height: MUG_EXPORT_HEIGHT },
           },
         };
         const DEFAULT_LAYOUT = "classic";
+        const PRODUCT_LABELS = {
+          [PRODUCT_MUG]: {
+            currentLabel: "Mode mug · 229 × 89 mm",
+            switchLabel: "Tapis souris",
+            switchIcon: "rectangle-horizontal",
+            switchAria: "Passer au mode tapis souris",
+            controlsAria: "Commandes de création du mug",
+            previewAria: "Aperçu du visuel pour mug",
+            previewMeta: "Image gauche, texte central, image droite",
+            sizeMeta: "9 × 3,5 po · 229 × 89 mm (mug 11 oz)",
+            printTitle: "Impression du mug",
+            downloadName: "creation-mug",
+            queueItemLabel: "Création",
+          },
+          [PRODUCT_MOUSEPAD]: {
+            currentLabel: "Mode tapis souris · 220 × 180 mm",
+            switchLabel: "Mode mug",
+            switchIcon: "circle-dot",
+            switchAria: "Revenir au mode mug",
+            controlsAria: "Commandes de création du tapis souris",
+            previewAria: "Aperçu du visuel pour tapis souris",
+            previewMeta: "Fond facultatif, photos, texte près du bas",
+            sizeMeta: "220 × 180 mm (tapis souris)",
+            printTitle: "Impression du tapis souris",
+            downloadName: "creation-tapis-souris",
+            queueItemLabel: "Tapis",
+          },
+        };
         const SHEET_LAYOUTS = {
           "3up": { perPage: 3, widthMm: 210, heightMm: 82, gapMm: 8 },
           "4up": { perPage: 4, widthMm: 210, heightMm: 74, gapMm: 0 },
         };
         const PREFERENCES_STORAGE_KEY = "mugCreator.defaultPreferences.v1";
-        const WIZARD_STEPS = ["left", "right", "text", "done"];
+        const MUG_WIZARD_STEPS = ["left", "right", "text", "done"];
+        const MUG_IMAGE_SLOTS = ["left", "center", "right"];
+        const MOUSEPAD_PHOTO_SLOTS = ["photo1", "photo2", "photo3", "photo4"];
+        const MOUSEPAD_IMAGE_SLOTS = ["background", ...MOUSEPAD_PHOTO_SLOTS];
+        const MOUSEPAD_PRINT_LAYOUT = {
+          perPage: 1,
+          widthMm: MOUSE_PAD_WIDTH_MM,
+          heightMm: MOUSE_PAD_HEIGHT_MM,
+          gapMm: 0,
+        };
+        let activeProduct = PRODUCT_MUG;
         let printQueue = [];
         let queueIndex = 0;
         let sheetLayout = "3up";
@@ -55,23 +104,43 @@ import {
           left: "cut",
           center: "cut",
           right: "cut",
+          background: "cut",
+          photo1: "cut",
+          photo2: "cut",
+          photo3: "cut",
+          photo4: "cut",
         };
         const QUICK_FIT_MODES = {
           left: "resize",
           center: "resize",
           right: "resize",
+          background: "cut",
+          photo1: "resize",
+          photo2: "resize",
+          photo3: "resize",
+          photo4: "resize",
         };
         const DEFAULT_IMAGE_POSITION = { x: 0.5, y: 0.5 };
         const DEFAULT_IMAGE_POSITIONS = {
           left: { ...DEFAULT_IMAGE_POSITION },
           center: { ...DEFAULT_IMAGE_POSITION },
           right: { ...DEFAULT_IMAGE_POSITION },
+          background: { ...DEFAULT_IMAGE_POSITION },
+          photo1: { ...DEFAULT_IMAGE_POSITION },
+          photo2: { ...DEFAULT_IMAGE_POSITION },
+          photo3: { ...DEFAULT_IMAGE_POSITION },
+          photo4: { ...DEFAULT_IMAGE_POSITION },
         };
         const DEFAULT_IMAGE_SCALE = 1;
         const DEFAULT_IMAGE_SCALES = {
           left: DEFAULT_IMAGE_SCALE,
           center: DEFAULT_IMAGE_SCALE,
           right: DEFAULT_IMAGE_SCALE,
+          background: DEFAULT_IMAGE_SCALE,
+          photo1: DEFAULT_IMAGE_SCALE,
+          photo2: DEFAULT_IMAGE_SCALE,
+          photo3: DEFAULT_IMAGE_SCALE,
+          photo4: DEFAULT_IMAGE_SCALE,
         };
         const IMAGE_SHIFT_STEP = 0.04;
         const IMAGE_SHIFT_DIRECTIONS = {
@@ -84,6 +153,11 @@ import {
           left: "gauche",
           center: "centrale",
           right: "droite",
+          background: "de fond",
+          photo1: "photo 1",
+          photo2: "photo 2",
+          photo3: "photo 3",
+          photo4: "photo 4",
         };
         const IMAGE_SHAPES = {
           rectangle: { label: "Rectangle" },
@@ -98,11 +172,21 @@ import {
           left: DEFAULT_IMAGE_SHAPE,
           center: DEFAULT_IMAGE_SHAPE,
           right: DEFAULT_IMAGE_SHAPE,
+          background: DEFAULT_IMAGE_SHAPE,
+          photo1: DEFAULT_IMAGE_SHAPE,
+          photo2: DEFAULT_IMAGE_SHAPE,
+          photo3: DEFAULT_IMAGE_SHAPE,
+          photo4: DEFAULT_IMAGE_SHAPE,
         };
         const DEFAULT_FILE_LABELS = {
           left: "Aucune image choisie",
           center: "Aucune image choisie",
           right: "Aucune image choisie",
+          background: "Aucun fond choisi",
+          photo1: "Aucune photo choisie",
+          photo2: "Aucune photo choisie",
+          photo3: "Aucune photo choisie",
+          photo4: "Aucune photo choisie",
         };
         const DEFAULT_TEXT_FORMAT = {
           bold: true,
@@ -184,34 +268,42 @@ import {
           },
         ];
         const savedPreferences = loadDefaultPreferences();
-        sheetLayout = savedPreferences.sheetLayout;
-
-        const state = {
-          layoutPreset: DEFAULT_LAYOUT,
-          fitModes: { ...savedPreferences.fitModes },
-          imageShapes: { ...savedPreferences.imageShapes },
-          imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS),
-          imageScales: { ...DEFAULT_IMAGE_SCALES },
-          minimalMode: true,
-          text: "",
-          textPosition: savedPreferences.textPosition,
-          textFont: savedPreferences.textFont,
-          fontSize: savedPreferences.fontSize,
-          textColor: savedPreferences.textColor,
-          outlineColor: savedPreferences.outlineColor,
-          textFormat: { ...savedPreferences.textFormat },
-          textShape: savedPreferences.textShape,
-          mirrorPrint: true,
-          images: {
-            left: null,
-            center: null,
-            right: null,
+        const productStates = {
+          [PRODUCT_MUG]: createMugState(savedPreferences),
+          [PRODUCT_MOUSEPAD]: createMousePadState(savedPreferences),
+        };
+        const productRuntime = {
+          [PRODUCT_MUG]: {
+            printQueue: [],
+            queueIndex: 0,
+            sheetLayout: savedPreferences.sheetLayout,
+            wizardStep: "left",
+            quickTextEditing: false,
+          },
+          [PRODUCT_MOUSEPAD]: {
+            printQueue: [],
+            queueIndex: 0,
+            sheetLayout: "3up",
+            wizardStep: "layout",
+            quickTextEditing: false,
           },
         };
+        let state = productStates[activeProduct];
+        loadProductRuntime(activeProduct);
         applyQuickModeDefaults();
+        buildMousePadControls();
 
         const elements = {
           stage: document.querySelector("#stage"),
+          controls: document.querySelector(".controls"),
+          preview: document.querySelector(".preview"),
+          previewTitle: document.querySelector("#previewTitle"),
+          previewMeta: document.querySelector("#previewMeta"),
+          previewSizeMeta: document.querySelector("#previewSizeMeta"),
+          currentProductLabel: document.querySelector("#currentProductLabel"),
+          productSwitchButton: document.querySelector("#productSwitchButton"),
+          productSwitchIcon: document.querySelector("#productSwitchIcon"),
+          productSwitchText: document.querySelector("#productSwitchText"),
           stageFrame: document.querySelector(".stage-frame"),
           imageShiftOverlay: document.querySelector("#imageShiftOverlay"),
           previewActionButton: document.querySelector("#previewActionButton"),
@@ -228,6 +320,19 @@ import {
           quickCenterDetails: document.querySelector("#quickCenterDetails"),
           quickCenterName: document.querySelector("#quickCenterName"),
           quickCenterRemove: document.querySelector("#quickCenterRemove"),
+          imageInputs: Object.fromEntries(
+            Array.from(document.querySelectorAll("[data-image-input-slot]")).map((input) => [
+              input.dataset.imageInputSlot,
+              input,
+            ]),
+          ),
+          fileNames: Object.fromEntries(
+            Array.from(document.querySelectorAll("[data-file-name-slot]")).map((name) => [
+              name.dataset.fileNameSlot,
+              name,
+            ]),
+          ),
+          mousepadPhotoRows: Array.from(document.querySelectorAll("[data-mousepad-photo-row]")),
           removeButtons: Array.from(document.querySelectorAll("[data-remove-slot]")),
           cropButtons: Array.from(document.querySelectorAll("[data-crop-slot]")),
           layoutButtons: Array.from(document.querySelectorAll("[data-layout]")),
@@ -249,6 +354,7 @@ import {
           fontSizeValue: document.querySelector("#fontSizeValue"),
           textColor: document.querySelector("#textColor"),
           outlineColor: document.querySelector("#outlineColor"),
+          wizardSteps: document.querySelector(".wizard-steps"),
           wizardStepButtons: Array.from(document.querySelectorAll("[data-wizard-go]")),
           wizardStepPanels: Array.from(document.querySelectorAll("[data-wizard-step]")),
           wizardNav: document.querySelector("#wizardNav"),
@@ -304,9 +410,9 @@ import {
         const resizeObserver = new ResizeObserver(resizeStage);
         resizeObserver.observe(document.querySelector(".stage-area"));
 
-        elements.leftImage.addEventListener("change", (event) => handleFile(event, "left"));
-        elements.centerImage.addEventListener("change", (event) => handleFile(event, "center"));
-        elements.rightImage.addEventListener("change", (event) => handleFile(event, "right"));
+        Object.entries(elements.imageInputs).forEach(([slot, input]) => {
+          input.addEventListener("change", (event) => handleFile(event, slot));
+        });
 
         elements.removeButtons.forEach((button) => {
           button.addEventListener("click", () => {
@@ -314,6 +420,7 @@ import {
           });
         });
 
+        elements.productSwitchButton.addEventListener("click", toggleProductMode);
         elements.quickCenterRemove.addEventListener("click", () => removeImage("center"));
         elements.quickTextEditButton.addEventListener("click", () => setQuickTextEditor(true));
 
@@ -334,10 +441,10 @@ import {
           setMinimalMode(elements.minimalMode.checked);
         });
 
-        elements.wizardStepButtons.forEach((button) => {
-          button.addEventListener("click", () => {
-            setWizardStep(button.dataset.wizardGo);
-          });
+        elements.wizardSteps.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-wizard-go]");
+          if (!button) return;
+          setWizardStep(button.dataset.wizardGo);
         });
 
         elements.wizardBack.addEventListener("click", goToPreviousWizardStep);
@@ -513,9 +620,13 @@ import {
         });
         elements.clearButton.addEventListener("click", clearAll);
 
+        updateProductUI();
+        updateMousePadRows();
         buildImageShiftOverlay();
+        rebuildWizardSteps();
         buildFontPreviewList();
         syncPreferenceControls();
+        syncImageFileNames();
         updatePositionControls();
         updateRemoveButtons();
         updateCropButtons();
@@ -533,6 +644,235 @@ import {
           if (!elements.status) return;
           elements.status.textContent = message;
           elements.status.classList.toggle("warning", isWarning);
+        }
+
+        function buildMousePadControls() {
+          const container = document.querySelector("#mousepadUploadList");
+          if (!container || container.children.length) return;
+
+          getMousePadUploadConfigs().forEach((config) => {
+            const row = document.createElement("div");
+            row.className = "upload-row";
+            row.dataset.product = PRODUCT_MOUSEPAD;
+            row.dataset.wizardStep = config.wizardStep;
+            row.dataset.imageLoaded = "false";
+            if (config.photoSlot) row.dataset.mousepadPhotoRow = config.slot;
+
+            const label = document.createElement("div");
+            label.className = "fit-label slot-label";
+            label.innerHTML = `<span class="icon" aria-hidden="true"><i data-lucide="${config.icon}"></i></span><span>${config.label}</span>`;
+
+            const main = document.createElement("div");
+            main.className = "upload-main";
+
+            const upload = document.createElement("label");
+            upload.className = "upload-button";
+            upload.htmlFor = config.inputId;
+            upload.innerHTML = `<span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span><span class="button-text">${config.buttonText}</span>`;
+            main.appendChild(upload);
+
+            const segmented = document.createElement("div");
+            segmented.className = "segmented";
+            segmented.dataset.advancedControl = "";
+            segmented.setAttribute("role", "group");
+            segmented.setAttribute("aria-label", `Ajustement de ${config.label.toLowerCase()}`);
+            segmented.innerHTML = `
+              <button class="mode-button" type="button" data-fit-slot="${config.slot}" data-fit-mode="cut" aria-pressed="false">
+                <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
+                <span class="button-text">Remplir</span>
+              </button>
+              <button class="mode-button" type="button" data-fit-slot="${config.slot}" data-fit-mode="resize" aria-pressed="true">
+                <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
+                <span class="button-text">Image entière</span>
+              </button>`;
+            main.appendChild(segmented);
+
+            const input = document.createElement("input");
+            input.id = config.inputId;
+            input.type = "file";
+            input.accept = "image/*";
+            input.dataset.imageInputSlot = config.slot;
+
+            const fileRow = document.createElement("div");
+            fileRow.className = "file-row";
+            fileRow.innerHTML = `
+              <div class="file-name" data-file-name-slot="${config.slot}">${DEFAULT_FILE_LABELS[config.slot]}</div>
+              <button class="slot-crop" type="button" data-crop-slot="${config.slot}" data-advanced-control hidden aria-label="Cadrer ${config.label.toLowerCase()}">
+                <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
+                <span class="button-text">Cadrer</span>
+              </button>
+              <button class="slot-remove" type="button" data-remove-slot="${config.slot}" hidden aria-label="Retirer ${config.label.toLowerCase()}">
+                <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                <span class="button-text">Retirer</span>
+              </button>`;
+
+            row.append(label, main, input, fileRow);
+
+            if (config.photoSlot) {
+              row.appendChild(createMousePadShapeControl(config.slot, config.label));
+            }
+            row.appendChild(createPositionGrid(config.slot, config.label));
+            container.appendChild(row);
+          });
+        }
+
+        function getMousePadUploadConfigs() {
+          return [
+            {
+              slot: "background",
+              label: "Fond",
+              buttonText: "Image de fond",
+              inputId: "mousepadBackgroundImage",
+              wizardStep: "background",
+              icon: "image-plus",
+              photoSlot: false,
+            },
+            ...MOUSEPAD_PHOTO_SLOTS.map((slot, index) => ({
+              slot,
+              label: `Photo ${index + 1}`,
+              buttonText: `Photo ${index + 1}`,
+              inputId: `mousepadPhoto${index + 1}Image`,
+              wizardStep: slot,
+              icon: "upload",
+              photoSlot: true,
+            })),
+          ];
+        }
+
+        function createMousePadShapeControl(slot, label) {
+          const control = document.createElement("div");
+          control.className = "image-shape-control";
+          control.dataset.imageShapeControl = slot;
+          control.dataset.advancedControl = "";
+          control.hidden = true;
+          control.innerHTML = `
+            <div class="fit-label">Découpe de l'image</div>
+            <div class="image-shape-options" role="group" aria-label="Forme de ${label.toLowerCase()}">
+              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
+              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
+              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
+              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
+              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
+              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
+            </div>`;
+          return control;
+        }
+
+        function createPositionGrid(slot, label) {
+          const grid = document.createElement("div");
+          grid.className = "position-grid";
+          grid.setAttribute("aria-label", `Position de ${label.toLowerCase()}`);
+          grid.innerHTML = `
+            <div class="position-control">
+              <div class="axis-label">
+                <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
+                <span>Horizontal</span>
+              </div>
+              <div class="button-group three position-buttons" role="group" aria-label="Position horizontale de ${label.toLowerCase()}">
+                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="${label} vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
+                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="${label} centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
+                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="${label} vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
+              </div>
+              <div class="position-percent-wrap">
+                <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="${slot}" data-position-axis="x" aria-label="Position horizontale de ${label.toLowerCase()} en pourcentage">
+                <span aria-hidden="true">%</span>
+              </div>
+            </div>
+            <div class="position-control">
+              <div class="axis-label">
+                <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
+                <span>Vertical</span>
+              </div>
+              <div class="button-group three position-buttons" role="group" aria-label="Position verticale de ${label.toLowerCase()}">
+                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="${label} en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
+                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="${label} au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
+                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="${label} en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
+              </div>
+              <div class="position-percent-wrap">
+                <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="${slot}" data-position-axis="y" aria-label="Position verticale de ${label.toLowerCase()} en pourcentage">
+                <span aria-hidden="true">%</span>
+              </div>
+            </div>`;
+          return grid;
+        }
+
+        function createMugState(preferences = getFactoryPreferences()) {
+          return {
+            layoutPreset: DEFAULT_LAYOUT,
+            fitModes: pickSlotValues(preferences.fitModes, MUG_IMAGE_SLOTS),
+            imageShapes: pickSlotValues(preferences.imageShapes, MUG_IMAGE_SLOTS),
+            imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS, MUG_IMAGE_SLOTS),
+            imageScales: pickSlotValues(DEFAULT_IMAGE_SCALES, MUG_IMAGE_SLOTS),
+            minimalMode: true,
+            text: "",
+            textPosition: preferences.textPosition,
+            textFont: preferences.textFont,
+            fontSize: preferences.fontSize,
+            textColor: preferences.textColor,
+            outlineColor: preferences.outlineColor,
+            textFormat: { ...preferences.textFormat },
+            textShape: preferences.textShape,
+            mirrorPrint: true,
+            images: Object.fromEntries(MUG_IMAGE_SLOTS.map((slot) => [slot, null])),
+          };
+        }
+
+        function createMousePadState(preferences = getFactoryPreferences()) {
+          return {
+            layoutPreset: DEFAULT_MOUSE_PAD_LAYOUT,
+            fitModes: pickSlotValues(
+              {
+                ...DEFAULT_FIT_MODES,
+                background: "cut",
+                photo1: "resize",
+                photo2: "resize",
+                photo3: "resize",
+                photo4: "resize",
+              },
+              MOUSEPAD_IMAGE_SLOTS,
+            ),
+            imageShapes: pickSlotValues(DEFAULT_IMAGE_SHAPES, MOUSEPAD_IMAGE_SLOTS),
+            imagePositions: cloneImagePositions(DEFAULT_IMAGE_POSITIONS, MOUSEPAD_IMAGE_SLOTS),
+            imageScales: pickSlotValues(DEFAULT_IMAGE_SCALES, MOUSEPAD_IMAGE_SLOTS),
+            minimalMode: true,
+            text: "",
+            textPosition: "bottom",
+            textFont: preferences.textFont,
+            fontSize: preferences.fontSize,
+            textColor: preferences.textColor,
+            outlineColor: preferences.outlineColor,
+            textFormat: {
+              ...preferences.textFormat,
+              outline: true,
+              shadow: true,
+            },
+            textShape: preferences.textShape,
+            mirrorPrint: true,
+            images: Object.fromEntries(MOUSEPAD_IMAGE_SLOTS.map((slot) => [slot, null])),
+          };
+        }
+
+        function pickSlotValues(source, slots) {
+          return Object.fromEntries(slots.map((slot) => [slot, source[slot]]));
+        }
+
+        function saveProductRuntime() {
+          productRuntime[activeProduct] = {
+            printQueue,
+            queueIndex,
+            sheetLayout,
+            wizardStep,
+            quickTextEditing,
+          };
+        }
+
+        function loadProductRuntime(product) {
+          const runtime = productRuntime[product];
+          printQueue = runtime.printQueue;
+          queueIndex = runtime.queueIndex;
+          sheetLayout = runtime.sheetLayout;
+          wizardStep = runtime.wizardStep;
+          quickTextEditing = runtime.quickTextEditing;
         }
 
         function getFactoryPreferences() {
@@ -637,6 +977,7 @@ import {
         }
 
         function syncPreferenceControls() {
+          elements.textInput.value = state.text;
           elements.fontSelect.value = state.textFont;
           elements.fontSize.value = String(state.fontSize);
           elements.fontSizeValue.textContent = String(state.fontSize);
@@ -652,16 +993,27 @@ import {
           updateSheetLayoutButtons();
         }
 
-        function cloneImagePositions(source) {
-          return {
-            left: { ...source.left },
-            center: { ...source.center },
-            right: { ...source.right },
-          };
+        function cloneImagePositions(source, slots = Object.keys(source)) {
+          return Object.fromEntries(slots.map((slot) => [slot, { ...source[slot] }]));
         }
 
         function getZones() {
-          return LAYOUT_PRESETS[state.layoutPreset] || LAYOUT_PRESETS[DEFAULT_LAYOUT];
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            return {
+              background: {
+                x: 0,
+                y: 0,
+                width: MOUSE_PAD_EXPORT_WIDTH,
+                height: MOUSE_PAD_EXPORT_HEIGHT,
+              },
+              ...getMousePadZones(state.layoutPreset, {
+                width: MOUSE_PAD_EXPORT_WIDTH,
+                height: MOUSE_PAD_EXPORT_HEIGHT,
+              }),
+            };
+          }
+
+          return MUG_LAYOUT_PRESETS[state.layoutPreset] || MUG_LAYOUT_PRESETS[DEFAULT_LAYOUT];
         }
 
         function renderIcons() {
@@ -674,9 +1026,126 @@ import {
           });
         }
 
+        function toggleProductMode() {
+          setActiveProduct(activeProduct === PRODUCT_MUG ? PRODUCT_MOUSEPAD : PRODUCT_MUG);
+        }
+
+        function setActiveProduct(product) {
+          if (![PRODUCT_MUG, PRODUCT_MOUSEPAD].includes(product) || product === activeProduct) return;
+
+          saveProductRuntime();
+          productStates[activeProduct] = state;
+          activeProduct = product;
+          state = productStates[activeProduct];
+          loadProductRuntime(activeProduct);
+          applyQuickModeDefaults();
+          updateProductUI();
+          updateMousePadRows();
+          buildImageShiftOverlay();
+          rebuildWizardSteps();
+          syncPreferenceControls();
+          syncImageFileNames();
+          updatePositionControls();
+          updateRemoveButtons();
+          updateCropButtons();
+          updateImageShapeControls();
+          updateFontPreviewSamples();
+          updateWizardUI();
+          updateQueueUI();
+          resizeStage();
+          render();
+          setStatus(activeProduct === PRODUCT_MOUSEPAD ? "Mode tapis souris" : "Mode mug");
+        }
+
+        function updateProductUI() {
+          const labels = PRODUCT_LABELS[activeProduct];
+          document.body.dataset.product = activeProduct;
+          elements.controls.setAttribute("aria-label", labels.controlsAria);
+          elements.preview.setAttribute("aria-label", labels.previewAria);
+          elements.previewMeta.textContent = labels.previewMeta;
+          elements.previewSizeMeta.textContent = labels.sizeMeta;
+          elements.currentProductLabel.textContent = labels.currentLabel;
+          elements.productSwitchText.textContent = labels.switchLabel;
+          elements.productSwitchButton.setAttribute("aria-label", labels.switchAria);
+          elements.productSwitchIcon.innerHTML = `<i data-lucide="${labels.switchIcon}"></i>`;
+          renderIcons();
+        }
+
+        function getActiveImageSlots() {
+          return activeProduct === PRODUCT_MOUSEPAD
+            ? MOUSEPAD_IMAGE_SLOTS
+            : MUG_IMAGE_SLOTS;
+        }
+
+        function getRenderableImageSlots() {
+          if (activeProduct !== PRODUCT_MOUSEPAD) return MUG_IMAGE_SLOTS;
+          return ["background", ...getRequiredMousePadPhotoSlots()];
+        }
+
+        function getRequiredMousePadPhotoSlots() {
+          return getMousePadPhotoSlots(state.layoutPreset);
+        }
+
+        function updateMousePadRows() {
+          if (!elements?.mousepadPhotoRows) return;
+          const required = new Set(
+            activeProduct === PRODUCT_MOUSEPAD ? getRequiredMousePadPhotoSlots() : [],
+          );
+          elements.mousepadPhotoRows.forEach((row) => {
+            row.dataset.layoutSlotHidden = required.has(row.dataset.mousepadPhotoRow) ? "false" : "true";
+          });
+        }
+
+        function getWizardSteps() {
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            return ["layout", "background", ...getRequiredMousePadPhotoSlots(), "text", "done"];
+          }
+
+          return MUG_WIZARD_STEPS;
+        }
+
+        function getWizardStepConfig(step, index) {
+          const configs = {
+            left: { icon: "arrow-left", label: "1 Gauche", aria: "Étape 1 image gauche" },
+            right: { icon: "arrow-right", label: "2 Droite", aria: "Étape 2 image droite" },
+            text: { icon: "type", label: `${index + 1} Texte`, aria: `Étape ${index + 1} texte` },
+            done: { icon: "check", label: `${index + 1} OK`, aria: `Étape ${index + 1} terminé` },
+            layout: { icon: "rectangle-horizontal", label: "1 Format", aria: "Étape 1 disposition du tapis souris" },
+            background: { icon: "image-plus", label: "2 Fond", aria: "Étape 2 fond facultatif" },
+            photo1: { icon: "upload", label: `${index + 1} Photo 1`, aria: `Étape ${index + 1} photo 1` },
+            photo2: { icon: "upload", label: `${index + 1} Photo 2`, aria: `Étape ${index + 1} photo 2` },
+            photo3: { icon: "upload", label: `${index + 1} Photo 3`, aria: `Étape ${index + 1} photo 3` },
+            photo4: { icon: "upload", label: `${index + 1} Photo 4`, aria: `Étape ${index + 1} photo 4` },
+          };
+          return configs[step] || { icon: "circle-dot", label: String(index + 1), aria: `Étape ${index + 1}` };
+        }
+
+        function rebuildWizardSteps() {
+          const steps = getWizardSteps();
+          const signature = `${activeProduct}:${steps.join("|")}`;
+          if (elements.wizardSteps.dataset.signature === signature) return;
+
+          elements.wizardSteps.dataset.signature = signature;
+          elements.wizardSteps.textContent = "";
+          steps.forEach((step, index) => {
+            const config = getWizardStepConfig(step, index);
+            const button = document.createElement("button");
+            button.className = "wizard-step";
+            button.type = "button";
+            button.dataset.wizardGo = step;
+            button.setAttribute("aria-label", config.aria);
+            button.innerHTML = `
+              <span class="icon" aria-hidden="true"><i data-lucide="${config.icon}"></i></span>
+              <span class="wizard-label">${config.label}</span>`;
+            elements.wizardSteps.appendChild(button);
+          });
+          elements.wizardStepButtons = Array.from(elements.wizardSteps.querySelectorAll("[data-wizard-go]"));
+          renderIcons();
+        }
+
         function buildImageShiftOverlay() {
           elements.imageShiftOverlay.textContent = "";
-          ["left", "center", "right"].forEach((slot) => {
+          getRenderableImageSlots().forEach((slot) => {
             const zone = document.createElement("div");
             zone.className = "image-shift-zone";
             zone.dataset.shiftZone = slot;
@@ -713,7 +1182,7 @@ import {
             const slot = zoneElement.dataset.shiftZone;
             const zone = zones[slot];
             const hasImage = Boolean(state.images[slot]);
-            zoneElement.hidden = state.minimalMode || !hasImage;
+            zoneElement.hidden = state.minimalMode || !hasImage || !zone;
             if (!zone) return;
 
             zoneElement.style.left = `${Math.round(previewOffset.x + zone.x * previewScale)}px`;
@@ -882,7 +1351,16 @@ import {
         }
 
         function setLayoutPreset(layout) {
-          state.layoutPreset = LAYOUT_PRESETS[layout] ? layout : DEFAULT_LAYOUT;
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            state.layoutPreset = MOUSE_PAD_LAYOUTS[layout] ? layout : DEFAULT_MOUSE_PAD_LAYOUT;
+            updateMousePadRows();
+            buildImageShiftOverlay();
+            rebuildWizardSteps();
+            updateWizardUI();
+            resizeStage();
+          } else {
+            state.layoutPreset = MUG_LAYOUT_PRESETS[layout] ? layout : DEFAULT_LAYOUT;
+          }
           updateLayoutButtons();
           render();
         }
@@ -900,7 +1378,7 @@ import {
             applyQuickModeDefaults();
             state.mirrorPrint = true;
             elements.mirrorPrint.checked = true;
-            wizardStep = WIZARD_STEPS[getUnlockedWizardStepIndex()];
+            wizardStep = getWizardSteps()[getUnlockedWizardStepIndex()];
             updateLayoutButtons();
             updateFitButtons();
             updatePositionControls();
@@ -914,11 +1392,19 @@ import {
         function applyQuickModeDefaults() {
           if (!state.minimalMode) return;
 
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            state.fitModes = pickSlotValues(QUICK_FIT_MODES, MOUSEPAD_IMAGE_SLOTS);
+            state.imageShapes = pickSlotValues(DEFAULT_IMAGE_SHAPES, MOUSEPAD_IMAGE_SLOTS);
+            state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS, MOUSEPAD_IMAGE_SLOTS);
+            state.imageScales = pickSlotValues(DEFAULT_IMAGE_SCALES, MOUSEPAD_IMAGE_SLOTS);
+            return;
+          }
+
           state.layoutPreset = DEFAULT_LAYOUT;
-          state.fitModes = { ...QUICK_FIT_MODES };
+          state.fitModes = pickSlotValues(QUICK_FIT_MODES, MUG_IMAGE_SLOTS);
           state.imageShapes.center = DEFAULT_IMAGE_SHAPES.center;
-          state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
-          state.imageScales = { ...DEFAULT_IMAGE_SCALES };
+          state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS, MUG_IMAGE_SLOTS);
+          state.imageScales = pickSlotValues(DEFAULT_IMAGE_SCALES, MUG_IMAGE_SLOTS);
         }
 
         function updateMinimalMode() {
@@ -951,7 +1437,8 @@ import {
         }
 
         function setWizardStep(step) {
-          const index = WIZARD_STEPS.indexOf(step);
+          const steps = getWizardSteps();
+          const index = steps.indexOf(step);
           if (index === -1 || index > getUnlockedWizardStepIndex()) return;
 
           wizardStep = step;
@@ -960,9 +1447,10 @@ import {
         }
 
         function goToPreviousWizardStep() {
-          const index = WIZARD_STEPS.indexOf(wizardStep);
+          const steps = getWizardSteps();
+          const index = steps.indexOf(wizardStep);
           if (index <= 0) return;
-          setWizardStep(WIZARD_STEPS[index - 1]);
+          setWizardStep(steps[index - 1]);
         }
 
         function goToNextWizardStep(options = {}) {
@@ -978,8 +1466,9 @@ import {
             return;
           }
 
-          const index = WIZARD_STEPS.indexOf(wizardStep);
-          const nextStep = WIZARD_STEPS[Math.min(index + 1, WIZARD_STEPS.length - 1)];
+          const steps = getWizardSteps();
+          const index = steps.indexOf(wizardStep);
+          const nextStep = steps[Math.min(index + 1, steps.length - 1)];
           wizardStep = nextStep;
           updateWizardUI();
           focusWizardStep();
@@ -1029,12 +1518,31 @@ import {
         }
 
         function getUnlockedWizardStepIndex() {
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            const steps = getWizardSteps();
+            const firstRequiredIndex = steps.findIndex((step) => MOUSEPAD_PHOTO_SLOTS.includes(step));
+            if (firstRequiredIndex === -1) return steps.length - 1;
+
+            let unlockedIndex = firstRequiredIndex;
+            for (const slot of getRequiredMousePadPhotoSlots()) {
+              const index = steps.indexOf(slot);
+              if (!state.images[slot]) return index;
+              unlockedIndex = index + 1;
+            }
+            return Math.min(steps.length - 1, unlockedIndex + 1);
+          }
+
           if (state.images.left && state.images.right) return 3;
           if (state.images.left) return 1;
           return 0;
         }
 
         function canCompleteWizardStep(step) {
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            if (step === "layout" || step === "background") return true;
+            if (MOUSEPAD_PHOTO_SLOTS.includes(step)) return Boolean(state.images[step]);
+          }
+
           if (step === "left") return Boolean(state.images.left);
           if (step === "right") return Boolean(state.images.right);
           if (step === "text") return hasTextContent();
@@ -1042,11 +1550,15 @@ import {
         }
 
         function canProceedWizardStep(step) {
-          return canCompleteWizardStep(step) || (step === "text" && canSkipWizardText());
+          return canCompleteWizardStep(step) || canSkipWizardStep(step);
         }
 
         function canSkipWizardText() {
           return state.minimalMode && wizardStep === "text" && !hasTextContent();
+        }
+
+        function canSkipWizardStep(step) {
+          return canSkipWizardText() || (activeProduct === PRODUCT_MOUSEPAD && step === "background");
         }
 
         function hasTextContent() {
@@ -1054,10 +1566,12 @@ import {
         }
 
         function updateWizardUI() {
+          rebuildWizardSteps();
           const unlockedIndex = getUnlockedWizardStepIndex();
-          const currentIndex = WIZARD_STEPS.indexOf(wizardStep);
+          const steps = getWizardSteps();
+          const currentIndex = steps.indexOf(wizardStep);
           if (currentIndex === -1 || currentIndex > unlockedIndex) {
-            wizardStep = WIZARD_STEPS[unlockedIndex];
+            wizardStep = steps[unlockedIndex];
           }
           document.body.dataset.wizardStep = state.minimalMode ? wizardStep : "advanced";
           updateQuickTextEditorUI();
@@ -1076,7 +1590,7 @@ import {
           });
 
           elements.wizardStepButtons.forEach((button) => {
-            const index = WIZARD_STEPS.indexOf(button.dataset.wizardGo);
+            const index = steps.indexOf(button.dataset.wizardGo);
             const isCurrent = button.dataset.wizardGo === wizardStep;
             button.disabled = index > unlockedIndex;
             button.setAttribute("aria-current", isCurrent ? "step" : "false");
@@ -1084,17 +1598,37 @@ import {
 
           const isDone = wizardStep === "done";
           elements.wizardNav.hidden = !state.minimalMode || isDone;
-          elements.wizardBack.disabled = WIZARD_STEPS.indexOf(wizardStep) === 0;
+          elements.wizardBack.disabled = steps.indexOf(wizardStep) === 0;
           elements.wizardNext.disabled = !quickTextEditing && !canProceedWizardStep(wizardStep);
           elements.wizardNextText.textContent = quickTextEditing
             ? "Terminer le texte"
             : wizardStep === "text"
             ? (hasTextContent() ? "Accepter" : "Continuer sans texte")
+            : wizardStep === "background"
+            ? (state.images.background ? "Suivant" : "Continuer sans fond")
             : "Suivant";
           updatePreviewActionButton();
         }
 
         function getPreviewAction() {
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            if (wizardStep === "layout") {
+              return { action: "next", icon: "arrow-right", label: "Suivant" };
+            }
+
+            if (wizardStep === "background") {
+              return state.images.background
+                ? { action: "next", icon: "arrow-right", label: "Suivant" }
+                : { action: "background-upload", icon: "image-plus", label: "Fond facultatif" };
+            }
+
+            if (MOUSEPAD_PHOTO_SLOTS.includes(wizardStep)) {
+              return state.images[wizardStep]
+                ? { action: "next", icon: "arrow-right", label: "Suivant" }
+                : { action: `${wizardStep}-upload`, icon: "upload", label: getSlotButtonLabel(wizardStep) };
+            }
+          }
+
           if (wizardStep === "left") {
             return state.images.left
               ? { action: "next", icon: "arrow-right", label: "Suivant" }
@@ -1118,6 +1652,12 @@ import {
           }
 
           return { action: "print", icon: "printer", label: "Imprimer" };
+        }
+
+        function getSlotButtonLabel(slot) {
+          if (slot === "background") return "Image de fond";
+          const index = MOUSEPAD_PHOTO_SLOTS.indexOf(slot);
+          return index === -1 ? "Image" : `Photo ${index + 1}`;
         }
 
         function updatePreviewActionButton() {
@@ -1179,6 +1719,12 @@ import {
           if (!state.minimalMode) return;
 
           const action = elements.previewActionButton.dataset.previewAction;
+          if (action.endsWith("-upload")) {
+            const slot = action.replace(/-upload$/, "");
+            const input = getImageInput(slot);
+            if (input) input.click();
+            return;
+          }
           if (action === "left-upload") {
             elements.leftImage.click();
             return;
@@ -1271,7 +1817,8 @@ import {
           state.images[slot] = null;
           state.imagePositions[slot] = { ...DEFAULT_IMAGE_POSITION };
           state.imageScales[slot] = DEFAULT_IMAGE_SCALE;
-          getImageInput(slot).value = "";
+          const input = getImageInput(slot);
+          if (input) input.value = "";
           setFileName(slot, DEFAULT_FILE_LABELS[slot]);
           updateRemoveButtons();
           updateCropButtons();
@@ -1283,11 +1830,7 @@ import {
         }
 
         function getImageInput(slot) {
-          return {
-            left: elements.leftImage,
-            center: elements.centerImage,
-            right: elements.rightImage,
-          }[slot];
+          return elements.imageInputs[slot] || null;
         }
 
         function updatePositionControls() {
@@ -1414,8 +1957,9 @@ import {
               width: image.naturalWidth,
               height: image.naturalHeight,
             };
-            if (state.minimalMode && state.fitModes[slot] === "resize") {
-              useFullImage(slot, item);
+            const quickModeFit = getQuickImageFitMode(slot);
+            if (state.minimalMode && quickModeFit) {
+              useFullImage(slot, item, quickModeFit);
               event.target.value = "";
               return;
             }
@@ -1427,9 +1971,17 @@ import {
           }
         }
 
-        function useFullImage(slot, item) {
+        function getQuickImageFitMode(slot) {
+          if (!state.minimalMode) return null;
+          if (activeProduct === PRODUCT_MOUSEPAD && MOUSEPAD_IMAGE_SLOTS.includes(slot)) {
+            return QUICK_FIT_MODES[slot] || "resize";
+          }
+          return state.fitModes[slot] === "resize" ? "resize" : null;
+        }
+
+        function useFullImage(slot, item, mode = "resize") {
           state.images[slot] = item;
-          state.fitModes[slot] = "resize";
+          state.fitModes[slot] = mode;
           state.imagePositions[slot] = { ...DEFAULT_IMAGE_POSITION };
           state.imageScales[slot] = DEFAULT_IMAGE_SCALE;
           setFileName(slot, item.name);
@@ -1635,17 +2187,21 @@ import {
         }
 
         function setFileName(slot, name) {
-          const target = {
-            left: elements.leftName,
-            center: elements.centerName,
-            right: elements.rightName,
-          }[slot];
+          const target = elements.fileNames[slot];
+          if (!target) return;
           target.textContent = name;
           target.title = state.images[slot] ? name : "";
           if (slot === "center") {
             elements.quickCenterName.textContent = name;
             elements.quickCenterName.title = state.images.center ? name : "";
           }
+        }
+
+        function syncImageFileNames() {
+          getActiveImageSlots().forEach((slot) => {
+            const image = state.images[slot];
+            setFileName(slot, image ? image.name : DEFAULT_FILE_LABELS[slot]);
+          });
         }
 
         function updateRemoveButtons() {
@@ -1660,24 +2216,45 @@ import {
           });
         }
 
+        function getExportWidth() {
+          return activeProduct === PRODUCT_MOUSEPAD ? MOUSE_PAD_EXPORT_WIDTH : MUG_EXPORT_WIDTH;
+        }
+
+        function getExportHeight() {
+          return activeProduct === PRODUCT_MOUSEPAD ? MOUSE_PAD_EXPORT_HEIGHT : MUG_EXPORT_HEIGHT;
+        }
+
+        function getPreviewPhysicalLayout() {
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            return {
+              widthMm: MOUSE_PAD_WIDTH_MM,
+              heightMm: MOUSE_PAD_HEIGHT_MM,
+            };
+          }
+
+          return SHEET_LAYOUTS[sheetLayout] || SHEET_LAYOUTS["3up"];
+        }
+
         function resizeStage() {
           const area = document.querySelector(".stage-area");
-          const layout = SHEET_LAYOUTS[sheetLayout] || SHEET_LAYOUTS["3up"];
+          const layout = getPreviewPhysicalLayout();
           const actionReserve = getPreviewActionReserve();
           const availableWidth = Math.max(area.clientWidth - 48, 320);
           const availableHeight = Math.max(area.clientHeight - 48 - actionReserve, 220);
+          const exportWidth = getExportWidth();
+          const exportHeight = getExportHeight();
           const scale = Math.min(
             availableWidth / layout.widthMm,
             availableHeight / layout.heightMm,
-            EXPORT_WIDTH / layout.widthMm,
-            EXPORT_HEIGHT / layout.heightMm,
+            exportWidth / layout.widthMm,
+            exportHeight / layout.heightMm,
           );
           const width = Math.round(layout.widthMm * scale);
           const height = Math.round(layout.heightMm * scale);
-          previewScale = Math.max(width / EXPORT_WIDTH, height / EXPORT_HEIGHT);
+          previewScale = Math.max(width / exportWidth, height / exportHeight);
           previewOffset = {
-            x: (width - EXPORT_WIDTH * previewScale) / 2,
-            y: (height - EXPORT_HEIGHT * previewScale) / 2,
+            x: (width - exportWidth * previewScale) / 2,
+            y: (height - exportHeight * previewScale) / 2,
           };
           stage.width(width);
           stage.height(height);
@@ -1707,15 +2284,13 @@ import {
             new Konva.Rect({
               x: 0,
               y: 0,
-              width: EXPORT_WIDTH,
-              height: EXPORT_HEIGHT,
+              width: getExportWidth(),
+              height: getExportHeight(),
               fill: "#ffffff",
             }),
           );
 
-          renderImageSlot("left");
-          renderImageSlot("center");
-          renderImageSlot("right");
+          getRenderableImageSlots().forEach(renderImageSlot);
           renderText();
           renderGuides();
 
@@ -1726,6 +2301,7 @@ import {
         function renderImageSlot(slot) {
           const item = state.images[slot];
           const zone = getZones()[slot];
+          if (!zone) return;
           const shape = state.imageShapes[slot];
           const shapeBounds = getImageShapeBounds(zone, shape);
           const group = new Konva.Group({
@@ -1736,6 +2312,7 @@ import {
           });
 
           if (!item) {
+            if (activeProduct === PRODUCT_MOUSEPAD) return;
             group.add(
               new Konva.Rect({
                 ...zone,
@@ -1971,8 +2548,8 @@ import {
           const text = state.text.trim();
           if (!text) return;
 
-          const zone = getZones().center;
-          const padding = 46;
+          const zone = getTextZone();
+          const padding = activeProduct === PRODUCT_MOUSEPAD ? 92 : 46;
           const maxWidth = zone.width - padding * 2;
           const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
           const textBlock = getTextBlock(zone, layout, padding);
@@ -2005,15 +2582,33 @@ import {
           contentLayer.add(node);
         }
 
+        function getTextZone() {
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            return {
+              x: 0,
+              y: 0,
+              width: MOUSE_PAD_EXPORT_WIDTH,
+              height: MOUSE_PAD_EXPORT_HEIGHT,
+            };
+          }
+
+          return getZones().center;
+        }
+
         function renderGuides() {
+          if (activeProduct === PRODUCT_MOUSEPAD) {
+            renderMousePadGuides();
+            return;
+          }
+
           const zones = getZones();
           const lineColor = "rgba(20, 33, 61, 0.24)";
           guideLayer.add(
             new Konva.Rect({
               x: 1,
               y: 1,
-              width: EXPORT_WIDTH - 2,
-              height: EXPORT_HEIGHT - 2,
+              width: MUG_EXPORT_WIDTH - 2,
+              height: MUG_EXPORT_HEIGHT - 2,
               stroke: "rgba(20, 33, 61, 0.42)",
               strokeWidth: 3,
             }),
@@ -2022,7 +2617,38 @@ import {
           [zones.center.x, zones.right.x].forEach((x) => {
             guideLayer.add(
               new Konva.Line({
-                points: [x, 0, x, EXPORT_HEIGHT],
+                points: [x, 0, x, MUG_EXPORT_HEIGHT],
+                stroke: lineColor,
+                strokeWidth: 4,
+                dash: [18, 18],
+              }),
+            );
+          });
+        }
+
+        function renderMousePadGuides() {
+          const lineColor = "rgba(20, 33, 61, 0.28)";
+          const radiusPx = Math.round((MOUSE_PAD_EXPORT_WIDTH / MOUSE_PAD_WIDTH_MM) * 5);
+          guideLayer.add(
+            new Konva.Rect({
+              x: 2,
+              y: 2,
+              width: MOUSE_PAD_EXPORT_WIDTH - 4,
+              height: MOUSE_PAD_EXPORT_HEIGHT - 4,
+              cornerRadius: radiusPx,
+              stroke: "rgba(20, 33, 61, 0.46)",
+              strokeWidth: 4,
+              dash: [22, 16],
+            }),
+          );
+
+          getMousePadGuideLines(state.layoutPreset, {
+            width: MOUSE_PAD_EXPORT_WIDTH,
+            height: MOUSE_PAD_EXPORT_HEIGHT,
+          }).forEach((guide) => {
+            guideLayer.add(
+              new Konva.Line({
+                points: guide.points,
                 stroke: lineColor,
                 strokeWidth: 4,
                 dash: [18, 18],
@@ -2061,7 +2687,7 @@ import {
             const anchor = document.createElement("a");
             anchor.href = url;
             const suffix = options.mirror ? "-miroir" : "";
-            anchor.download = `creation-mug${suffix}-${new Date().toISOString().slice(0, 10)}.png`;
+            anchor.download = `${PRODUCT_LABELS[activeProduct].downloadName}${suffix}-${new Date().toISOString().slice(0, 10)}.png`;
             document.body.appendChild(anchor);
             anchor.click();
             anchor.remove();
@@ -2086,6 +2712,7 @@ import {
         }
 
         function setSheetLayout(layout) {
+          if (activeProduct !== PRODUCT_MUG) return;
           if (!SHEET_LAYOUTS[layout]) return;
           sheetLayout = layout;
           updateSheetLayoutButtons();
@@ -2101,22 +2728,30 @@ import {
 
         function updateQueueUI() {
           const count = printQueue.length;
+          const labels = PRODUCT_LABELS[activeProduct];
           elements.queuePanel.hidden = count === 0;
           const printText = elements.printButton.querySelector(".button-text");
-          if (printText) printText.textContent = count ? `Imprimer la page (${count})` : "Imprimer";
+          if (printText) {
+            printText.textContent = count
+              ? activeProduct === PRODUCT_MOUSEPAD
+                ? `Imprimer ${count} page(s)`
+                : `Imprimer la page (${count})`
+              : "Imprimer";
+          }
           if (!count) return;
           queueIndex = Math.max(0, Math.min(queueIndex, count - 1));
-          elements.queueLabel.textContent = `Création ${queueIndex + 1} / ${count}`;
+          elements.queueLabel.textContent = `${labels.queueItemLabel} ${queueIndex + 1} / ${count}`;
           elements.queueThumb.src = printQueue[queueIndex];
           elements.queuePrev.disabled = queueIndex === 0;
           elements.queueNext.disabled = queueIndex === count - 1;
         }
 
         async function printMug() {
+          const labels = PRODUCT_LABELS[activeProduct];
           const printWindow = shouldUseStandalonePrintWindow() ? window.open("", "_blank") : null;
           if (printWindow) {
             printWindow.document.open();
-            printWindow.document.write(`<!doctype html><title>Impression du mug</title><body>Préparation...</body>`);
+            printWindow.document.write(`<!doctype html><title>${labels.printTitle}</title><body>Préparation...</body>`);
             printWindow.document.close();
           }
 
@@ -2125,9 +2760,14 @@ import {
           const images = single
             ? [createExportCanvas().toDataURL("image/png")]
             : printQueue.slice();
-          const layout = single ? SHEET_LAYOUTS["3up"] : SHEET_LAYOUTS[sheetLayout];
-          const perPage = single ? 1 : layout.perPage;
-          const printMarkup = createPrintMarkup(images, layout, perPage, { standalone: Boolean(printWindow) });
+          const layout = activeProduct === PRODUCT_MOUSEPAD
+            ? MOUSEPAD_PRINT_LAYOUT
+            : single ? SHEET_LAYOUTS["3up"] : SHEET_LAYOUTS[sheetLayout];
+          const perPage = activeProduct === PRODUCT_MOUSEPAD ? 1 : single ? 1 : layout.perPage;
+          const printMarkup = createPrintMarkup(images, layout, perPage, {
+            standalone: Boolean(printWindow),
+            product: activeProduct,
+          });
 
           if (printWindow) {
             printFromStandaloneWindow(printWindow, printMarkup, images.length);
@@ -2178,15 +2818,18 @@ import {
         }
 
         function createPrintMarkup(images, layout, perPage, options = {}) {
+          const product = options.product || PRODUCT_MUG;
+          const isMousePad = product === PRODUCT_MOUSEPAD;
           const cutOffset = layout.gapMm > 0 ? `-${layout.gapMm / 2}mm` : "0";
           const mirrorClass = state.mirrorPrint ? " mirror" : "";
           const standalone = Boolean(options.standalone);
+          const labels = PRODUCT_LABELS[product];
           const sheets = [];
 
           for (let index = 0; index < images.length; index += perPage) {
             const cells = images
               .slice(index, index + perPage)
-              .map((url) => `<div class="cell${mirrorClass}"><img src="${url}" alt="Création pour mug"></div>`)
+              .map((url) => `<div class="cell${mirrorClass}"><img src="${url}" alt="${isMousePad ? "Création pour tapis souris" : "Création pour mug"}"></div>`)
               .join("");
             sheets.push(`<div class="sheet">${cells}</div>`);
           }
@@ -2212,7 +2855,7 @@ import {
           return `<!doctype html>
             <html>
               <head>
-                <title>Impression du mug</title>
+                <title>${labels.printTitle}</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <style>
                   @page { size: A4 portrait; margin: 0; }
@@ -2243,6 +2886,7 @@ import {
                     box-sizing: border-box;
                     page-break-after: always;
                     break-after: page;
+                    ${isMousePad ? "display: flex; align-items: flex-start; justify-content: flex-start;" : ""}
                   }
                   .sheet:last-child {
                     page-break-after: auto;
@@ -2252,7 +2896,7 @@ import {
                     position: relative;
                     width: ${layout.widthMm}mm;
                     height: ${layout.heightMm}mm;
-                    margin: 0 auto ${layout.gapMm}mm auto;
+                    margin: ${isMousePad ? "0" : `0 auto ${layout.gapMm}mm auto`};
                   }
                   .cell img {
                     display: block;
@@ -2271,6 +2915,7 @@ import {
                     right: 0;
                     bottom: ${cutOffset};
                     border-bottom: 0.2mm dashed rgba(23, 32, 42, 0.45);
+                    ${isMousePad ? "display: none;" : ""}
                   }
                   @media print {
                     .print-toolbar { display: none; }
@@ -2306,12 +2951,14 @@ import {
           contentLayer.position({ x: 0, y: 0 });
           contentLayer.scale({ x: 1, y: 1 });
           let canvas;
+          const exportWidth = getExportWidth();
+          const exportHeight = getExportHeight();
           try {
             canvas = contentLayer.toCanvas({
               x: 0,
               y: 0,
-              width: EXPORT_WIDTH,
-              height: EXPORT_HEIGHT,
+              width: exportWidth,
+              height: exportHeight,
               pixelRatio: 1,
             });
           } finally {
@@ -2322,10 +2969,10 @@ import {
           if (!options.mirror) return canvas;
 
           const mirroredCanvas = document.createElement("canvas");
-          mirroredCanvas.width = EXPORT_WIDTH;
-          mirroredCanvas.height = EXPORT_HEIGHT;
+          mirroredCanvas.width = exportWidth;
+          mirroredCanvas.height = exportHeight;
           const mirroredContext = mirroredCanvas.getContext("2d");
-          mirroredContext.translate(EXPORT_WIDTH, 0);
+          mirroredContext.translate(exportWidth, 0);
           mirroredContext.scale(-1, 1);
           mirroredContext.drawImage(canvas, 0, 0);
           return mirroredCanvas;
@@ -2398,13 +3045,9 @@ import {
         }
 
         function hasCreationInProgress() {
-          return Boolean(
-            state.images.left ||
-              state.images.center ||
-              state.images.right ||
-              state.text.trim() ||
-              printQueue.length,
-          );
+          return Object.values(productStates).some((draft) =>
+            Object.values(draft.images).some(Boolean) || draft.text.trim(),
+          ) || Object.values(productRuntime).some((runtime) => runtime.printQueue.length);
         }
 
         function protectCreationBeforeUnload(event) {
@@ -2423,33 +3066,32 @@ import {
             return;
           }
 
-          state.images.left = null;
-          state.images.center = null;
-          state.images.right = null;
-          state.layoutPreset = DEFAULT_LAYOUT;
-          state.fitModes = { ...QUICK_FIT_MODES };
-          state.imageShapes = { ...DEFAULT_IMAGE_SHAPES };
-          state.imagePositions = cloneImagePositions(DEFAULT_IMAGE_POSITIONS);
-          state.imageScales = { ...DEFAULT_IMAGE_SCALES };
-          state.minimalMode = true;
-          wizardStep = "left";
-          state.text = "";
-          state.textPosition = "center";
-          state.textFont = DEFAULT_TEXT_FONT;
-          state.fontSize = DEFAULT_FONT_SIZE;
-          state.textColor = DEFAULT_TEXT_COLOR;
-          state.outlineColor = getDefaultOutlineColor(DEFAULT_TEXT_COLOR);
-          state.textFormat = { ...DEFAULT_TEXT_FORMAT };
-          state.textShape = DEFAULT_TEXT_SHAPE;
-          state.mirrorPrint = true;
-          sheetLayout = "3up";
-          elements.leftImage.value = "";
-          elements.centerImage.value = "";
-          elements.rightImage.value = "";
-          setFileName("left", DEFAULT_FILE_LABELS.left);
-          setFileName("center", DEFAULT_FILE_LABELS.center);
-          setFileName("right", DEFAULT_FILE_LABELS.right);
+          state = activeProduct === PRODUCT_MOUSEPAD
+            ? createMousePadState(getFactoryPreferences())
+            : createMugState(getFactoryPreferences());
+          productStates[activeProduct] = state;
+          printQueue = [];
+          queueIndex = 0;
+          sheetLayout = activeProduct === PRODUCT_MUG ? "3up" : sheetLayout;
+          wizardStep = activeProduct === PRODUCT_MOUSEPAD ? "layout" : "left";
+          quickTextEditing = false;
+          productRuntime[activeProduct] = {
+            printQueue,
+            queueIndex,
+            sheetLayout,
+            wizardStep,
+            quickTextEditing,
+          };
+          getActiveImageSlots().forEach((slot) => {
+            const input = getImageInput(slot);
+            if (input) input.value = "";
+            setFileName(slot, DEFAULT_FILE_LABELS[slot]);
+          });
           elements.textInput.value = "";
+          updateProductUI();
+          updateMousePadRows();
+          buildImageShiftOverlay();
+          rebuildWizardSteps();
           updateLayoutButtons();
           updateMinimalMode();
           updateWizardUI();
@@ -2464,11 +3106,14 @@ import {
           updateTextFormatButtons();
           updateTextPositionButtons();
           updateTextShapeButtons();
-          setTextColor(state.textColor);
+          updateColorControls();
+          updateFontPreviewSamples();
           updateFitButtons();
           updateSheetLayoutButtons();
+          updateQueueUI();
           saveDefaultPreferences();
           setStatus("Prêt");
+          resizeStage();
           render();
         }
       })();

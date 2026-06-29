@@ -85,6 +85,57 @@
         gap: 18px;
       }
 
+      body[data-product="mug"] [data-product="mousepad"],
+      body[data-product="mousepad"] [data-product="mug"],
+      [data-layout-slot-hidden="true"] {
+        display: none !important;
+      }
+
+      .current-product-label {
+        width: max-content;
+        max-width: 100%;
+        min-height: 34px;
+        border-radius: 10px;
+        background: #0f172a;
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 10px;
+        font-size: 0.78rem;
+        font-weight: 900;
+        line-height: 1.1;
+        letter-spacing: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .preview-heading {
+        min-width: 0;
+        display: grid;
+        gap: 7px;
+      }
+
+      .product-switch {
+        min-width: 176px;
+        justify-self: end;
+        background: #1e3a8a;
+        border-color: #1e3a8a;
+        box-shadow:
+          0 0 0 1px rgba(30, 58, 138, 0.22),
+          0 12px 22px -14px rgba(30, 58, 138, 0.7);
+      }
+
+      .product-switch:hover {
+        background: #1d4ed8;
+        border-color: #172554;
+      }
+
+      .product-switch .icon,
+      .product-switch .icon svg {
+        inline-size: 24px;
+        block-size: 24px;
+        stroke-width: 2.8;
+      }
+
       .wizard-panel {
         display: none;
         margin-bottom: 18px;
@@ -1042,6 +1093,98 @@
         grid-template-columns: 1.45fr 0.7fr 1.45fr;
       }
 
+      .mousepad-layout-step {
+        display: grid;
+        gap: 10px;
+        padding: 8px;
+        border-radius: var(--radius-card);
+        background: #f8fbfd;
+        box-shadow: var(--shadow-surface);
+      }
+
+      .mousepad-layout-options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mousepad-layout-button {
+        min-width: 0;
+        min-height: 108px;
+        flex-direction: column;
+        gap: 7px;
+        padding: 10px;
+      }
+
+      .mousepad-layout-mini {
+        inline-size: min(128px, 100%);
+        aspect-ratio: 11 / 9;
+        display: grid;
+        gap: 4px;
+        padding: 5px;
+        border-radius: 8px;
+        background: #e7eef5;
+        box-shadow: inset 0 0 0 2px currentColor;
+      }
+
+      .mousepad-layout-mini span {
+        min-width: 0;
+        min-height: 0;
+        border-radius: 4px;
+        background: currentColor;
+        opacity: 0.78;
+      }
+
+      .mousepad-layout-mini.one {
+        grid-template-columns: 1fr;
+      }
+
+      .mousepad-layout-mini.two-side {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .mousepad-layout-mini.two-stacked {
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+      }
+
+      .mousepad-layout-mini.three-side {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .mousepad-layout-mini.four-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+      }
+
+      .minimal-mode .mousepad-layout-step {
+        gap: 6px;
+      }
+
+      .minimal-mode .mousepad-layout-step > .fit-label {
+        display: none;
+      }
+
+      .minimal-mode .mousepad-layout-options {
+        gap: 6px;
+      }
+
+      .minimal-mode .mousepad-layout-button {
+        min-height: 82px;
+        gap: 5px;
+        padding: 7px;
+        font-size: 1.08rem;
+      }
+
+      .minimal-mode .mousepad-layout-mini {
+        inline-size: min(96px, 100%);
+        padding: 4px;
+      }
+
+      .minimal-mode .mousepad-layout-button .button-text {
+        font-size: 1.08rem;
+        font-weight: 950;
+      }
+
       textarea {
         width: 100%;
         min-height: 108px;
@@ -1562,7 +1705,12 @@
       }
 
       .minimal-mode .preview-action[data-preview-action="left-upload"],
-      .minimal-mode .preview-action[data-preview-action="right-upload"] {
+      .minimal-mode .preview-action[data-preview-action="right-upload"],
+      .minimal-mode .preview-action[data-preview-action="background-upload"],
+      .minimal-mode .preview-action[data-preview-action="photo1-upload"],
+      .minimal-mode .preview-action[data-preview-action="photo2-upload"],
+      .minimal-mode .preview-action[data-preview-action="photo3-upload"],
+      .minimal-mode .preview-action[data-preview-action="photo4-upload"] {
         min-height: 78px;
         min-width: min(340px, calc(100% - 28px));
         border-color: #1e3a8a;
@@ -1576,6 +1724,11 @@
 
       .minimal-mode .preview-action[data-preview-action="left-upload"]:hover,
       .minimal-mode .preview-action[data-preview-action="right-upload"]:hover,
+      .minimal-mode .preview-action[data-preview-action="background-upload"]:hover,
+      .minimal-mode .preview-action[data-preview-action="photo1-upload"]:hover,
+      .minimal-mode .preview-action[data-preview-action="photo2-upload"]:hover,
+      .minimal-mode .preview-action[data-preview-action="photo3-upload"]:hover,
+      .minimal-mode .preview-action[data-preview-action="photo4-upload"]:hover,
       .minimal-mode .upload-button:hover {
         border-color: #172554;
         background: #1d4ed8;

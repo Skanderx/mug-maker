@@ -1,5 +1,108 @@
 export const DEFAULT_TEXT_COLOR = "#17202a";
 
+export const MOUSE_PAD_EXPORT_WIDTH = 2598;
+export const MOUSE_PAD_EXPORT_HEIGHT = 2126;
+export const MOUSE_PAD_WIDTH_MM = 220;
+export const MOUSE_PAD_HEIGHT_MM = 180;
+
+export const MOUSE_PAD_LAYOUTS = {
+  one: {
+    label: "1 photo",
+    slots: ["photo1"],
+    zones: {
+      photo1: { x: 0, y: 0, width: 1, height: 1 },
+    },
+    guides: [],
+  },
+  twoSide: {
+    label: "2 cote a cote",
+    slots: ["photo1", "photo2"],
+    zones: {
+      photo1: { x: 0, y: 0, width: 0.5, height: 1 },
+      photo2: { x: 0.5, y: 0, width: 0.5, height: 1 },
+    },
+    guides: [{ orientation: "vertical", at: 0.5 }],
+  },
+  twoStacked: {
+    label: "2 haut bas",
+    slots: ["photo1", "photo2"],
+    zones: {
+      photo1: { x: 0, y: 0, width: 1, height: 0.5 },
+      photo2: { x: 0, y: 0.5, width: 1, height: 0.5 },
+    },
+    guides: [{ orientation: "horizontal", at: 0.5 }],
+  },
+  threeSide: {
+    label: "3 photos",
+    slots: ["photo1", "photo2", "photo3"],
+    zones: {
+      photo1: { x: 0, y: 0, width: 1 / 3, height: 1 },
+      photo2: { x: 1 / 3, y: 0, width: 1 / 3, height: 1 },
+      photo3: { x: 2 / 3, y: 0, width: 1 / 3, height: 1 },
+    },
+    guides: [
+      { orientation: "vertical", at: 1 / 3 },
+      { orientation: "vertical", at: 2 / 3 },
+    ],
+  },
+  fourGrid: {
+    label: "4 photos",
+    slots: ["photo1", "photo2", "photo3", "photo4"],
+    zones: {
+      photo1: { x: 0, y: 0, width: 0.5, height: 0.5 },
+      photo2: { x: 0.5, y: 0, width: 0.5, height: 0.5 },
+      photo3: { x: 0, y: 0.5, width: 0.5, height: 0.5 },
+      photo4: { x: 0.5, y: 0.5, width: 0.5, height: 0.5 },
+    },
+    guides: [
+      { orientation: "vertical", at: 0.5 },
+      { orientation: "horizontal", at: 0.5 },
+    ],
+  },
+};
+
+export const DEFAULT_MOUSE_PAD_LAYOUT = "one";
+
+export function getMousePadLayout(layout) {
+  return MOUSE_PAD_LAYOUTS[layout] || MOUSE_PAD_LAYOUTS[DEFAULT_MOUSE_PAD_LAYOUT];
+}
+
+export function getMousePadPhotoSlots(layout) {
+  return [...getMousePadLayout(layout).slots];
+}
+
+export function getMousePadZones(layout, dimensions = {}) {
+  const width = Number(dimensions.width) || MOUSE_PAD_EXPORT_WIDTH;
+  const height = Number(dimensions.height) || MOUSE_PAD_EXPORT_HEIGHT;
+  return Object.fromEntries(
+    Object.entries(getMousePadLayout(layout).zones).map(([slot, zone]) => [
+      slot,
+      {
+        x: Math.round(zone.x * width),
+        y: Math.round(zone.y * height),
+        width: Math.round(zone.width * width),
+        height: Math.round(zone.height * height),
+      },
+    ]),
+  );
+}
+
+export function getMousePadGuideLines(layout, dimensions = {}) {
+  const width = Number(dimensions.width) || MOUSE_PAD_EXPORT_WIDTH;
+  const height = Number(dimensions.height) || MOUSE_PAD_EXPORT_HEIGHT;
+  return getMousePadLayout(layout).guides.map((guide) =>
+    guide.orientation === "vertical"
+      ? {
+          orientation: guide.orientation,
+          points: [Math.round(guide.at * width), 0, Math.round(guide.at * width), height],
+        }
+      : {
+          orientation: guide.orientation,
+          points: [0, Math.round(guide.at * height), width, Math.round(guide.at * height)],
+        },
+  );
+}
+
 export const OUTLINE_PRESETS = [
   { id: "tonal", label: "ton sur ton", tonal: true },
   { id: "charcoal", label: "charbon", color: "#1b1b1f" },
