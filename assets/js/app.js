@@ -1431,7 +1431,7 @@ import {
           const isAvailable = state.minimalMode && wizardStep === "text";
           if (!isAvailable) quickTextEditing = false;
           document.body.classList.toggle("quick-text-editor", quickTextEditing);
-          elements.quickTextEditButtonText.textContent = hasTextContent()
+          elements.quickTextEditButtonText.textContent = hasTextEntry()
             ? "Modifier le texte"
             : "Ajouter du texte";
         }
@@ -1453,15 +1453,13 @@ import {
           setWizardStep(steps[index - 1]);
         }
 
-        function goToNextWizardStep(options = {}) {
+        function goToNextWizardStep() {
           if (quickTextEditing) {
             setQuickTextEditor(false);
             return;
           }
 
-          const isSkippingEmptyText =
-            wizardStep === "text" && (options.allowEmptyText || canSkipWizardText());
-          if (!isSkippingEmptyText && !canCompleteWizardStep(wizardStep)) {
+          if (!canProceedWizardStep(wizardStep)) {
             updateWizardUI();
             return;
           }
@@ -1545,7 +1543,7 @@ import {
 
           if (step === "left") return Boolean(state.images.left);
           if (step === "right") return Boolean(state.images.right);
-          if (step === "text") return hasTextContent();
+          if (step === "text") return hasTextEntry();
           return true;
         }
 
@@ -1553,16 +1551,12 @@ import {
           return canCompleteWizardStep(step) || canSkipWizardStep(step);
         }
 
-        function canSkipWizardText() {
-          return state.minimalMode && wizardStep === "text" && !hasTextContent();
-        }
-
         function canSkipWizardStep(step) {
-          return canSkipWizardText() || (activeProduct === PRODUCT_MOUSEPAD && step === "background");
+          return activeProduct === PRODUCT_MOUSEPAD && step === "background";
         }
 
-        function hasTextContent() {
-          return Boolean(state.text.trim());
+        function hasTextEntry() {
+          return state.text.length > 0;
         }
 
         function updateWizardUI() {
@@ -1603,7 +1597,7 @@ import {
           elements.wizardNextText.textContent = quickTextEditing
             ? "Terminer le texte"
             : wizardStep === "text"
-            ? (hasTextContent() ? "Accepter" : "Continuer sans texte")
+            ? (hasTextEntry() ? "Accepter" : "Texte requis")
             : wizardStep === "background"
             ? (state.images.background ? "Suivant" : "Continuer sans fond")
             : "Suivant";
@@ -1647,7 +1641,7 @@ import {
               icon: "check",
               label: quickTextEditing
                 ? "Terminer le texte"
-                : hasTextContent() ? "Accepter" : "Continuer sans texte",
+                : hasTextEntry() ? "Accepter" : "Texte requis",
             };
           }
 
@@ -1738,7 +1732,7 @@ import {
             return;
           }
 
-          goToNextWizardStep({ allowEmptyText: canSkipWizardText() });
+          goToNextWizardStep();
         }
 
         function handleStageFrameClick(event) {
