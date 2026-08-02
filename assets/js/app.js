@@ -164,6 +164,7 @@ import {
           circle: { label: "Cercle" },
           square: { label: "Carré" },
           heart: { label: "Cœur" },
+          apple: { label: "Pomme" },
           star: { label: "Étoile" },
           hexagon: { label: "Hexagone" },
         };
@@ -389,6 +390,7 @@ import {
           cropCenterButton: document.querySelector("#cropCenterButton"),
           cropResetButton: document.querySelector("#cropResetButton"),
           cropCancelButton: document.querySelector("#cropCancelButton"),
+          cropUseFullButton: document.querySelector("#cropUseFullButton"),
           cropApplyButton: document.querySelector("#cropApplyButton"),
         };
 
@@ -494,6 +496,7 @@ import {
         elements.cropCenterButton.addEventListener("click", centerCropImage);
         elements.cropResetButton.addEventListener("click", resetCropImage);
         elements.cropCancelButton.addEventListener("click", cancelImageCrop);
+        elements.cropUseFullButton.addEventListener("click", useFullImageFromCrop);
         elements.cropApplyButton.addEventListener("click", applyImageCrop);
         elements.cropDialog.addEventListener("cancel", (event) => {
           event.preventDefault();
@@ -752,6 +755,7 @@ import {
               <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
               <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
               <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
+              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="apple" aria-pressed="false"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button>
               <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
               <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
             </div>`;
@@ -1951,26 +1955,12 @@ import {
               width: image.naturalWidth,
               height: image.naturalHeight,
             };
-            const quickModeFit = getQuickImageFitMode(slot);
-            if (state.minimalMode && quickModeFit) {
-              useFullImage(slot, item, quickModeFit);
-              event.target.value = "";
-              return;
-            }
             openImageCropDialog(slot, item);
           } catch (error) {
             console.error(error);
             event.target.value = "";
             setStatus("Impossible de lire cette image.", true);
           }
-        }
-
-        function getQuickImageFitMode(slot) {
-          if (!state.minimalMode) return null;
-          if (activeProduct === PRODUCT_MOUSEPAD && MOUSEPAD_IMAGE_SLOTS.includes(slot)) {
-            return QUICK_FIT_MODES[slot] || "resize";
-          }
-          return state.fitModes[slot] === "resize" ? "resize" : null;
         }
 
         function useFullImage(slot, item, mode = "resize") {
@@ -2158,6 +2148,14 @@ import {
         function cancelImageCrop() {
           closeImageCrop();
           setStatus("Cadrage annulé");
+        }
+
+        function useFullImageFromCrop() {
+          if (!cropDraft) return;
+
+          const { slot, item } = cropDraft;
+          useFullImage(slot, item, "resize");
+          closeImageCrop();
         }
 
         function applyImageCrop() {
@@ -2377,6 +2375,70 @@ import {
               y + height * 0.64,
               centerX,
               y + height * 0.9,
+            );
+            context.closePath();
+            return;
+          }
+
+          if (shape === "apple") {
+            context.moveTo(centerX, y + height * 0.28);
+            context.bezierCurveTo(
+              centerX - width * 0.17,
+              y + height * 0.1,
+              x + width * 0.06,
+              y + height * 0.12,
+              x + width * 0.08,
+              y + height * 0.44,
+            );
+            context.bezierCurveTo(
+              x + width * 0.1,
+              y + height * 0.71,
+              x + width * 0.27,
+              y + height,
+              x + width * 0.43,
+              y + height * 0.96,
+            );
+            context.bezierCurveTo(
+              centerX,
+              y + height * 0.94,
+              centerX,
+              y + height * 0.84,
+              x + width * 0.57,
+              y + height * 0.96,
+            );
+            context.bezierCurveTo(
+              x + width * 0.73,
+              y + height,
+              x + width * 0.9,
+              y + height * 0.71,
+              x + width * 0.92,
+              y + height * 0.44,
+            );
+            context.bezierCurveTo(
+              x + width * 0.94,
+              y + height * 0.12,
+              centerX + width * 0.17,
+              y + height * 0.1,
+              centerX,
+              y + height * 0.28,
+            );
+            context.closePath();
+            context.moveTo(centerX + width * 0.04, y + height * 0.18);
+            context.bezierCurveTo(
+              centerX + width * 0.14,
+              y + height * 0.02,
+              centerX + width * 0.34,
+              y + height * 0.02,
+              centerX + width * 0.39,
+              y + height * 0.05,
+            );
+            context.bezierCurveTo(
+              centerX + width * 0.35,
+              y + height * 0.19,
+              centerX + width * 0.18,
+              y + height * 0.28,
+              centerX + width * 0.04,
+              y + height * 0.18,
             );
             context.closePath();
             return;
