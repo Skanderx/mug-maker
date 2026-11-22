@@ -13,13 +13,18 @@ test("the page loads local static assets instead of inline code or CDN libraries
     ([, source]) => source,
   );
 
-  assert.match(html, /<link rel="stylesheet" href="assets\/css\/app\.css">/);
+  const versioned = async (path) => {
+    const bytes = await readFile(new URL(path, root));
+    const version = createHash("sha256").update(bytes).digest("hex").slice(0, 12);
+    return `${path}?v=${version}`;
+  };
+  assert.ok(html.includes(`<link rel="stylesheet" href="${await versioned("assets/css/app.css")}">`));
   assert.doesNotMatch(html, /<style\b/);
   assert.doesNotMatch(html, /<script\b(?![^>]*\bsrc=)/);
   assert.deepEqual(scriptSources, [
     "assets/vendor/konva-10.3.0.min.js",
     "assets/vendor/lucide-1.21.0.min.js",
-    "assets/js/app.js",
+    await versioned("assets/js/app.js"),
   ]);
 
   await Promise.all([

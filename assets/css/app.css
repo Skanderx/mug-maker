@@ -1854,13 +1854,13 @@
       }
 
       .image-crop-dialog {
-        width: min(680px, calc(100vw - 28px));
+        width: 100%;
         max-width: none;
-        max-height: calc(100dvh - 28px);
+        max-height: 100dvh;
         margin: auto;
         padding: 0;
         border: 0;
-        border-radius: 24px;
+        border-radius: 0;
         background: #ffffff;
         color: var(--ink);
         box-shadow: 0 28px 72px rgba(15, 23, 42, 0.28);
@@ -1873,124 +1873,164 @@
 
       .crop-dialog-content {
         display: grid;
-        max-height: calc(100dvh - 28px);
-        overflow: auto;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
+        height: 100dvh;
       }
 
-      .crop-dialog-head {
+      .crop-dialog-head, .crop-controls, .crop-dialog-footer {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 16px;
-        padding: 18px 20px 12px;
+        gap: 10px;
+        padding: 10px 16px;
       }
 
-      .crop-dialog-title {
-        margin: 0;
-        font-size: 1.16rem;
+      .crop-dialog-title { margin: 0; font-size: 1.2rem; }
+      .crop-instruction { margin: 3px 0 0; color: var(--muted); font-size: .85rem; }
+      .crop-modes { display: flex; gap: 4px; }
+      .crop-modes button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 9px;
+        border: 2px solid var(--line);
+        border-radius: 10px;
+        background: white;
+        color: var(--ink);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
       }
-
-      .crop-dialog-copy {
-        margin: 5px 0 0;
-        color: var(--muted);
-        line-height: 1.4;
+      .crop-modes button[aria-pressed="true"] {
+        border-color: var(--accent-strong);
+        background: var(--accent-soft);
       }
+      .crop-modes img {
+        height: 32px;
+        max-width: 68px;
+        background: #fff;
+        outline: 1px solid #80948d;
+        object-fit: cover;
+      }
+      [data-crop-mode="resize"] img { object-fit: contain; }
 
       .crop-preview-stage {
-        min-height: 188px;
-        padding: 12px 20px;
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
         display: grid;
         place-items: center;
-        background: #e7eef5;
+        padding-bottom: 10px;
+        background-color: #144c41;
+        background-image:
+          radial-gradient(ellipse at 18% 0%, #b7d6ac19, transparent 68%),
+          repeating-linear-gradient(45deg, transparent 0 112px, #d1c98b30 112px 113px, transparent 113px 226px),
+          repeating-linear-gradient(90deg, #c4cd8355 0 1px, transparent 1px 80px),
+          repeating-linear-gradient(0deg, #c4cd8355 0 1px, transparent 1px 80px),
+          repeating-linear-gradient(90deg, #c4cd832b 0 1px, transparent 1px 16px),
+          repeating-linear-gradient(0deg, #c4cd832b 0 1px, transparent 1px 16px);
+        box-shadow: inset 0 2px 8px #092d2755;
       }
 
+      .crop-offcut {
+        position: absolute;
+        max-width: none;
+        opacity: .38;
+        pointer-events: none;
+      }
+      .crop-preview-stage::before, .crop-preview-stage::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+        opacity: .65;
+      }
+      .crop-preview-stage::before {
+        inset: 0 0 auto;
+        height: 7px;
+        background: repeating-linear-gradient(90deg, #d7d29c 0 1px, transparent 1px 8px);
+      }
+      .crop-preview-stage::after {
+        inset: 0 auto 0 0;
+        width: 7px;
+        background: repeating-linear-gradient(0deg, #d7d29c 0 1px, transparent 1px 8px);
+      }
+      .crop-paper {
+        position: absolute;
+        overflow: hidden;
+        background: white;
+        box-shadow: 1px 2px 2px #17211e40, 4px 8px 11px -3px #17211e70;
+      }
       .crop-viewport {
         position: relative;
         overflow: hidden;
-        background:
-          linear-gradient(45deg, #d7e1ea 25%, transparent 25%) 0 0 / 22px 22px,
-          linear-gradient(-45deg, #d7e1ea 25%, transparent 25%) 0 11px / 22px 22px,
-          linear-gradient(45deg, transparent 75%, #d7e1ea 75%) 11px -11px / 22px 22px,
-          linear-gradient(-45deg, transparent 75%, #d7e1ea 75%) -11px 0 / 22px 22px,
-          #eef3f7;
-        border: 3px solid #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 12px 30px rgba(23, 32, 42, 0.2);
+        background: #f9f8f0db;
+        outline: 1px solid #fcf8dfbf;
+        box-shadow: 0 4px 12px #092d2799;
         touch-action: none;
         cursor: grab;
         user-select: none;
       }
 
-      .crop-viewport.is-dragging {
-        cursor: grabbing;
-      }
-
-      .crop-preview-image {
+      .crop-viewport:focus-visible { outline: 3px solid #ffdc72; }
+      .crop-viewport.is-dragging { cursor: grabbing; }
+      .crop-preview-image { position: absolute; max-width: none; max-height: none; pointer-events: none; }
+      .crop-dimensions {
         position: absolute;
-        max-width: none;
-        max-height: none;
+        bottom: 4px;
         pointer-events: none;
-        user-select: none;
-        outline: 1px solid rgba(0, 0, 0, 0.1);
-        outline-offset: -1px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        background: #f9f7e9;
+        color: #163d33;
+        font: 700 .8rem/1.2 ui-monospace, monospace;
       }
 
-      .crop-viewport::before,
-      .crop-viewport::after {
+      .crop-blade {
+        position: absolute;
+        z-index: 1;
+        height: 28px;
+        transform-origin: 0 0;
+        transform: translateY(-50%);
+        touch-action: none;
+        cursor: ns-resize;
+        filter: drop-shadow(1px 4px 2px #0d19186b);
+      }
+      .crop-blade[data-edge="left"], .crop-blade[data-edge="right"] {
+        transform: rotate(90deg) translateY(-50%);
+        cursor: ew-resize;
+      }
+      .crop-blade[data-edge="left"] { transform: rotate(-90deg) translateY(-50%); }
+      .crop-blade[data-edge="top"] { transform: rotate(180deg) translateY(-50%); }
+      .crop-blade::after {
+        content: "";
+        position: absolute;
+        inset: 7px 0 7px 13px;
+        background: url("../images/cutter-rail.webp") center / 100% 100%;
+        border-radius: 0 3px 3px 0;
+      }
+      .crop-blade::before {
         content: "";
         position: absolute;
         z-index: 1;
-        pointer-events: none;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 34px;
+        height: 50px;
+        background: url("../images/cutter-head.webp") center / contain no-repeat;
       }
-
-      .crop-viewport::before {
-        inset: 0;
-        border: 1px solid rgba(255, 255, 255, 0.82);
-      }
-
-      .crop-viewport::after {
-        inset: 0;
-        background:
-          linear-gradient(to right, transparent 33.1%, rgba(255, 255, 255, 0.46) 33.1%, rgba(255, 255, 255, 0.46) 33.7%, transparent 33.7%, transparent 66.3%, rgba(255, 255, 255, 0.46) 66.3%, rgba(255, 255, 255, 0.46) 66.9%, transparent 66.9%),
-          linear-gradient(to bottom, transparent 33.1%, rgba(255, 255, 255, 0.46) 33.1%, rgba(255, 255, 255, 0.46) 33.7%, transparent 33.7%, transparent 66.3%, rgba(255, 255, 255, 0.46) 66.3%, rgba(255, 255, 255, 0.46) 66.9%, transparent 66.9%);
-      }
-
-      .crop-controls {
-        display: grid;
-        gap: 12px;
-        padding: 16px 20px;
-      }
-
-      .crop-zoom-row {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr) 50px;
-        align-items: center;
-        gap: 10px;
-        color: var(--muted);
-        font-weight: 800;
-      }
-
-      .crop-zoom-row input[type="range"] {
-        width: 100%;
-        accent-color: var(--accent);
-      }
-
-      .crop-zoom-value {
-        color: var(--ink);
-        font-variant-numeric: tabular-nums;
-        text-align: right;
-      }
-
-      .crop-actions {
+      .crop-blade:focus-visible { outline: 2px solid #ffd775; outline-offset: 1px; }
+      .crop-edge-controls, .crop-zoom-row {
         display: flex;
-        flex-wrap: wrap;
+        flex: 1;
+        align-items: center;
         gap: 8px;
       }
-
-      .crop-actions .button {
-        min-height: 46px;
-      }
-
+      .crop-edge-controls select { font: inherit; min-height: 36px; max-width: 100%; }
+      .crop-edge-controls input, .crop-zoom-row input { flex: 1; width: 30px; accent-color: var(--accent); }
+      .crop-controls { font-weight: 700; font-variant-numeric: tabular-nums; }
+      .crop-controls .button { min-height: 34px; }
       .dynamic-number {
         font-variant-numeric: tabular-nums;
       }
@@ -2033,32 +2073,27 @@
         }
       }
 
-      .crop-dialog-footer {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-        padding: 14px 20px 20px;
-        border-top: 1px solid var(--line);
+      .crop-dialog-footer { border-top: 1px solid var(--line); }
+      .crop-dialog-footer .primary { flex: 1; }
+      @media (max-width: 600px) {
+        .crop-dialog-head { flex-wrap: wrap; }
+        .crop-modes { flex: 1 0 auto; }
+        .crop-modes button { flex: 1; justify-content: center; }
       }
-
-      @media (max-width: 520px) {
-        .crop-dialog-head,
-        .crop-controls,
-        .crop-dialog-footer {
-          padding-inline: 14px;
-        }
-
-        .crop-preview-stage {
-          padding-inline: 14px;
-        }
-
-        .crop-dialog-footer {
-          grid-template-columns: 1fr;
-        }
-
-        .crop-actions .button {
-          flex: 1 1 140px;
-        }
+      @media (max-width: 760px) {
+        .crop-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+        .crop-controls .button { min-width: 0; }
+      }
+      @media (max-width: 420px) {
+        .crop-edge-controls select { width: 86px; }
+        .crop-modes { flex-basis: 100%; }
+        .crop-modes button { padding-inline: 4px; gap: 4px; }
+        .crop-modes img { max-width: 38px; height: 26px; }
+        .crop-dialog-content .button { min-width: 0; padding-inline: 8px; }
+        .crop-controls { gap: 4px 8px; }
+      }
+      @media (max-height: 500px) {
+        .crop-dialog-head, .crop-controls, .crop-dialog-footer { padding: 5px 10px; }
       }
 
       @media (hover: none) {

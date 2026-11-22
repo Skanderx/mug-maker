@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Montserrat:wght@400;700&amp;family=Poppins:wght@400;700&amp;family=Playfair+Display:wght@400;700&amp;family=Lobster&amp;family=Bebas+Neue&amp;family=Caveat:wght@400;700&amp;family=Amiri:wght@400;700&amp;family=Cairo:wght@400;700&amp;family=Changa:wght@400;700&amp;family=Noto+Kufi+Arabic:wght@400;700&amp;family=Noto+Naskh+Arabic:wght@400;700&amp;family=Tajawal:wght@400;700&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/app.css?v=595e4b8d947f">
 
   </head>
   <body class="minimal-mode" data-product="mug">
@@ -605,39 +605,50 @@
 
     <div id="status" class="sr-only" role="status" aria-live="polite"></div>
 
-    <dialog id="imageCropDialog" class="image-crop-dialog" aria-labelledby="imageCropDialogTitle" aria-describedby="imageCropDialogCopy">
+    <dialog id="imageCropDialog" class="image-crop-dialog" aria-labelledby="imageCropDialogTitle">
       <div class="crop-dialog-content">
         <div class="crop-dialog-head">
           <div>
-            <h2 id="imageCropDialogTitle" class="crop-dialog-title">Cadrer l'image</h2>
-            <p id="imageCropDialogCopy" class="crop-dialog-copy">Glissez l'image pour placer le sujet, puis utilisez le zoom si nécessaire.</p>
+            <h2 id="imageCropDialogTitle" class="crop-dialog-title">Préparer l’image</h2>
+            <p class="crop-instruction">Glissez un bord pour couper, puis déplacez la photo.</p>
+          </div>
+          <div class="crop-modes" role="group" aria-label="Ajustement de l’image">
+            <button type="button" data-crop-mode="cut" aria-pressed="true"><img alt=""><span>Découper</span></button>
+            <button type="button" data-crop-mode="resize" aria-pressed="false"><img alt=""><span>Image entière</span></button>
           </div>
         </div>
         <div id="cropPreviewStage" class="crop-preview-stage">
-          <div id="cropViewport" class="crop-viewport" aria-label="Zone de cadrage. Faites glisser l'image pour la repositionner.">
-            <img id="cropPreviewImage" class="crop-preview-image" alt="Aperçu de l'image à cadrer">
+          <img id="cropOffcut" class="crop-offcut" alt="">
+          <div id="cropViewport" class="crop-viewport" tabindex="0" role="group" aria-label="Déplacer la photo par glissement ou avec les flèches">
+            <div id="cropPaper" class="crop-paper">
+              <img id="cropPreviewImage" class="crop-preview-image" alt="Aperçu du cadrage">
+            </div>
           </div>
+          <div class="crop-blade" data-edge="left" role="slider" tabindex="0" aria-label="Bord gauche" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Bord gauche"></div>
+          <div class="crop-blade" data-edge="top" role="slider" tabindex="0" aria-label="Bord supérieur" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Bord supérieur"></div>
+          <div class="crop-blade" data-edge="right" role="slider" tabindex="0" aria-label="Bord droit" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" title="Bord droit"></div>
+          <div class="crop-blade" data-edge="bottom" role="slider" tabindex="0" aria-label="Bord inférieur" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" title="Bord inférieur"></div>
+          <span id="cropDimensions" class="crop-dimensions"></span>
         </div>
         <div class="crop-controls">
-          <label class="crop-zoom-row" for="cropZoom">
-            <span>Zoom</span>
-            <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1">
-            <output id="cropZoomValue" class="crop-zoom-value" for="cropZoom">100 %</output>
-          </label>
-          <div class="crop-actions">
-            <button id="cropCenterButton" class="button secondary" type="button">
-              <span class="icon" aria-hidden="true"><i data-lucide="crosshair"></i></span>
-              <span class="button-text">Centrer</span>
-            </button>
-            <button id="cropResetButton" class="button secondary" type="button">
-              <span class="icon" aria-hidden="true"><i data-lucide="rotate-ccw"></i></span>
-              <span class="button-text">Réinitialiser</span>
-            </button>
+          <div class="crop-edge-controls">
+            <select id="cropEdge" aria-label="Bord à couper">
+              <option value="left">Bord gauche</option>
+              <option value="right" selected>Bord droit</option>
+              <option value="top">Bord supérieur</option>
+              <option value="bottom">Bord inférieur</option>
+            </select>
+            <input id="cropEdgePosition" aria-label="Position du bord droit" type="range" step="1" min="1" max="100" value="100">
           </div>
+          <label class="crop-zoom-row" for="cropZoom">Zoom
+            <input id="cropZoom" type="range" min="0.1" max="3" step="0.01" value="1">
+            <output id="cropZoomValue" for="cropZoom">100 %</output>
+          </label>
+          <button id="cropCenterButton" class="button secondary" type="button"><i data-lucide="crosshair"></i> Centrer</button>
+          <button id="cropResetButton" class="button secondary" type="button" aria-label="Réinitialiser le cadrage" title="Réinitialiser le cadrage"><i data-lucide="rotate-ccw"></i> Réinitialiser</button>
         </div>
         <div class="crop-dialog-footer">
           <button id="cropCancelButton" class="button secondary" type="button">Annuler</button>
-          <button id="cropUseFullButton" class="button secondary" type="button">Image entière</button>
           <button id="cropApplyButton" class="button primary" type="button">
             <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
             <span class="button-text">Utiliser l'image</span>
@@ -648,6 +659,6 @@
 
     <script src="assets/vendor/konva-10.3.0.min.js"></script>
     <script src="assets/vendor/lucide-1.21.0.min.js"></script>
-    <script type="module" src="assets/js/app.js"></script>
+    <script type="module" src="assets/js/app.js?v=ccec3bd07515"></script>
   </body>
 </html>

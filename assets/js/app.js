@@ -131,6 +131,8 @@ import {
     photo3: { ...DEFAULT_IMAGE_POSITION },
     photo4: { ...DEFAULT_IMAGE_POSITION },
   };
+  const FULL_CROP = { left: 0, top: 0, right: 1, bottom: 1 };
+  const OPPOSITE_EDGE = { left: "right", right: "left", top: "bottom", bottom: "top" };
   const DEFAULT_IMAGE_SCALE = 1;
   const DEFAULT_IMAGE_SCALES = {
     left: DEFAULT_IMAGE_SCALE,
@@ -386,11 +388,16 @@ import {
     cropViewport: document.querySelector("#cropViewport"),
     cropPreviewImage: document.querySelector("#cropPreviewImage"),
     cropZoom: document.querySelector("#cropZoom"),
+    cropBlades: Array.from(document.querySelectorAll(".crop-blade")),
+    cropEdge: document.querySelector("#cropEdge"),
+    cropEdgePosition: document.querySelector("#cropEdgePosition"),
+    cropPaper: document.querySelector("#cropPaper"),
     cropZoomValue: document.querySelector("#cropZoomValue"),
-    cropCenterButton: document.querySelector("#cropCenterButton"),
+    cropOffcut: document.querySelector("#cropOffcut"),
+    cropModes: Array.from(document.querySelectorAll("[data-crop-mode]")),
+    cropDimensions: document.querySelector("#cropDimensions"),
     cropResetButton: document.querySelector("#cropResetButton"),
     cropCancelButton: document.querySelector("#cropCancelButton"),
-    cropUseFullButton: document.querySelector("#cropUseFullButton"),
     cropApplyButton: document.querySelector("#cropApplyButton"),
   };
 
@@ -491,12 +498,76 @@ import {
   elements.cropZoom.addEventListener("input", () => {
     if (!cropDraft) return;
     cropDraft.scale = Number(elements.cropZoom.value);
+    updateCropLayout();
+  });
+  elements.cropEdge.addEventListener("change", renderCropPreview);
+  elements.cropEdgePosition.addEventListener("input", () => {
+    setCropEdge(elements.cropEdge.value, Number(elements.cropEdgePosition.value) / 100);
+  });
+  elements.cropBlades.forEach((blade) => {
+    const edge = blade.dataset.edge;
+    const horizontal = edge === "left" || edge === "right";
+    const axis = horizontal ? "width" : "height";
+    blade.addEventListener("keydown", (event) => {
+      const increment = event.shiftKey ? 0.1 : 0.01;
+      const current = cropDraft.edges[edge];
+      const values = {
+        Home: 0,
+        End: 1,
+        [horizontal ? "ArrowLeft" : "ArrowUp"]: current - increment,
+        [horizontal ? "ArrowRight" : "ArrowDown"]: current + increment,
+      };
+      if (!(event.key in values)) return;
+      event.preventDefault();
+      setCropEdge(edge, values[event.key]);
+    });
+    blade.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || !event.isPrimary) return;
+      event.preventDefault();
+      const frame = getCropImageFrame();
+      const span = frame[axis];
+      const start = horizontal ? event.clientX : event.clientY;
+      const origin = horizontal ? frame.x : frame.y;
+      const bounds = blade.getBoundingClientRect();
+      const initial = horizontal ? bounds.left + bounds.width / 2 - frame.viewport.left
+        : bounds.top + bounds.height / 2 - frame.viewport.top;
+      elements.cropEdge.value = edge;
+      blade.focus();
+      blade.setPointerCapture(event.pointerId);
+      function moveBlade(move) {
+        if (!cropDraft || move.pointerId !== event.pointerId) return;
+        const delta = (horizontal ? move.clientX : move.clientY) - start;
+        setCropEdge(edge, (initial + delta - origin) / span);
+      }
+      blade.addEventListener("pointermove", moveBlade);
+      blade.addEventListener("lostpointercapture", () => blade.removeEventListener("pointermove", moveBlade), { once: true });
+    });
+  });
+  elements.cropModes.forEach((button) => {
+    button.addEventListener("click", () => {
+      cropDraft.mode = button.dataset.cropMode;
+      updateCropMode();
+    });
+  });
+  elements.cropViewport.addEventListener("keydown", (event) => {
+    if (!cropDraft) return;
+    const moves = { ArrowLeft: ["x", -1], ArrowRight: ["x", 1], ArrowUp: ["y", -1], ArrowDown: ["y", 1] };
+    const move = moves[event.key];
+    if (!move) return;
+    event.preventDefault();
+    const [axis, delta] = move;
+    cropDraft.offset[axis] += delta * (event.shiftKey ? 0.1 : 0.01);
     renderCropPreview();
   });
-  elements.cropCenterButton.addEventListener("click", centerCropImage);
+  document.querySelector("#cropCenterButton").addEventListener("click", () => {
+    const frame = getCropImageFrame();
+    placeCropCenter(frame.viewport.width / 2, frame.viewport.height / 2, frame);
+  });
   elements.cropResetButton.addEventListener("click", resetCropImage);
   elements.cropCancelButton.addEventListener("click", cancelImageCrop);
-  elements.cropUseFullButton.addEventListener("click", useFullImageFromCrop);
+  new ResizeObserver(() => {
+    if (cropDraft) updateCropLayout();
+  }).observe(elements.cropPreviewStage);
   elements.cropApplyButton.addEventListener("click", applyImageCrop);
   elements.cropDialog.addEventListener("cancel", (event) => {
     event.preventDefault();
@@ -506,11 +577,7 @@ import {
   elements.cropViewport.addEventListener("pointermove", moveCropDrag);
   elements.cropViewport.addEventListener("pointerup", endCropDrag);
   elements.cropViewport.addEventListener("pointercancel", endCropDrag);
-  window.addEventListener("resize", () => {
-    if (!elements.cropDialog.open) return;
-    layoutCropViewport();
-    renderCropPreview();
-  });
+
 
   elements.textInput.addEventListener("input", () => {
     state.text = elements.textInput.value;
@@ -1977,22 +2044,6 @@ import {
     }
   }
 
-  function useFullImage(slot, item, mode = "resize") {
-    state.images[slot] = item;
-    state.fitModes[slot] = mode;
-    state.imagePositions[slot] = { ...DEFAULT_IMAGE_POSITION };
-    state.imageScales[slot] = DEFAULT_IMAGE_SCALE;
-    setFileName(slot, item.name);
-    updateFitButtons();
-    updateRemoveButtons();
-    updateCropButtons();
-    updateImageShapeControls();
-    updatePositionControls();
-    updateWizardUI();
-    setStatus("Image ajoutée");
-    render();
-  }
-
   function loadImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -2014,21 +2065,50 @@ import {
     cropDraft = {
       slot,
       item,
+      edges: { ...FULL_CROP, ...item.edges },
+      offset: { x: 0, y: 0, ...item.offset },
+      mode: isReframingCurrentImage ? state.fitModes[slot] : "cut",
       position: isReframingCurrentImage
         ? { ...state.imagePositions[slot] }
         : { ...DEFAULT_IMAGE_POSITION },
       scale: isReframingCurrentImage ? state.imageScales[slot] : DEFAULT_IMAGE_SCALE,
     };
+    if (item.trim && !item.edges) {
+      const zone = getCropTargetBounds(slot);
+      const base = getPlacement(item, zone, cropDraft.mode, cropDraft.position, cropDraft.scale);
+      const x = Math.max(zone.x, base.x);
+      const y = Math.max(zone.y, base.y);
+      cropDraft.edges = {
+        left: (x - base.x) / base.width,
+        top: (y - base.y) / base.height,
+        right: (x - base.x + Math.min(base.width, zone.width) * item.trim.width) / base.width,
+        bottom: (y - base.y + Math.min(base.height, zone.height) * item.trim.height) / base.height,
+      };
+    }
     elements.cropPreviewImage.src = item.image.src;
-    elements.cropZoom.value = String(cropDraft.scale);
-
-    if (!elements.cropDialog.open) elements.cropDialog.showModal();
-
-    window.requestAnimationFrame(() => {
-      layoutCropViewport();
-      renderCropPreview();
-      elements.cropZoom.focus();
+    elements.cropOffcut.src = item.image.src;
+    const target = getCropTargetBounds(slot);
+    elements.cropModes.forEach((button) => {
+      const thumbnail = button.querySelector("img");
+      thumbnail.src = item.image.src;
+      thumbnail.style.aspectRatio = target.width / target.height;
     });
+    if (!elements.cropDialog.open) elements.cropDialog.showModal();
+    updateCropMode();
+    elements.cropModes.find((button) => button.dataset.cropMode === cropDraft.mode).focus();
+  }
+
+  function updateCropMode() {
+    elements.cropModes.forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.cropMode === cropDraft.mode));
+    });
+    elements.cropDialog.dataset.mode = cropDraft.mode;
+    updateCropLayout();
+  }
+
+  function updateCropLayout() {
+    layoutCropViewport();
+    renderCropPreview();
   }
 
   function getCropTargetBounds(slot) {
@@ -2041,8 +2121,8 @@ import {
 
     const target = getCropTargetBounds(cropDraft.slot);
     const aspectRatio = target.width / target.height;
-    const availableWidth = Math.max(220, Math.min(560, elements.cropPreviewStage.clientWidth - 40));
-    const availableHeight = Math.max(190, Math.min(410, Math.round(window.innerHeight * 0.42)));
+    const availableWidth = Math.max(1, elements.cropPreviewStage.clientWidth - 48);
+    const availableHeight = Math.max(1, elements.cropPreviewStage.clientHeight - 54);
     let width = availableWidth;
     let height = width / aspectRatio;
 
@@ -2051,8 +2131,8 @@ import {
       width = height * aspectRatio;
     }
 
-    elements.cropViewport.style.width = `${Math.round(width)}px`;
-    elements.cropViewport.style.height = `${Math.round(height)}px`;
+    elements.cropViewport.style.width = `${width}px`;
+    elements.cropViewport.style.height = `${height}px`;
   }
 
   function getCropImageFrame() {
@@ -2061,29 +2141,59 @@ import {
     const viewport = elements.cropViewport.getBoundingClientRect();
     if (!viewport.width || !viewport.height) return null;
 
-    const baseScale = Math.max(
-      viewport.width / cropDraft.item.width,
-      viewport.height / cropDraft.item.height,
+    const placement = getPlacement(
+      cropDraft.item, { x: 0, y: 0, width: viewport.width, height: viewport.height },
+      cropDraft.mode, cropDraft.position, cropDraft.scale, cropDraft.offset,
     );
-    const width = cropDraft.item.width * baseScale * cropDraft.scale;
-    const height = cropDraft.item.height * baseScale * cropDraft.scale;
-    return {
-      viewport,
-      width,
-      height,
-      x: (viewport.width - width) * cropDraft.position.x,
-      y: (viewport.height - height) * cropDraft.position.y,
-    };
+    return { viewport, ...placement };
   }
 
   function renderCropPreview() {
     const frame = getCropImageFrame();
     if (!frame) return;
 
+    const cut = getCutBounds(frame, cropDraft.edges);
+    const sourceScale = cropDraft.item.width / frame.width;
+    elements.cropDimensions.textContent = `${Math.round(cut.width * sourceScale)} × ${Math.round(cut.height * sourceScale)} px`;
+    Object.assign(elements.cropPaper.style, {
+      left: `${cut.x}px`, top: `${cut.y}px`, width: `${cut.width}px`, height: `${cut.height}px`,
+    });
+    elements.cropBlades.forEach((blade) => {
+      const edge = blade.dataset.edge;
+      const stage = elements.cropPreviewStage;
+      const view = elements.cropViewport;
+      const across = edge === "bottom" || edge === "top";
+      const reverse = edge === "top" || edge === "left";
+      const x = view.offsetLeft + cut.x + (reverse ? 0 : cut.width);
+      const y = view.offsetTop + cut.y + (reverse ? 0 : cut.height);
+      const limit = (value, size) => Math.max(8, Math.min(size - 8, value));
+      blade.style.left = `${across ? (reverse ? stage.clientWidth : 0) : limit(x, stage.clientWidth)}px`;
+      blade.style.top = `${across ? limit(y, stage.clientHeight) : (reverse ? stage.clientHeight : 0)}px`;
+      const length = across ? (reverse ? stage.clientWidth - x : x) : (reverse ? stage.clientHeight - y : y);
+      blade.style.width = `${limit(length, across ? stage.clientWidth : stage.clientHeight) + 8}px`;
+      const percent = Math.round(cropDraft.edges[edge] * 100);
+      const [min, max] = cropEdgeLimits(edge);
+      blade.setAttribute("aria-valuemin", Math.round(min * 100));
+      blade.setAttribute("aria-valuemax", Math.round(max * 100));
+      blade.setAttribute("aria-valuenow", percent);
+      blade.setAttribute("aria-valuetext", `${percent} %`);
+      if (elements.cropEdge.value === edge) {
+        const control = elements.cropEdgePosition;
+        control.min = String(Math.round(min * 100));
+        control.max = String(Math.round(max * 100));
+        control.value = String(percent);
+        control.setAttribute("aria-label", `Position du ${blade.getAttribute("aria-label").toLowerCase()}`);
+        control.setAttribute("aria-valuetext", `${percent} %`);
+      }
+    });
     elements.cropPreviewImage.style.width = `${frame.width}px`;
     elements.cropPreviewImage.style.height = `${frame.height}px`;
-    elements.cropPreviewImage.style.left = `${frame.x}px`;
-    elements.cropPreviewImage.style.top = `${frame.y}px`;
+    elements.cropPreviewImage.style.left = `${frame.x - cut.x}px`;
+    elements.cropPreviewImage.style.top = `${frame.y - cut.y}px`;
+    elements.cropOffcut.style.width = `${frame.width}px`;
+    elements.cropOffcut.style.height = `${frame.height}px`;
+    elements.cropOffcut.style.left = `${elements.cropViewport.offsetLeft + frame.x}px`;
+    elements.cropOffcut.style.top = `${elements.cropViewport.offsetTop + frame.y}px`;
     elements.cropZoom.value = String(cropDraft.scale);
     elements.cropZoomValue.textContent = `${Math.round(cropDraft.scale * 100)} %`;
   }
@@ -2099,6 +2209,7 @@ import {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
+      offset: { ...cropDraft.offset },
       frame,
     };
     elements.cropViewport.setPointerCapture(event.pointerId);
@@ -2110,21 +2221,19 @@ import {
 
     const deltaX = event.clientX - cropDrag.startX;
     const deltaY = event.clientY - cropDrag.startY;
-    const horizontalRange = cropDrag.frame.viewport.width - cropDrag.frame.width;
-    const verticalRange = cropDrag.frame.viewport.height - cropDrag.frame.height;
-
-    cropDraft.position.x = Math.abs(horizontalRange) < 0.001
-      ? DEFAULT_IMAGE_POSITION.x
-      : Math.min(1, Math.max(0, (cropDrag.frame.x + deltaX) / horizontalRange));
-    cropDraft.position.y = Math.abs(verticalRange) < 0.001
-      ? DEFAULT_IMAGE_POSITION.y
-      : Math.min(1, Math.max(0, (cropDrag.frame.y + deltaY) / verticalRange));
+    cropDraft.offset.x = cropDrag.offset.x + deltaX / cropDrag.frame.viewport.width;
+    cropDraft.offset.y = cropDrag.offset.y + deltaY / cropDrag.frame.viewport.height;
     renderCropPreview();
   }
 
   function endCropDrag(event) {
     if (!cropDrag || cropDrag.pointerId !== event.pointerId) return;
 
+    if (event.type === "pointerup" && Math.hypot(event.clientX - cropDrag.startX, event.clientY - cropDrag.startY) < 3 &&
+        !elements.cropPaper.contains(document.elementFromPoint(event.clientX, event.clientY))) {
+      const frame = getCropImageFrame();
+      placeCropCenter(event.clientX - frame.viewport.left, event.clientY - frame.viewport.top, frame);
+    }
     if (elements.cropViewport.hasPointerCapture(event.pointerId)) {
       elements.cropViewport.releasePointerCapture(event.pointerId);
     }
@@ -2132,10 +2241,22 @@ import {
     elements.cropViewport.classList.remove("is-dragging");
   }
 
-  function centerCropImage() {
-    if (!cropDraft) return;
+  function placeCropCenter(x, y, frame) {
+    const cut = getCutBounds(frame, cropDraft.edges);
+    cropDraft.offset.x += (x - cut.x - cut.width / 2) / frame.viewport.width;
+    cropDraft.offset.y += (y - cut.y - cut.height / 2) / frame.viewport.height;
+    renderCropPreview();
+  }
 
-    cropDraft.position = { ...DEFAULT_IMAGE_POSITION };
+  function cropEdgeLimits(edge) {
+    const opposite = cropDraft.edges[OPPOSITE_EDGE[edge]];
+    return edge === "left" || edge === "top" ? [0, opposite - 0.01] : [opposite + 0.01, 1];
+  }
+
+  function setCropEdge(edge, value) {
+    elements.cropEdge.value = edge;
+    const [min, max] = cropEdgeLimits(edge);
+    cropDraft.edges[edge] = Math.max(min, Math.min(max, value));
     renderCropPreview();
   }
 
@@ -2143,8 +2264,10 @@ import {
     if (!cropDraft) return;
 
     cropDraft.position = { ...DEFAULT_IMAGE_POSITION };
+    cropDraft.edges = { ...FULL_CROP };
+    cropDraft.offset = { x: 0, y: 0 };
     cropDraft.scale = DEFAULT_IMAGE_SCALE;
-    renderCropPreview();
+    updateCropLayout();
   }
 
   function closeImageCrop() {
@@ -2152,6 +2275,8 @@ import {
     if (elements.cropDialog.open) elements.cropDialog.close();
     if (input) input.value = "";
     elements.cropPreviewImage.removeAttribute("src");
+    elements.cropOffcut.removeAttribute("src");
+    elements.cropModes.forEach((button) => button.querySelector("img").removeAttribute("src"));
     cropDraft = null;
     cropDrag = null;
     const opener = cropDialogOpener;
@@ -2164,22 +2289,14 @@ import {
     setStatus("Cadrage annulé");
   }
 
-  function useFullImageFromCrop() {
-    if (!cropDraft) return;
-
-    const { slot, item } = cropDraft;
-    useFullImage(slot, item, "resize");
-    closeImageCrop();
-  }
-
   function applyImageCrop() {
     if (!cropDraft) return;
 
-    const { slot, item, position, scale } = cropDraft;
-    state.images[slot] = item;
+    const { slot, item, position, scale, mode, edges, offset } = cropDraft;
+    state.images[slot] = { ...item, edges: { ...edges }, offset: { ...offset } };
     state.imagePositions[slot] = { ...position };
     state.imageScales[slot] = scale;
-    state.fitModes[slot] = "cut";
+    state.fitModes[slot] = mode;
     setFileName(slot, item.name);
     updateFitButtons();
     updateRemoveButtons();
@@ -2188,7 +2305,7 @@ import {
     updatePositionControls();
     updateWizardUI();
     closeImageCrop();
-    setStatus("Image cadrée");
+    setStatus(mode === "cut" ? "Image cadrée" : "Image entière ajoutée");
     render();
   }
 
@@ -2334,15 +2451,20 @@ import {
       shapeBounds,
       state.fitModes[slot],
       state.imagePositions[slot],
-      state.imageScales[slot],
+      state.imageScales[slot], item.offset,
     );
+    const cut = getCutBounds(placement, item.edges);
+    const sourceScale = item.width / placement.width;
     group.add(
       new Konva.Image({
         image: item.image,
-        x: placement.x,
-        y: placement.y,
-        width: placement.width,
-        height: placement.height,
+        ...cut,
+        crop: {
+          x: (cut.x - placement.x) * sourceScale,
+          y: (cut.y - placement.y) * sourceScale,
+          width: cut.width * sourceScale,
+          height: cut.height * sourceScale,
+        },
       }),
     );
     contentLayer.add(group);
@@ -2727,17 +2849,26 @@ import {
     });
   }
 
-  function getPlacement(item, zone, mode, position = DEFAULT_IMAGE_POSITION, imageScale = DEFAULT_IMAGE_SCALE) {
+  function getCutBounds(photo, edges = FULL_CROP) {
+    return {
+      x: photo.x + photo.width * edges.left,
+      y: photo.y + photo.height * edges.top,
+      width: photo.width * (edges.right - edges.left),
+      height: photo.height * (edges.bottom - edges.top),
+    };
+  }
+
+  function getPlacement(item, zone, mode, position = DEFAULT_IMAGE_POSITION, imageScale = DEFAULT_IMAGE_SCALE, offset = { x: 0, y: 0 }) {
     const fitScale =
       mode === "cut"
         ? Math.max(zone.width / item.width, zone.height / item.height)
         : Math.min(zone.width / item.width, zone.height / item.height);
-    const scale = fitScale * Math.max(DEFAULT_IMAGE_SCALE, Number(imageScale) || DEFAULT_IMAGE_SCALE);
+    const scale = fitScale * Math.max(0.1, Number(imageScale) || DEFAULT_IMAGE_SCALE);
     const width = item.width * scale;
     const height = item.height * scale;
     return {
-      x: zone.x + (zone.width - width) * position.x,
-      y: zone.y + (zone.height - height) * position.y,
+      x: zone.x + (zone.width - width) * position.x + zone.width * offset.x,
+      y: zone.y + (zone.height - height) * position.y + zone.height * offset.y,
       width,
       height,
     };
