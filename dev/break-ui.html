@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mug Maker UI stress test</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100dvh; display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100dvh; font: 14px system-ui, sans-serif; }
+    iframe { width: 100%; height: 100%; border: 0; }
+    .toolbar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 12px; padding: 6px; background: #e9edf1; color: #17202a; }
+    .toolbar[hidden], #guard[hidden], iframe[hidden] { display: none; }
+    .datasets { display: flex; flex-wrap: wrap; justify-content: center; border: 0; border-radius: 8px; padding: 2px; background: #d6dde4; margin: 0; }
+    button, select { min-height: 32px; font: inherit; }
+    button { border: 1px solid transparent; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+    button[aria-pressed="true"] { background: white; border-color: #95a2af; }
+    #guard { padding: 16px; }
+  </style>
+</head>
+<body>
+  <iframe id="app" title="Mug Maker with test data" hidden></iframe>
+  <div class="toolbar" hidden>
+    <label>Interface
+      <select id="surface">
+        <option value="mug">Quick mug</option>
+        <option value="text">Quick text editor</option>
+        <option value="mousepad">Quick mouse pad</option>
+        <option value="crop">Crop editor</option>
+        <option value="advanced">Advanced mug</option>
+        <option value="advanced-pad">Advanced mouse pad</option>
+        <option value="queue">Print queue</option>
+      </select>
+    </label>
+    <fieldset class="datasets" aria-label="Fixture data">
+      <button type="button" data-fixture="demo">Demo data</button>
+      <button type="button" data-fixture="worst">Worst case</button>
+      <button type="button" data-fixture="empty">Empty</button>
+      <button type="button" data-fixture="one">One</button>
+    </fieldset>
+    <span id="fixture-status" role="status"></span>
+  </div>
+  <p id="guard" hidden>This audit runs on a local development server.</p>
+  <script type="module">
+    if (["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)) {
+      document.querySelector(".toolbar").hidden = false;
+      document.querySelector("#app").hidden = false;
+      import("./break-ui.js?v=3");
+    } else {
+      document.querySelector("#guard").hidden = false;
+    }
+  </script>
+</body>
+</html>

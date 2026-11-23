@@ -9,11 +9,47 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Montserrat:wght@400;700&amp;family=Poppins:wght@400;700&amp;family=Playfair+Display:wght@400;700&amp;family=Lobster&amp;family=Bebas+Neue&amp;family=Caveat:wght@400;700&amp;family=Amiri:wght@400;700&amp;family=Cairo:wght@400;700&amp;family=Changa:wght@400;700&amp;family=Noto+Kufi+Arabic:wght@400;700&amp;family=Noto+Naskh+Arabic:wght@400;700&amp;family=Tajawal:wght@400;700&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/app.css?v=595e4b8d947f">
+    <link rel="stylesheet" href="assets/css/app.css?v=4d3a51260b7a">
 
   </head>
   <body class="minimal-mode" data-product="mug">
     <main class="app">
+      <header class="preview-top">
+        <div class="preview-heading">
+          <div id="currentProductLabel" class="current-product-label">Mode mug · 229 × 89 mm</div>
+          <h1 id="previewTitle" class="preview-title">Créateur de mugs</h1>
+          <label class="checkbox-card minimal-mode-toggle" for="minimalMode">
+            <input id="minimalMode" type="checkbox" checked>
+            <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
+            <span class="button-text">Mode rapide</span>
+          </label>
+          <div id="previewMeta" class="preview-meta">Image gauche, texte central, image droite</div>
+        </div>
+        <div class="preview-dims">
+          <button id="productSwitchButton" class="button primary product-switch" type="button" aria-label="Passer au mode tapis souris">
+            <span id="productSwitchIcon" class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span>
+            <span id="productSwitchText" class="button-text">Tapis souris</span>
+          </button>
+          <div id="previewSizeMeta" class="preview-meta">9 × 3,5 po · 229 × 89 mm (mug 11 oz)</div>
+          <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4" data-product="mug" data-advanced-control>
+            <button type="button" class="sheet-option" data-sheet-layout="3up" aria-pressed="true">3 / page · 210×82 mm</button>
+            <button type="button" class="sheet-option" data-sheet-layout="4up" aria-pressed="false">4 / page · 210×74 mm</button>
+          </div>
+        </div>
+      </header>
+      <section class="preview" aria-label="Aperçu du visuel pour mug">
+        <div class="stage-area">
+          <div class="stage-frame">
+            <div id="stage"></div>
+            <div id="imageShiftOverlay" class="image-shift-overlay" aria-label="Déplacement des images dans l'aperçu"></div>
+          </div>
+          <button id="previewActionButton" class="button primary preview-action" type="button">
+            <span id="previewActionIcon" class="icon preview-action-icon" aria-hidden="true"><span class="preview-action-icon-layer is-current"><i data-lucide="upload"></i></span></span>
+            <span id="previewActionText" class="button-text">Image gauche</span>
+          </button>
+        </div>
+        <p id="textFitWarning" class="editor-warning" role="status" hidden>Le texte dépasse la zone d’impression. Raccourcissez-le.</p>
+      </section>
       <aside class="controls" aria-label="Commandes de création du mug">
         <div id="wizardPanel" class="wizard-panel" aria-label="Assistant de création">
           <div class="wizard-steps" role="group" aria-label="Étapes de création">
@@ -59,11 +95,6 @@
                   <span class="button-text">Images +</span>
                 </button>
               </div>
-              <label class="checkbox-card minimal-mode-toggle" for="minimalMode">
-                <input id="minimalMode" type="checkbox" checked>
-                <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
-                <span class="button-text">Mode rapide</span>
-              </label>
             </div>
             <div id="mousepadLayoutStep" class="mousepad-layout-step" data-product="mousepad" data-wizard-step="layout">
               <div class="fit-label">Disposition du tapis souris</div>
@@ -125,8 +156,8 @@
                     <span class="button-text">Retirer</span>
                   </button>
                 </div>
-                <div class="image-shape-control" data-image-shape-control="left" hidden>
-                  <div class="fit-label">Découpe de l'image</div>
+                <details class="image-shape-control" data-image-shape-control="left" hidden open>
+                  <summary>Forme de l’image</summary>
                   <div class="image-shape-options" role="group" aria-label="Forme de l'image gauche">
                     <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
                     <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
@@ -136,7 +167,7 @@
                     <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
                     <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
                   </div>
-                </div>
+                </details>
                 <div class="position-grid" aria-label="Position de l'image gauche">
                   <div class="position-control">
                     <div class="axis-label">
@@ -203,8 +234,8 @@
                     <span class="button-text">Retirer</span>
                   </button>
                 </div>
-                <div class="image-shape-control" data-image-shape-control="center" hidden>
-                  <div class="fit-label">Découpe de l'image</div>
+                <details class="image-shape-control" data-image-shape-control="center" hidden open>
+                  <summary>Forme de l’image</summary>
                   <div class="image-shape-options" role="group" aria-label="Forme de l'image centrale">
                     <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
                     <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
@@ -214,7 +245,7 @@
                     <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
                     <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
                   </div>
-                </div>
+                </details>
                 <div class="position-grid" aria-label="Position de l'image centrale">
                   <div class="position-control">
                     <div class="axis-label">
@@ -282,8 +313,8 @@
                     <span class="button-text">Retirer</span>
                   </button>
                 </div>
-                <div class="image-shape-control" data-image-shape-control="right" hidden>
-                  <div class="fit-label">Découpe de l'image</div>
+                <details class="image-shape-control" data-image-shape-control="right" hidden open>
+                  <summary>Forme de l’image</summary>
                   <div class="image-shape-options" role="group" aria-label="Forme de l'image droite">
                     <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
                     <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
@@ -293,7 +324,7 @@
                     <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
                     <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
                   </div>
-                </div>
+                </details>
                 <div class="position-grid" aria-label="Position de l'image droite">
                   <div class="position-control">
                     <div class="axis-label">
@@ -337,24 +368,6 @@
               <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
               <span id="quickTextEditButtonText" class="button-text">Ajouter du texte</span>
             </button>
-            <div class="button-group four format-controls" role="group" aria-label="Options de format du texte" data-advanced-control>
-              <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">
-                <span class="icon" aria-hidden="true"><i data-lucide="bold"></i></span>
-                <span class="button-text">Gras</span>
-              </button>
-              <button class="mode-button" type="button" data-text-format="italic" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="italic"></i></span>
-                <span class="button-text">Italique</span>
-              </button>
-              <button class="mode-button" type="button" data-text-format="outline" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="box-select"></i></span>
-                <span class="button-text">Contour</span>
-              </button>
-              <button class="mode-button" type="button" data-text-format="shadow" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="layers-2"></i></span>
-                <span class="button-text">Ombre</span>
-              </button>
-            </div>
             <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
 
             <div id="quickCenterImage" class="quick-center-image" data-product="mug" aria-labelledby="quickCenterImageTitle">
@@ -378,35 +391,6 @@
               </div>
             </div>
 
-            <div class="font-picker" data-advanced-control>
-              <div class="select-wrap">
-                <label class="fit-label" for="fontSelect">Police</label>
-                <select id="fontSelect" aria-label="Police du texte">
-                  <optgroup label="Latin">
-                    <option value="geist" selected>Geist (par défaut)</option>
-                    <option value="atkinson">Atkinson Hyperlegible</option>
-                    <option value="montserrat">Montserrat</option>
-                    <option value="poppins">Poppins</option>
-                    <option value="playfair">Playfair Display</option>
-                    <option value="lobster">Lobster</option>
-                    <option value="bebas">Bebas Neue</option>
-                    <option value="caveat">Caveat</option>
-                  </optgroup>
-                  <optgroup label="Arabe">
-                    <option value="noto-naskh-arabic">Noto Naskh Arabic</option>
-                    <option value="noto-kufi-arabic">Noto Kufi Arabic</option>
-                    <option value="cairo">Cairo</option>
-                    <option value="tajawal">Tajawal</option>
-                    <option value="amiri">Amiri</option>
-                    <option value="changa">Changa</option>
-                  </optgroup>
-                </select>
-              </div>
-              <button id="fontPreviewButton" class="button secondary font-preview-button" type="button" aria-expanded="false" aria-controls="fontPreviewPopover" title="Aperçu de toutes les polices">
-                <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
-                <span class="button-text">Choisir la police</span>
-              </button>
-            </div>
             <div id="fontPreviewPopover" class="font-preview-popover" role="dialog" aria-modal="false" aria-labelledby="fontPreviewTitle" hidden>
               <div class="font-preview-head">
                 <div id="fontPreviewTitle" class="font-preview-title">Aperçu des polices</div>
@@ -430,14 +414,6 @@
                 <span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span>
                 <span class="button-text">Bas</span>
               </button>
-            </div>
-
-            <div class="range-wrap" data-advanced-control>
-              <div class="range-row">
-                <span>Taille</span>
-                <span id="fontSizeValue" class="dynamic-number">138</span>
-              </div>
-              <input id="fontSize" type="range" min="64" max="220" step="2" value="138">
             </div>
 
             <div class="palette-group" aria-label="Formes autour du texte" data-advanced-control>
@@ -515,6 +491,65 @@
                 </div>
               </div>
             </div>
+            <details id="textAppearance" class="text-appearance" open>
+              <summary>Police et style</summary>
+              <div class="text-appearance-controls">
+                <div class="button-group four format-controls" role="group" aria-label="Options de format du texte" data-advanced-control>
+                  <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">
+                    <span class="icon" aria-hidden="true"><i data-lucide="bold"></i></span>
+                    <span class="button-text">Gras</span>
+                  </button>
+                  <button class="mode-button" type="button" data-text-format="italic" aria-pressed="false">
+                    <span class="icon" aria-hidden="true"><i data-lucide="italic"></i></span>
+                    <span class="button-text">Italique</span>
+                  </button>
+                  <button class="mode-button" type="button" data-text-format="outline" aria-pressed="false">
+                    <span class="icon" aria-hidden="true"><i data-lucide="box-select"></i></span>
+                    <span class="button-text">Contour</span>
+                  </button>
+                  <button class="mode-button" type="button" data-text-format="shadow" aria-pressed="false">
+                    <span class="icon" aria-hidden="true"><i data-lucide="layers-2"></i></span>
+                    <span class="button-text">Ombre</span>
+                  </button>
+                </div>
+                <div class="font-picker" data-advanced-control>
+                  <div class="select-wrap">
+                    <label class="fit-label" for="fontSelect">Police</label>
+                    <select id="fontSelect" aria-label="Police du texte">
+                      <optgroup label="Latin">
+                        <option value="geist" selected>Geist (par défaut)</option>
+                        <option value="atkinson">Atkinson Hyperlegible</option>
+                        <option value="montserrat">Montserrat</option>
+                        <option value="poppins">Poppins</option>
+                        <option value="playfair">Playfair Display</option>
+                        <option value="lobster">Lobster</option>
+                        <option value="bebas">Bebas Neue</option>
+                        <option value="caveat">Caveat</option>
+                      </optgroup>
+                      <optgroup label="Arabe">
+                        <option value="noto-naskh-arabic">Noto Naskh Arabic</option>
+                        <option value="noto-kufi-arabic">Noto Kufi Arabic</option>
+                        <option value="cairo">Cairo</option>
+                        <option value="tajawal">Tajawal</option>
+                        <option value="amiri">Amiri</option>
+                        <option value="changa">Changa</option>
+                      </optgroup>
+                    </select>
+                  </div>
+                  <button id="fontPreviewButton" class="button secondary font-preview-button" type="button" aria-expanded="false" aria-controls="fontPreviewPopover" title="Aperçu de toutes les polices">
+                    <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
+                    <span class="button-text">Choisir la police</span>
+                  </button>
+                </div>
+                <div class="range-wrap" data-advanced-control>
+                  <div class="range-row">
+                    <span>Taille</span>
+                    <span id="fontSizeValue" class="dynamic-number">138</span>
+                  </div>
+                  <input id="fontSize" type="range" min="64" max="220" step="2" value="138">
+                </div>
+              </div>
+            </details>
           </section>
 
           <section class="actions" aria-label="Actions" data-wizard-step="done">
@@ -557,52 +592,22 @@
               <span class="button-text">Supprimer</span>
             </button>
           </section>
-
-          <div id="wizardNav" class="wizard-nav" aria-label="Navigation de l'assistant">
-            <button id="wizardBack" class="button secondary" type="button" disabled>
-              <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
-              <span class="button-text">Retour</span>
-            </button>
-            <button id="wizardNext" class="button primary" type="button" disabled>
-              <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
-              <span class="button-text">Suivant</span>
-            </button>
-          </div>
         </div>
       </aside>
 
-      <section class="preview" aria-label="Aperçu du visuel pour mug">
-        <div class="preview-top">
-          <div class="preview-heading">
-            <div id="currentProductLabel" class="current-product-label">Mode mug · 229 × 89 mm</div>
-            <h1 id="previewTitle" class="preview-title">Créateur de mugs</h1>
-            <div id="previewMeta" class="preview-meta">Image gauche, texte central, image droite</div>
-          </div>
-          <div class="preview-dims">
-            <button id="productSwitchButton" class="button primary product-switch" type="button" aria-label="Passer au mode tapis souris">
-              <span id="productSwitchIcon" class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span>
-              <span id="productSwitchText" class="button-text">Tapis souris</span>
-            </button>
-            <div id="previewSizeMeta" class="preview-meta">9 × 3,5 po · 229 × 89 mm (mug 11 oz)</div>
-            <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4" data-product="mug" data-advanced-control>
-              <button type="button" class="sheet-option" data-sheet-layout="3up" aria-pressed="true">3 / page · 210×82 mm</button>
-              <button type="button" class="sheet-option" data-sheet-layout="4up" aria-pressed="false">4 / page · 210×74 mm</button>
-            </div>
-          </div>
-        </div>
-        <div class="stage-area">
-          <div class="stage-frame">
-            <div id="stage"></div>
-            <div id="imageShiftOverlay" class="image-shift-overlay" aria-label="Déplacement des images dans l'aperçu"></div>
-          </div>
-          <button id="previewActionButton" class="button primary preview-action" type="button">
-            <span id="previewActionIcon" class="icon preview-action-icon" aria-hidden="true"><span class="preview-action-icon-layer is-current"><i data-lucide="upload"></i></span></span>
-            <span id="previewActionText" class="button-text">Image gauche</span>
-          </button>
-        </div>
-      </section>
+      <nav id="wizardNav" class="wizard-nav" aria-label="Navigation de l'assistant">
+        <button id="wizardBack" class="button secondary" type="button" disabled>
+          <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
+          <span class="button-text">Retour</span>
+        </button>
+        <button id="wizardNext" class="button primary" type="button" disabled>
+          <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
+          <span class="button-text">Suivant</span>
+        </button>
+      </nav>
     </main>
 
+    <p id="uploadError" class="editor-warning" aria-hidden="true" hidden></p>
     <div id="status" class="sr-only" role="status" aria-live="polite"></div>
 
     <dialog id="imageCropDialog" class="image-crop-dialog" aria-labelledby="imageCropDialogTitle">
@@ -628,7 +633,7 @@
           <div class="crop-blade" data-edge="top" role="slider" tabindex="0" aria-label="Bord supérieur" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Bord supérieur"></div>
           <div class="crop-blade" data-edge="right" role="slider" tabindex="0" aria-label="Bord droit" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" title="Bord droit"></div>
           <div class="crop-blade" data-edge="bottom" role="slider" tabindex="0" aria-label="Bord inférieur" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" title="Bord inférieur"></div>
-          <span id="cropDimensions" class="crop-dimensions"></span>
+          <span id="cropDimensions" class="crop-dimensions" aria-label="Dimensions imprimables"></span>
         </div>
         <div class="crop-controls">
           <div class="crop-edge-controls">
@@ -638,7 +643,7 @@
               <option value="top">Bord supérieur</option>
               <option value="bottom">Bord inférieur</option>
             </select>
-            <input id="cropEdgePosition" aria-label="Position du bord droit" type="range" step="1" min="1" max="100" value="100">
+            <input id="cropEdgePosition" aria-label="Position du bord droit" type="range" step="any" min="1" max="100" value="100">
           </div>
           <label class="crop-zoom-row" for="cropZoom">Zoom
             <input id="cropZoom" type="range" min="0.1" max="3" step="0.01" value="1">
@@ -649,7 +654,7 @@
         </div>
         <div class="crop-dialog-footer">
           <button id="cropCancelButton" class="button secondary" type="button">Annuler</button>
-          <button id="cropApplyButton" class="button primary" type="button">
+          <button id="cropApplyButton" class="button primary" type="button" aria-describedby="cropDimensions">
             <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
             <span class="button-text">Utiliser l'image</span>
           </button>
@@ -659,6 +664,6 @@
 
     <script src="assets/vendor/konva-10.3.0.min.js"></script>
     <script src="assets/vendor/lucide-1.21.0.min.js"></script>
-    <script type="module" src="assets/js/app.js?v=ccec3bd07515"></script>
+    <script type="module" src="assets/js/app.js?v=7844632b9dae"></script>
   </body>
 </html>

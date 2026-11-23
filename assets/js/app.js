@@ -95,6 +95,9 @@ import {
   let sheetLayout = "3up";
   let wizardStep = "left";
   let quickTextEditing = false;
+  const graphemeSegmenter = typeof Intl.Segmenter === "function"
+    ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
+    : null;
   let previewScale = 1;
   let previewOffset = { x: 0, y: 0 };
   let cropDraft = null;
@@ -346,6 +349,9 @@ import {
     positionControls: Array.from(document.querySelectorAll("[data-position-value]")),
     positionInputs: Array.from(document.querySelectorAll("[data-position-input]")),
     textInput: document.querySelector("#textInput"),
+    textAppearance: document.querySelector("#textAppearance"),
+    textFitWarning: document.querySelector("#textFitWarning"),
+    uploadError: document.querySelector("#uploadError"),
     quickTextEditButton: document.querySelector("#quickTextEditButton"),
     quickTextEditButtonText: document.querySelector("#quickTextEditButtonText"),
     fontSelect: document.querySelector("#fontSelect"),
@@ -418,6 +424,7 @@ import {
 
   const resizeObserver = new ResizeObserver(resizeStage);
   resizeObserver.observe(document.querySelector(".stage-area"));
+  resizeObserver.observe(elements.previewActionButton);
 
   Object.entries(elements.imageInputs).forEach(([slot, input]) => {
     input.addEventListener("change", (event) => handleFile(event, slot));
@@ -586,6 +593,12 @@ import {
     render();
   });
 
+  elements.textAppearance.addEventListener("toggle", () => {
+    if (quickTextEditing && elements.textAppearance.open) {
+      elements.textAppearance.scrollIntoView({ block: "nearest" });
+    }
+  });
+
   elements.fontSelect.addEventListener("change", () => {
     setTextFont(elements.fontSelect.value);
   });
@@ -684,8 +697,6 @@ import {
 
   elements.downloadButton.addEventListener("click", downloadPng);
   elements.downloadMirrorButton.addEventListener("click", () => downloadPng({ mirror: true }));
-  elements.downloadButton.addEventListener("click", downloadPng);
-  elements.downloadMirrorButton.addEventListener("click", () => downloadPng({ mirror: true }));
   elements.printButton.addEventListener("click", printMug);
 
   // Ctrl+P / Cmd+P prints the generated paper, not the editor page
@@ -696,9 +707,6 @@ import {
     }
   });
 
-  elements.mirrorPrint.addEventListener("change", () => {
-    state.mirrorPrint = elements.mirrorPrint.checked;
-  });
   elements.mirrorPrint.addEventListener("change", () => {
     state.mirrorPrint = elements.mirrorPrint.checked;
   });
@@ -781,7 +789,7 @@ import {
       fileRow.className = "file-row";
       fileRow.innerHTML = `
               <div class="file-name" data-file-name-slot="${config.slot}">${DEFAULT_FILE_LABELS[config.slot]}</div>
-              <button class="slot-crop" type="button" data-crop-slot="${config.slot}" data-advanced-control hidden aria-label="Cadrer ${config.label.toLowerCase()}">
+              <button class="slot-crop" type="button" data-crop-slot="${config.slot}" hidden aria-label="Cadrer ${config.label.toLowerCase()}">
                 <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
                 <span class="button-text">Cadrer</span>
               </button>
@@ -824,13 +832,13 @@ import {
   }
 
   function createMousePadShapeControl(slot, label) {
-    const control = document.createElement("div");
+    const control = document.createElement("details");
+    control.open = true;
     control.className = "image-shape-control";
     control.dataset.imageShapeControl = slot;
-    control.dataset.advancedControl = "";
     control.hidden = true;
     control.innerHTML = `
-            <div class="fit-label">Découpe de l'image</div>
+            <summary>Forme de l’image</summary>
             <div class="image-shape-options" role="group" aria-label="Forme de ${label.toLowerCase()}">
               <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
               <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
@@ -1121,6 +1129,7 @@ import {
     saveProductRuntime();
     productStates[activeProduct] = state;
     activeProduct = product;
+    elements.uploadError.hidden = true;
     state = productStates[activeProduct];
     loadProductRuntime(activeProduct);
     applyQuickModeDefaults();
@@ -1426,9 +1435,26 @@ import {
     return getFontPreviewOptions().find((option) => option.dataset.fontPreview === state.textFont);
   }
 
+  function* splitGraphemes(text) {
+    if (!graphemeSegmenter) {
+      yield* text;
+      return;
+    }
+    for (const { segment } of graphemeSegmenter.segment(text)) yield segment;
+  }
+
   function getFontPreviewText() {
-    const text = state.text.trim();
-    return text || "Votre texte نصك هنا";
+    const text = state.text.trim().replace(/\s+/g, " ");
+    if (!text) return "Votre texte نصك هنا";
+
+    let sample = "";
+    let count = 0;
+    for (const segment of splitGraphemes(text)) {
+      if (count === 48) return `${sample.trimEnd()}…`;
+      sample += segment;
+      count += 1;
+    }
+    return sample;
   }
 
   function getFontFamily(fontKey) {
@@ -1495,6 +1521,8 @@ import {
   function updateMinimalMode() {
     elements.minimalMode.checked = state.minimalMode;
     document.body.classList.toggle("minimal-mode", state.minimalMode);
+    elements.textAppearance.open = !state.minimalMode;
+    elements.imageShapeControls.forEach((control) => { control.open = !state.minimalMode; });
   }
 
   function setQuickTextEditor(isEditing) {
@@ -1515,6 +1543,7 @@ import {
   function updateQuickTextEditorUI() {
     const isAvailable = state.minimalMode && wizardStep === "text";
     if (!isAvailable) quickTextEditing = false;
+    if (state.minimalMode && !quickTextEditing) elements.textAppearance.open = false;
     document.body.classList.toggle("quick-text-editor", quickTextEditing);
     elements.quickTextEditButtonText.textContent = hasTextEntry()
       ? "Modifier le texte"
@@ -1615,7 +1644,7 @@ import {
       return Math.min(steps.length - 1, unlockedIndex + 1);
     }
 
-    if (state.images.left && state.images.right) return hasTextEntry() ? 3 : 2;
+    if (state.images.left && state.images.right) return hasTextEntry() && state.textFits !== false ? 3 : 2;
     if (state.images.left) return 1;
     return 0;
   }
@@ -1628,7 +1657,7 @@ import {
 
     if (step === "left") return Boolean(state.images.left);
     if (step === "right") return Boolean(state.images.right);
-    if (step === "text") return hasTextEntry();
+    if (step === "text") return hasTextEntry() && state.textFits !== false;
     return true;
   }
 
@@ -1648,11 +1677,13 @@ import {
     rebuildWizardSteps();
     const unlockedIndex = getUnlockedWizardStepIndex();
     const steps = getWizardSteps();
+    const previousStep = document.body.dataset.wizardStep;
     const currentIndex = steps.indexOf(wizardStep);
     if (currentIndex === -1 || currentIndex > unlockedIndex) {
       wizardStep = steps[unlockedIndex];
     }
     document.body.dataset.wizardStep = state.minimalMode ? wizardStep : "advanced";
+    if (document.body.dataset.wizardStep !== previousStep) elements.uploadError.hidden = true;
     updateQuickTextEditorUI();
 
     elements.wizardStepPanels.forEach((panel) => {
@@ -1676,7 +1707,8 @@ import {
     });
 
     const isDone = wizardStep === "done";
-    elements.wizardNav.hidden = !state.minimalMode || isDone;
+    elements.wizardNav.hidden = !state.minimalMode;
+    elements.wizardNext.hidden = isDone;
     elements.wizardBack.disabled = steps.indexOf(wizardStep) === 0;
     elements.wizardNext.disabled = !quickTextEditing && !canProceedWizardStep(wizardStep);
     elements.wizardNextText.textContent = quickTextEditing
@@ -1851,16 +1883,24 @@ import {
     if (!state.imageShapes[slot] || !Object.prototype.hasOwnProperty.call(IMAGE_SHAPES, shape)) return;
 
     state.imageShapes[slot] = shape;
+    if (state.minimalMode) {
+      const control = elements.imageShapeControls.find((item) => item.dataset.imageShapeControl === slot);
+      if (control?.open) {
+        control.open = false;
+        control.querySelector("summary").focus();
+      }
+    }
     updateImageShapeControls();
     saveDefaultPreferences();
     render();
   }
 
   function updateImageShapeControls() {
+    for (const [slot, input] of Object.entries(elements.imageInputs)) {
+      input.closest(".upload-row")?.setAttribute("data-image-loaded", String(Boolean(state.images[slot])));
+    }
     elements.imageShapeControls.forEach((control) => {
-      const hasImage = Boolean(state.images[control.dataset.imageShapeControl]);
-      control.hidden = !hasImage;
-      control.closest(".upload-row")?.setAttribute("data-image-loaded", String(hasImage));
+      control.hidden = !state.images[control.dataset.imageShapeControl];
     });
     elements.imageShapeButtons.forEach((button) => {
       const isActive = state.imageShapes[button.dataset.imageShapeSlot] === button.dataset.imageShape;
@@ -2028,6 +2068,7 @@ import {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
 
+    elements.uploadError.hidden = true;
     try {
       const image = await loadImage(file);
       const item = {
@@ -2040,7 +2081,14 @@ import {
     } catch (error) {
       console.error(error);
       event.target.value = "";
-      setStatus("Impossible de lire cette image.", true);
+      const message = "Impossible de lire cette image. Essayez un fichier JPEG, PNG ou WebP.";
+      const container = state.minimalMode
+        ? slot === "center" ? elements.quickCenterImage : elements.preview
+        : event.target.closest(".upload-row") || elements.preview;
+      container.appendChild(elements.uploadError);
+      elements.uploadError.textContent = message;
+      elements.uploadError.hidden = false;
+      setStatus(message, true);
     }
   }
 
@@ -2122,7 +2170,9 @@ import {
     const target = getCropTargetBounds(cropDraft.slot);
     const aspectRatio = target.width / target.height;
     const availableWidth = Math.max(1, elements.cropPreviewStage.clientWidth - 48);
-    const availableHeight = Math.max(1, elements.cropPreviewStage.clientHeight - 54);
+    const stageHeight = elements.cropPreviewStage.clientHeight;
+    const verticalGutter = Math.min(54, Math.floor(stageHeight / 4));
+    const availableHeight = Math.max(1, stageHeight - verticalGutter);
     let width = availableWidth;
     let height = width / aspectRatio;
 
@@ -2154,7 +2204,11 @@ import {
 
     const cut = getCutBounds(frame, cropDraft.edges);
     const sourceScale = cropDraft.item.width / frame.width;
-    elements.cropDimensions.textContent = `${Math.round(cut.width * sourceScale)} × ${Math.round(cut.height * sourceScale)} px`;
+    const printable = getPrintableCrop(frame, cut);
+    elements.cropApplyButton.disabled = !printable;
+    elements.cropDimensions.textContent = printable
+      ? `${Math.round(printable.width * sourceScale)} × ${Math.round(printable.height * sourceScale)} px imprimables`
+      : "Aucun pixel imprimable · Centrer";
     Object.assign(elements.cropPaper.style, {
       left: `${cut.x}px`, top: `${cut.y}px`, width: `${cut.width}px`, height: `${cut.height}px`,
     });
@@ -2171,17 +2225,17 @@ import {
       blade.style.top = `${across ? limit(y, stage.clientHeight) : (reverse ? stage.clientHeight : 0)}px`;
       const length = across ? (reverse ? stage.clientWidth - x : x) : (reverse ? stage.clientHeight - y : y);
       blade.style.width = `${limit(length, across ? stage.clientWidth : stage.clientHeight) + 8}px`;
-      const percent = Math.round(cropDraft.edges[edge] * 100);
+      const percent = Number((cropDraft.edges[edge] * 100).toFixed(2));
       const [min, max] = cropEdgeLimits(edge);
-      blade.setAttribute("aria-valuemin", Math.round(min * 100));
-      blade.setAttribute("aria-valuemax", Math.round(max * 100));
+      blade.setAttribute("aria-valuemin", Number((min * 100).toFixed(2)));
+      blade.setAttribute("aria-valuemax", Number((max * 100).toFixed(2)));
       blade.setAttribute("aria-valuenow", percent);
       blade.setAttribute("aria-valuetext", `${percent} %`);
       if (elements.cropEdge.value === edge) {
         const control = elements.cropEdgePosition;
-        control.min = String(Math.round(min * 100));
-        control.max = String(Math.round(max * 100));
-        control.value = String(percent);
+        control.min = String(min * 100);
+        control.max = String(max * 100);
+        control.value = String(cropDraft.edges[edge] * 100);
         control.setAttribute("aria-label", `Position du ${blade.getAttribute("aria-label").toLowerCase()}`);
         control.setAttribute("aria-valuetext", `${percent} %`);
       }
@@ -2248,9 +2302,21 @@ import {
     renderCropPreview();
   }
 
+  function getPrintableCrop(frame, cut) {
+    const width = Math.min(cut.x + cut.width, frame.viewport.width) - Math.max(cut.x, 0);
+    const height = Math.min(cut.y + cut.height, frame.viewport.height) - Math.max(cut.y, 0);
+    const pixel = frame.width / cropDraft.item.width;
+    return width + 1e-7 >= pixel && height + 1e-7 >= pixel ? { width, height } : null;
+  }
+
   function cropEdgeLimits(edge) {
+    const horizontal = edge === "left" || edge === "right";
+    const pixels = horizontal ? cropDraft.item.width : cropDraft.item.height;
+    const minimum = Math.max(0.01, 1 / pixels);
     const opposite = cropDraft.edges[OPPOSITE_EDGE[edge]];
-    return edge === "left" || edge === "top" ? [0, opposite - 0.01] : [opposite + 0.01, 1];
+    return edge === "left" || edge === "top"
+      ? [0, Math.max(0, opposite - minimum)]
+      : [Math.min(1, opposite + minimum), 1];
   }
 
   function setCropEdge(edge, value) {
@@ -2290,7 +2356,8 @@ import {
   }
 
   function applyImageCrop() {
-    if (!cropDraft) return;
+    const frame = getCropImageFrame();
+    if (!frame || !getPrintableCrop(frame, getCutBounds(frame, cropDraft.edges))) return;
 
     const { slot, item, position, scale, mode, edges, offset } = cropDraft;
     state.images[slot] = { ...item, edges: { ...edges }, offset: { ...offset } };
@@ -2361,9 +2428,11 @@ import {
   function resizeStage() {
     const area = document.querySelector(".stage-area");
     const layout = getPreviewPhysicalLayout();
-    const actionReserve = getPreviewActionReserve();
-    const availableWidth = Math.max(area.clientWidth - 48, 320);
-    const availableHeight = Math.max(area.clientHeight - 48 - actionReserve, 220);
+    const styles = getComputedStyle(area);
+    const actionHeight = elements.previewActionButton.offsetHeight;
+    const actionReserve = actionHeight ? actionHeight + parseFloat(styles.rowGap) : 0;
+    const availableWidth = Math.max(1, area.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight));
+    const availableHeight = Math.max(1, area.clientHeight - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom) - actionReserve);
     const exportWidth = getExportWidth();
     const exportHeight = getExportHeight();
     const scale = Math.min(
@@ -2389,13 +2458,6 @@ import {
     elements.stageFrame.style.height = `${height}px`;
     updateImageShiftOverlay();
     render();
-  }
-
-  function getPreviewActionReserve() {
-    if (!state.minimalMode) return 0;
-
-    const actionHeight = elements.previewActionButton.offsetHeight || 56;
-    return actionHeight + 12;
   }
 
   function render() {
@@ -2738,12 +2800,20 @@ import {
 
   function renderText() {
     const text = state.text.trim();
-    if (!text) return;
+    if (!text) {
+      updateTextFit(true);
+      return;
+    }
 
     const zone = getTextZone();
     const padding = activeProduct === PRODUCT_MOUSEPAD ? 92 : 46;
     const maxWidth = zone.width - padding * 2;
-    const layout = getTextLayout(text, maxWidth, zone.height - padding * 2, state.fontSize);
+    const maxHeight = zone.height - padding * 2;
+    const layout = getTextLayout(text, maxWidth, maxHeight, state.fontSize);
+    const fits = layout.lines.length * layout.lineHeight <= maxHeight;
+    updateTextFit(fits);
+    if (!fits) return;
+
     const textBlock = getTextBlock(zone, layout, padding);
     const outlineStyle = getTextOutlineStyle(layout.fontSize);
     const shadowBlur = state.textFormat.shadow ? 8 : 0;
@@ -2753,6 +2823,7 @@ import {
       y: 0,
       width: maxWidth,
       text: layout.lines.join("\n"),
+      wrap: "none",
       fontSize: layout.fontSize,
       fontFamily: getTextFontFamily(),
       fontStyle: getKonvaFontStyle(),
@@ -2772,6 +2843,20 @@ import {
     });
     node.y(textBlock.y);
     contentLayer.add(node);
+  }
+
+  function updateTextFit(fits) {
+    state.textFits = fits;
+    if (elements.textFitWarning.hidden === fits) return;
+    elements.textFitWarning.hidden = fits;
+    elements.textInput.setAttribute("aria-invalid", String(!fits));
+    if (fits) elements.textInput.removeAttribute("aria-describedby");
+    else elements.textInput.setAttribute("aria-describedby", "textFitWarning");
+    elements.downloadButton.disabled = !fits;
+    elements.downloadMirrorButton.disabled = !fits;
+    elements.addToPageButton.disabled = !fits;
+    elements.printButton.disabled = !fits && !printQueue.length;
+    updateWizardUI();
   }
 
   function getTextZone() {
@@ -2876,6 +2961,8 @@ import {
 
   async function downloadPng(options = {}) {
     await ensureTextFontLoaded();
+    render();
+    if (state.textFits === false) return;
     const canvas = createExportCanvas({ mirror: Boolean(options.mirror) });
 
     canvas.toBlob((blob) => {
@@ -2899,6 +2986,8 @@ import {
 
   async function addToPage() {
     await ensureTextFontLoaded();
+    render();
+    if (state.textFits === false) return;
     printQueue.push(createExportCanvas().toDataURL("image/png"));
     queueIndex = printQueue.length - 1;
     updateQueueUI();
@@ -2931,6 +3020,7 @@ import {
     const count = printQueue.length;
     const labels = PRODUCT_LABELS[activeProduct];
     elements.queuePanel.hidden = count === 0;
+    elements.printButton.disabled = state.textFits === false && count === 0;
     const printText = elements.printButton.querySelector(".button-text");
     if (printText) {
       printText.textContent = count
@@ -2948,6 +3038,7 @@ import {
   }
 
   async function printMug() {
+    if (state.textFits === false && !printQueue.length) return;
     const labels = PRODUCT_LABELS[activeProduct];
     const printWindow = shouldUseStandalonePrintWindow() ? window.open("", "_blank") : null;
     if (printWindow) {
@@ -2958,12 +3049,19 @@ import {
 
     await ensureTextFontLoaded();
     const single = printQueue.length === 0;
+    if (single) {
+      render();
+      if (state.textFits === false) {
+        printWindow?.close();
+        return;
+      }
+    }
     const images = single
       ? [createExportCanvas().toDataURL("image/png")]
       : printQueue.slice();
     const layout = activeProduct === PRODUCT_MOUSEPAD
       ? MOUSEPAD_PRINT_LAYOUT
-      : single ? SHEET_LAYOUTS["3up"] : SHEET_LAYOUTS[sheetLayout];
+      : SHEET_LAYOUTS[sheetLayout];
     const perPage = activeProduct === PRODUCT_MOUSEPAD ? 1 : single ? 1 : layout.perPage;
     const printMarkup = createPrintMarkup(images, layout, perPage, {
       standalone: Boolean(printWindow),
@@ -3059,7 +3157,7 @@ import {
                 <title>${labels.printTitle}</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <style>
-                  @page { size: A4 portrait; margin: 0; }
+                  @page { size: A4 ${isMousePad ? "landscape" : "portrait"}; margin: 0; }
                   html, body { margin: 0; }
                   body { background: #ffffff; color: #17202a; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
                   .print-toolbar {
@@ -3082,8 +3180,8 @@ import {
                     font-weight: 800;
                   }
                   .sheet {
-                    width: 210mm;
-                    height: 297mm;
+                    width: ${isMousePad ? 297 : 210}mm;
+                    height: ${isMousePad ? 210 : 297}mm;
                     box-sizing: border-box;
                     page-break-after: always;
                     break-after: page;
@@ -3095,6 +3193,7 @@ import {
                   }
                   .cell {
                     position: relative;
+                    flex-shrink: 0;
                     width: ${layout.widthMm}mm;
                     height: ${layout.heightMm}mm;
                     margin: ${isMousePad ? "0" : `0 auto ${layout.gapMm}mm auto`};
@@ -3237,7 +3336,19 @@ import {
         }
 
         if (line) output.push(line);
-        line = word;
+        line = "";
+        if (measureTextWidth(context, word, fontSize) <= maxWidth) {
+          line = word;
+          return;
+        }
+
+        for (const segment of splitGraphemes(word)) {
+          if (line && measureTextWidth(context, line + segment, fontSize) > maxWidth) {
+            output.push(line);
+            line = "";
+          }
+          line += segment;
+        }
       });
       if (line) output.push(line);
     });
