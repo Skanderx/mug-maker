@@ -2734,32 +2734,24 @@ import {
     }
 
     const zones = getZones();
-    const lineColor = "rgba(20, 33, 61, 0.24)";
     guideLayer.add(
       new Konva.Rect({
         x: 1,
         y: 1,
         width: MUG_EXPORT_WIDTH - 2,
         height: MUG_EXPORT_HEIGHT - 2,
-        stroke: "rgba(20, 33, 61, 0.42)",
-        strokeWidth: 3,
+        stroke: "#000",
+        strokeWidth: 1,
+        strokeScaleEnabled: false,
       }),
     );
 
     [zones.center.x, zones.right.x].forEach((x) => {
-      guideLayer.add(
-        new Konva.Line({
-          points: [x, 0, x, MUG_EXPORT_HEIGHT],
-          stroke: lineColor,
-          strokeWidth: 4,
-          dash: [18, 18],
-        }),
-      );
+      renderGuideLine([x, 0, x, MUG_EXPORT_HEIGHT]);
     });
   }
 
   function renderMousePadGuides() {
-    const lineColor = "rgba(20, 33, 61, 0.28)";
     const radiusPx = Math.round((MOUSE_PAD_EXPORT_WIDTH / MOUSE_PAD_WIDTH_MM) * 5);
     guideLayer.add(
       new Konva.Rect({
@@ -2768,9 +2760,9 @@ import {
         width: MOUSE_PAD_EXPORT_WIDTH - 4,
         height: MOUSE_PAD_EXPORT_HEIGHT - 4,
         cornerRadius: radiusPx,
-        stroke: "rgba(20, 33, 61, 0.46)",
-        strokeWidth: 4,
-        dash: [22, 16],
+        stroke: "#000",
+        strokeWidth: 1,
+        strokeScaleEnabled: false,
       }),
     );
 
@@ -2778,15 +2770,16 @@ import {
       width: MOUSE_PAD_EXPORT_WIDTH,
       height: MOUSE_PAD_EXPORT_HEIGHT,
     }).forEach((guide) => {
-      guideLayer.add(
-        new Konva.Line({
-          points: guide.points,
-          stroke: lineColor,
-          strokeWidth: 4,
-          dash: [18, 18],
-        }),
-      );
+      renderGuideLine(guide.points);
     });
+  }
+
+  function renderGuideLine(points) {
+    const line = { points, strokeWidth: 2, strokeScaleEnabled: false };
+    guideLayer.add(
+      new Konva.Line({ ...line, stroke: "#fff" }),
+      new Konva.Line({ ...line, stroke: "#000", dash: [4, 4] }),
+    );
   }
 
   function getCutBounds(photo, edges = FULL_CROP) {
