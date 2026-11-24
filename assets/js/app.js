@@ -450,26 +450,11 @@ import {
   });
 
   bindChoiceGroups();
-  const soundToggle = document.querySelector("#buttonSounds");
-  const soundPreferenceKey = "mugCreator.buttonSounds";
-  try {
-    soundToggle.checked = localStorage.getItem(soundPreferenceKey) === "on";
-  } catch {
-    soundToggle.checked = false;
-  }
+  const supportsAudio = Boolean(window.AudioContext || window.webkitAudioContext);
   configureSound({ volume: 0.25, theme: "soft", space: 0 });
-  soundToggle.addEventListener("change", () => {
-    try {
-      localStorage.setItem(soundPreferenceKey, soundToggle.checked ? "on" : "off");
-    } catch (error) {
-      console.warn("Button sound preference saving failed", error);
-    }
-    if (soundToggle.checked) playSound("tap");
-  });
-  soundToggle.disabled = !(window.AudioContext || window.webkitAudioContext);
 
   function isSoundButton(event) {
-    return event.isTrusted && soundToggle.checked && !soundToggle.disabled && state.minimalMode &&
+    return event.isTrusted && supportsAudio && state.minimalMode &&
       event.target.closest("button:enabled:not([aria-disabled='true'])");
   }
 
