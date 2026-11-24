@@ -12,7 +12,7 @@
     <script type="module" src="https://ui-sdk.dev/web.js" async></script>
     <link rel="stylesheet" href="https://ui-sdk.dev/web.css" />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Montserrat:wght@400;700&amp;family=Poppins:wght@400;700&amp;family=Playfair+Display:wght@400;700&amp;family=Lobster&amp;family=Bebas+Neue&amp;family=Caveat:wght@400;700&amp;family=Amiri:wght@400;700&amp;family=Cairo:wght@400;700&amp;family=Changa:wght@400;700&amp;family=Noto+Kufi+Arabic:wght@400;700&amp;family=Noto+Naskh+Arabic:wght@400;700&amp;family=Tajawal:wght@400;700&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/app.css?v=fb4e6632c8c7">
+    <link rel="stylesheet" href="assets/css/app.css?v=be1ee364ad0b">
 
   </head>
   <body class="minimal-mode" data-product="mug">
@@ -60,30 +60,6 @@
       <aside class="controls" aria-label="Commandes de création du mug">
         <div id="wizardPanel" class="wizard-panel" aria-label="Assistant de création">
           <div class="wizard-steps" role="group" aria-label="Étapes de création">
-            <ui-button>
-              <button class="wizard-step" type="button" data-wizard-go="left" aria-current="step" aria-label="Étape 1 image gauche">
-                <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
-                <span class="wizard-label">1 Gauche</span>
-              </button>
-            </ui-button>
-            <ui-button disabled>
-              <button class="wizard-step" type="button" data-wizard-go="right" disabled aria-label="Étape 2 image droite">
-                <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
-                <span class="wizard-label">2 Droite</span>
-              </button>
-            </ui-button>
-            <ui-button disabled>
-              <button class="wizard-step" type="button" data-wizard-go="text" disabled aria-label="Étape 3 texte et couleur">
-                <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
-                <span class="wizard-label">3 Texte</span>
-              </button>
-            </ui-button>
-            <ui-button disabled>
-              <button class="wizard-step" type="button" data-wizard-go="done" disabled aria-label="Étape 4 terminé">
-                <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
-                <span class="wizard-label">4 OK</span>
-              </button>
-            </ui-button>
           </div>
         </div>
 
@@ -714,8 +690,8 @@
               <ui-dialog-description class="crop-instruction">Glissez un bord pour couper, puis déplacez la photo.</ui-dialog-description>
             </div>
             <ui-toggle-group class="crop-modes" aria-label="Ajustement de l’image" data-selection="crop-mode" deselectable="false">
-              <ui-toggle value="cut"><button type="button" data-crop-mode="cut"><img alt=""><span>Découper</span></button></ui-toggle>
-              <ui-toggle value="resize"><button type="button" data-crop-mode="resize"><img alt=""><span>Image entière</span></button></ui-toggle>
+              <ui-toggle value="cut"><button type="button" data-crop-mode="cut"><span class="crop-mode-preview"><img alt=""></span><span>Découper</span></button></ui-toggle>
+              <ui-toggle value="resize"><button type="button" data-crop-mode="resize"><span class="crop-mode-preview"><img alt=""></span><span>Image entière</span></button></ui-toggle>
             </ui-toggle-group>
           </div>
           <div id="cropPreviewStage" class="crop-preview-stage">
@@ -732,7 +708,7 @@
             <span id="cropDimensions" class="crop-dimensions" aria-label="Dimensions imprimables"></span>
           </div>
           <div class="crop-controls">
-            <div class="crop-edge-controls">
+            <div class="crop-edge-controls" data-advanced-control>
               <select id="cropEdge" aria-label="Bord à couper">
                 <option value="left">Bord gauche</option>
                 <option value="right" selected>Bord droit</option>
@@ -753,8 +729,8 @@
               </ui-slider>
               <output id="cropZoomValue">100 %</output>
             </div>
-            <ui-button><button id="cropCenterButton" class="button secondary" type="button"><i data-lucide="crosshair"></i> Centrer</button></ui-button>
-            <ui-button><button id="cropResetButton" class="button secondary" type="button" aria-label="Réinitialiser le cadrage" title="Réinitialiser le cadrage"><i data-lucide="rotate-ccw"></i> Réinitialiser</button></ui-button>
+            <ui-button><button id="cropCenterButton" title="Centrer et ajuster le zoom" class="button secondary" type="button"><i data-lucide="crosshair"></i><span class="button-text">Centrer</span></button></ui-button>
+            <ui-button><button id="cropResetButton" class="button danger" type="button" title="Réinitialiser le cadrage"><i data-lucide="rotate-ccw"></i><span class="button-text">Réinitialiser</span></button></ui-button>
           </div>
           <div class="crop-dialog-footer">
             <ui-dialog-close><button id="cropCancelButton" class="button secondary" type="button">Annuler</button></ui-dialog-close>
@@ -784,6 +760,6 @@
 
     <script src="assets/vendor/konva-10.3.0.min.js"></script>
     <script src="assets/vendor/lucide-1.21.0.min.js"></script>
-    <script type="module" src="assets/js/app.js?v=9b7fbe8de8a7"></script>
+    <script type="module" src="assets/js/app.js?v=46b4d5da8906"></script>
   </body>
 </html>

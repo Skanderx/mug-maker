@@ -539,10 +539,7 @@ import {
     cropDraft.offset[axis] += delta * (event.shiftKey ? 0.1 : 0.01);
     renderCropPreview();
   });
-  document.querySelector("#cropCenterButton").addEventListener("click", () => {
-    const frame = getCropImageFrame();
-    placeCropCenter(frame.viewport.width / 2, frame.viewport.height / 2, frame);
-  });
+  document.querySelector("#cropCenterButton").addEventListener("click", fitAndCenterCrop);
   elements.cropResetButton.addEventListener("click", resetCropImage);
   new ResizeObserver(() => {
     if (cropDraft) updateCropLayout();
@@ -1185,19 +1182,17 @@ import {
   }
 
   function getWizardStepConfig(step, index) {
-    const configs = {
-      left: { icon: "arrow-left", label: "1 Gauche", aria: "Étape 1 image gauche" },
-      right: { icon: "arrow-right", label: "2 Droite", aria: "Étape 2 image droite" },
-      text: { icon: "type", label: `${index + 1} Texte`, aria: `Étape ${index + 1} texte` },
-      done: { icon: "check", label: `${index + 1} OK`, aria: `Étape ${index + 1} terminé` },
-      layout: { icon: "rectangle-horizontal", label: "1 Format", aria: "Étape 1 disposition du tapis souris" },
-      background: { icon: "image-plus", label: "2 Fond", aria: "Étape 2 fond facultatif" },
-      photo1: { icon: "upload", label: `${index + 1} Photo 1`, aria: `Étape ${index + 1} photo 1` },
-      photo2: { icon: "upload", label: `${index + 1} Photo 2`, aria: `Étape ${index + 1} photo 2` },
-      photo3: { icon: "upload", label: `${index + 1} Photo 3`, aria: `Étape ${index + 1} photo 3` },
-      photo4: { icon: "upload", label: `${index + 1} Photo 4`, aria: `Étape ${index + 1} photo 4` },
+    const labels = {
+      left: ["Gauche", "image gauche"],
+      right: ["Droite", "image droite"],
+      text: ["Texte", "texte et couleur"],
+      done: ["Imprimer", "imprimer"],
+      layout: ["Format", "disposition du tapis souris"],
+      background: ["Fond", "fond facultatif"],
     };
-    return configs[step] || { icon: "circle-dot", label: String(index + 1), aria: `Étape ${index + 1}` };
+    const photo = step.match(/^photo([1-4])$/);
+    const [label, description] = photo ? [`Photo ${photo[1]}`, `photo ${photo[1]}`] : labels[step];
+    return { label, aria: `Étape ${index + 1} ${description}` };
   }
 
   function rebuildWizardSteps() {
@@ -1215,14 +1210,13 @@ import {
       button.dataset.wizardGo = step;
       button.setAttribute("aria-label", config.aria);
       button.innerHTML = `
-              <span class="icon" aria-hidden="true"><i data-lucide="${config.icon}"></i></span>
+              <span class="wizard-number" aria-hidden="true">${index + 1}</span>
               <span class="wizard-label">${config.label}</span>`;
       const action = document.createElement("ui-button");
       action.appendChild(button);
       elements.wizardSteps.appendChild(action);
     });
     elements.wizardStepButtons = Array.from(elements.wizardSteps.querySelectorAll("[data-wizard-go]"));
-    renderIcons(elements.wizardSteps);
   }
 
   function buildImageShiftOverlay() {
@@ -2001,7 +1995,7 @@ import {
     elements.cropModes.forEach((button) => {
       const thumbnail = button.querySelector("img");
       thumbnail.src = item.image.src;
-      thumbnail.style.aspectRatio = target.width / target.height;
+      button.style.setProperty("--crop-aspect", target.width / target.height);
     });
     syncChoices("crop-mode", () => cropDraft.mode);
     elements.cropDialogContent.removeAttribute("final-focus");
@@ -2148,6 +2142,17 @@ import {
     }
     cropDrag = null;
     elements.cropViewport.classList.remove("is-dragging");
+  }
+
+  function fitAndCenterCrop() {
+    cropDraft.mode = "resize";
+    cropDraft.scale = DEFAULT_IMAGE_SCALE;
+    syncChoices("crop-mode", () => cropDraft.mode);
+    const frame = getCropImageFrame();
+    const cut = getCutBounds(frame, cropDraft.edges);
+    const fit = Math.min(frame.viewport.width / cut.width, frame.viewport.height / cut.height);
+    cropDraft.scale = Math.min(Number(elements.cropZoom.max), Math.floor(fit * 100 + 1e-7) / 100);
+    placeCropCenter(frame.viewport.width / 2, frame.viewport.height / 2, getCropImageFrame());
   }
 
   function placeCropCenter(x, y, frame) {
