@@ -83,6 +83,10 @@ frame.addEventListener("load", async () => {
   const files = data === "worst" ? photos.worst : photos.demo;
 
   try {
+    await Promise.all(["ui-file-input", "ui-dialog-content", "ui-switch", "ui-toggle-group", "ui-textarea", "ui-button"].map(
+      tag => frame.contentWindow.customElements.whenDefined(tag),
+    ));
+    if (doc !== frame.contentDocument) return;
     if (isMousePad) click("#productSwitchButton");
     if (isAdvanced) click("#minimalMode");
     if (doc.body.dataset.product === "mousepad" && data === "worst") {
@@ -103,23 +107,23 @@ frame.addEventListener("load", async () => {
         await upload(doc, "left", files[0]);
         if (data !== "one" || view === "text") await upload(doc, "right", files[1]);
         if (data === "worst") await upload(doc, "center", files[2]);
-        const text = doc.querySelector("#textInput");
-        text.value = view === "queue" && data === "worst" ? messages.demo : messages[data];
-        text.dispatchEvent(new frame.contentWindow.Event("input", { bubbles: true }));
+        const text = doc.querySelector("#textEditor");
+        text.api.setValue(view === "queue" && data === "worst" ? messages.demo : messages[data]);
         if (view === "text") {
           click('[data-wizard-go="text"]');
           click("#quickTextEditButton");
         }
         if (view === "queue") {
           const count = data === "worst" ? 5 : 1;
+          const addToPage = doc.querySelector("#addToPageButton");
           for (let index = 0; index < count; index += 1) {
-            click("#addToPageButton");
+            addToPage.click();
             await observeUntil(doc.querySelector("#queueLabel"), label => label.textContent.endsWith(` / ${index + 1}`));
+            await observeUntil(addToPage, button => !button.hasAttribute("data-pending"));
           }
           doc.querySelector("#queuePanel").scrollIntoView({ block: "nearest" });
           if (data === "worst") {
-            text.value = messages.worst;
-            text.dispatchEvent(new frame.contentWindow.Event("input", { bubbles: true }));
+            text.api.setValue(messages.worst);
           }
         }
       }
@@ -135,11 +139,9 @@ loadFixture();
 async function upload(doc, slot, photo, apply = true) {
   const input = doc.querySelector(`[data-image-input-slot="${slot}"]`);
   const dialog = doc.querySelector("#imageCropDialog");
-  const transfer = new frame.contentWindow.DataTransfer();
   const blob = await drawPhoto(photo);
-  transfer.items.add(new frame.contentWindow.File([blob], photo.name, { type: "image/png" }));
-  input.files = transfer.files;
-  input.dispatchEvent(new frame.contentWindow.Event("change", { bubbles: true }));
+  const file = new frame.contentWindow.File([blob], photo.name, { type: "image/png" });
+  input.api.addFiles([file]);
   await observeUntil(dialog, target => target.open);
   if (apply) doc.querySelector("#cropApplyButton").click();
 }

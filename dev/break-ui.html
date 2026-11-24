@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mug Maker UI stress test</title>
+  <script type="module" src="https://ui-sdk.dev/web.js"></script>
+  <link rel="stylesheet" href="https://ui-sdk.dev/web.css" />
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; min-height: 100dvh; display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100dvh; font: 14px system-ui, sans-serif; }
@@ -44,7 +46,7 @@
     if (["localhost", "127.0.0.1", "[::1]"].includes(location.hostname)) {
       document.querySelector(".toolbar").hidden = false;
       document.querySelector("#app").hidden = false;
-      import("./break-ui.js?v=3");
+      import("./break-ui.js?v=5");
     } else {
       document.querySelector("#guard").hidden = false;
     }

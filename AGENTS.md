@@ -2,6 +2,10 @@
 
 # Project Rules
 
+## UI SDK
+
+- Before using UI SDK, follow the `ui-sdk` skill if installed and read [the no-build web guide](https://ui-sdk.dev/web.md).
+
 ## Quick Mode UX
 
 - Quick mode is for users who may not read small labels or understand hidden controls.

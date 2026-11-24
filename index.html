@@ -8,8 +8,11 @@
     <link rel="shortcut icon" href="favicon.svg?v=1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://ui-sdk.dev" crossorigin>
+    <script type="module" src="https://ui-sdk.dev/web.js" async></script>
+    <link rel="stylesheet" href="https://ui-sdk.dev/web.css" />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Montserrat:wght@400;700&amp;family=Poppins:wght@400;700&amp;family=Playfair+Display:wght@400;700&amp;family=Lobster&amp;family=Bebas+Neue&amp;family=Caveat:wght@400;700&amp;family=Amiri:wght@400;700&amp;family=Cairo:wght@400;700&amp;family=Changa:wght@400;700&amp;family=Noto+Kufi+Arabic:wght@400;700&amp;family=Noto+Naskh+Arabic:wght@400;700&amp;family=Tajawal:wght@400;700&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/app.css?v=4d3a51260b7a">
+    <link rel="stylesheet" href="assets/css/app.css?v=ee374772596c">
 
   </head>
   <body class="minimal-mode" data-product="mug">
@@ -19,22 +22,24 @@
           <div id="currentProductLabel" class="current-product-label">Mode mug · 229 × 89 mm</div>
           <h1 id="previewTitle" class="preview-title">Créateur de mugs</h1>
           <label class="checkbox-card minimal-mode-toggle" for="minimalMode">
-            <input id="minimalMode" type="checkbox" checked>
+            <ui-switch id="minimalMode" checked aria-label="Mode rapide"><ui-switch-thumb></ui-switch-thumb></ui-switch>
             <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
             <span class="button-text">Mode rapide</span>
           </label>
           <div id="previewMeta" class="preview-meta">Image gauche, texte central, image droite</div>
         </div>
         <div class="preview-dims">
-          <button id="productSwitchButton" class="button primary product-switch" type="button" aria-label="Passer au mode tapis souris">
-            <span id="productSwitchIcon" class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span>
-            <span id="productSwitchText" class="button-text">Tapis souris</span>
-          </button>
+          <ui-button>
+            <button id="productSwitchButton" class="button primary product-switch" type="button" aria-label="Passer au mode tapis souris">
+              <span id="productSwitchIcon" class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span>
+              <span id="productSwitchText" class="button-text">Tapis souris</span>
+            </button>
+          </ui-button>
           <div id="previewSizeMeta" class="preview-meta">9 × 3,5 po · 229 × 89 mm (mug 11 oz)</div>
-          <div class="sheet-layout" role="group" aria-label="Mise en page de la feuille A4" data-product="mug" data-advanced-control>
-            <button type="button" class="sheet-option" data-sheet-layout="3up" aria-pressed="true">3 / page · 210×82 mm</button>
-            <button type="button" class="sheet-option" data-sheet-layout="4up" aria-pressed="false">4 / page · 210×74 mm</button>
-          </div>
+          <ui-toggle-group class="sheet-layout" aria-label="Mise en page de la feuille A4" data-product="mug" data-advanced-control data-selection="sheet" deselectable="false">
+            <ui-toggle value="3up"><button type="button" class="sheet-option" data-sheet-layout="3up">3 / page · 210×82 mm</button></ui-toggle>
+            <ui-toggle value="4up"><button type="button" class="sheet-option" data-sheet-layout="4up">4 / page · 210×74 mm</button></ui-toggle>
+          </ui-toggle-group>
         </div>
       </header>
       <section class="preview" aria-label="Aperçu du visuel pour mug">
@@ -43,32 +48,42 @@
             <div id="stage"></div>
             <div id="imageShiftOverlay" class="image-shift-overlay" aria-label="Déplacement des images dans l'aperçu"></div>
           </div>
-          <button id="previewActionButton" class="button primary preview-action" type="button">
-            <span id="previewActionIcon" class="icon preview-action-icon" aria-hidden="true"><span class="preview-action-icon-layer is-current"><i data-lucide="upload"></i></span></span>
-            <span id="previewActionText" class="button-text">Image gauche</span>
-          </button>
+          <ui-button>
+            <button id="previewActionButton" class="button primary preview-action" type="button">
+              <span id="previewActionIcon" class="icon" aria-hidden="true" data-icon="upload"><i data-lucide="upload"></i></span>
+              <span id="previewActionText" class="button-text">Image gauche</span>
+            </button>
+          </ui-button>
         </div>
         <p id="textFitWarning" class="editor-warning" role="status" hidden>Le texte dépasse la zone d’impression. Raccourcissez-le.</p>
       </section>
       <aside class="controls" aria-label="Commandes de création du mug">
         <div id="wizardPanel" class="wizard-panel" aria-label="Assistant de création">
           <div class="wizard-steps" role="group" aria-label="Étapes de création">
-            <button class="wizard-step" type="button" data-wizard-go="left" aria-current="step" aria-label="Étape 1 image gauche">
-              <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
-              <span class="wizard-label">1 Gauche</span>
-            </button>
-            <button class="wizard-step" type="button" data-wizard-go="right" disabled aria-label="Étape 2 image droite">
-              <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
-              <span class="wizard-label">2 Droite</span>
-            </button>
-            <button class="wizard-step" type="button" data-wizard-go="text" disabled aria-label="Étape 3 texte et couleur">
-              <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
-              <span class="wizard-label">3 Texte</span>
-            </button>
-            <button class="wizard-step" type="button" data-wizard-go="done" disabled aria-label="Étape 4 terminé">
-              <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
-              <span class="wizard-label">4 OK</span>
-            </button>
+            <ui-button>
+              <button class="wizard-step" type="button" data-wizard-go="left" aria-current="step" aria-label="Étape 1 image gauche">
+                <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
+                <span class="wizard-label">1 Gauche</span>
+              </button>
+            </ui-button>
+            <ui-button disabled>
+              <button class="wizard-step" type="button" data-wizard-go="right" disabled aria-label="Étape 2 image droite">
+                <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
+                <span class="wizard-label">2 Droite</span>
+              </button>
+            </ui-button>
+            <ui-button disabled>
+              <button class="wizard-step" type="button" data-wizard-go="text" disabled aria-label="Étape 3 texte et couleur">
+                <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
+                <span class="wizard-label">3 Texte</span>
+              </button>
+            </ui-button>
+            <ui-button disabled>
+              <button class="wizard-step" type="button" data-wizard-go="done" disabled aria-label="Étape 4 terminé">
+                <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
+                <span class="wizard-label">4 OK</span>
+              </button>
+            </ui-button>
           </div>
         </div>
 
@@ -77,51 +92,69 @@
             <div id="images-heading" class="control-label">Images</div>
             <div class="control-block" data-product="mug">
               <div class="fit-label" data-advanced-control>Disposition</div>
-              <div class="button-group four layout-group" role="group" aria-label="Disposition du mug" data-advanced-control>
-                <button class="mode-button" type="button" data-layout="classic" aria-pressed="true" aria-label="Disposition classique">
-                  <span class="layout-mini classic" aria-hidden="true"><span></span><span></span><span></span></span>
-                  <span class="button-text">Classique</span>
-                </button>
-                <button class="mode-button" type="button" data-layout="equal" aria-pressed="false" aria-label="Disposition en trois zones égales">
-                  <span class="layout-mini equal" aria-hidden="true"><span></span><span></span><span></span></span>
-                  <span class="button-text">Égales</span>
-                </button>
-                <button class="mode-button" type="button" data-layout="textWide" aria-pressed="false" aria-label="Disposition avec texte large">
-                  <span class="layout-mini text-wide" aria-hidden="true"><span></span><span></span><span></span></span>
-                  <span class="button-text">Texte +</span>
-                </button>
-                <button class="mode-button" type="button" data-layout="imagesWide" aria-pressed="false" aria-label="Disposition avec images larges">
-                  <span class="layout-mini images-wide" aria-hidden="true"><span></span><span></span><span></span></span>
-                  <span class="button-text">Images +</span>
-                </button>
-              </div>
+              <ui-toggle-group class="button-group four layout-group" aria-label="Disposition du mug" data-advanced-control data-product="mug" data-selection="layout" deselectable="false">
+                <ui-toggle value="classic">
+                  <button class="mode-button" type="button" data-layout="classic" aria-label="Disposition classique">
+                    <span class="layout-mini classic" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <span class="button-text">Classique</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="equal">
+                  <button class="mode-button" type="button" data-layout="equal" aria-label="Disposition en trois zones égales">
+                    <span class="layout-mini equal" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <span class="button-text">Égales</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="textWide">
+                  <button class="mode-button" type="button" data-layout="textWide" aria-label="Disposition avec texte large">
+                    <span class="layout-mini text-wide" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <span class="button-text">Texte +</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="imagesWide">
+                  <button class="mode-button" type="button" data-layout="imagesWide" aria-label="Disposition avec images larges">
+                    <span class="layout-mini images-wide" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <span class="button-text">Images +</span>
+                  </button>
+                </ui-toggle>
+              </ui-toggle-group>
             </div>
             <div id="mousepadLayoutStep" class="mousepad-layout-step" data-product="mousepad" data-wizard-step="layout">
               <div class="fit-label">Disposition du tapis souris</div>
-              <div id="mousepadLayoutOptions" class="mousepad-layout-options" role="group" aria-label="Disposition du tapis souris">
-                <button class="mode-button mousepad-layout-button" type="button" data-layout="one" aria-pressed="true" aria-label="Une photo pleine page">
-                  <span class="mousepad-layout-mini one" aria-hidden="true"><span></span></span>
-                  <span class="button-text">1</span>
-                </button>
-                <button class="mode-button mousepad-layout-button" type="button" data-layout="twoSide" aria-pressed="false" aria-label="Deux photos côte à côte">
-                  <span class="mousepad-layout-mini two-side" aria-hidden="true"><span></span><span></span></span>
-                  <span class="button-text">2</span>
-                </button>
-                <button class="mode-button mousepad-layout-button" type="button" data-layout="twoStacked" aria-pressed="false" aria-label="Deux photos haut et bas">
-                  <span class="mousepad-layout-mini two-stacked" aria-hidden="true"><span></span><span></span></span>
-                  <span class="button-text">2</span>
-                </button>
-                <button class="mode-button mousepad-layout-button" type="button" data-layout="threeSide" aria-pressed="false" aria-label="Trois photos côte à côte">
-                  <span class="mousepad-layout-mini three-side" aria-hidden="true"><span></span><span></span><span></span></span>
-                  <span class="button-text">3</span>
-                </button>
-                <button class="mode-button mousepad-layout-button" type="button" data-layout="fourGrid" aria-pressed="false" aria-label="Quatre photos en quartiers">
-                  <span class="mousepad-layout-mini four-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-                  <span class="button-text">4</span>
-                </button>
-              </div>
+              <ui-toggle-group id="mousepadLayoutOptions" class="mousepad-layout-options" aria-label="Disposition du tapis souris" data-product="mousepad" data-selection="layout" deselectable="false">
+                <ui-toggle value="one">
+                  <button class="mode-button mousepad-layout-button" type="button" data-layout="one" aria-label="Une photo pleine page">
+                    <span class="mousepad-layout-mini one" aria-hidden="true"><span></span></span>
+                    <span class="button-text">1</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="twoSide">
+                  <button class="mode-button mousepad-layout-button" type="button" data-layout="twoSide" aria-label="Deux photos côte à côte">
+                    <span class="mousepad-layout-mini two-side" aria-hidden="true"><span></span><span></span></span>
+                    <span class="button-text">2</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="twoStacked">
+                  <button class="mode-button mousepad-layout-button" type="button" data-layout="twoStacked" aria-label="Deux photos haut et bas">
+                    <span class="mousepad-layout-mini two-stacked" aria-hidden="true"><span></span><span></span></span>
+                    <span class="button-text">2</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="threeSide">
+                  <button class="mode-button mousepad-layout-button" type="button" data-layout="threeSide" aria-label="Trois photos côte à côte">
+                    <span class="mousepad-layout-mini three-side" aria-hidden="true"><span></span><span></span><span></span></span>
+                    <span class="button-text">3</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="fourGrid">
+                  <button class="mode-button mousepad-layout-button" type="button" data-layout="fourGrid" aria-label="Quatre photos en quartiers">
+                    <span class="mousepad-layout-mini four-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                    <span class="button-text">4</span>
+                  </button>
+                </ui-toggle>
+              </ui-toggle-group>
             </div>
-            <input id="centerImage" type="file" accept="image/*" data-product="mug" data-image-input-slot="center">
+            <ui-file-input id="centerImage" accept="image/*" data-product="mug" data-image-input-slot="center" aria-label="Photo centrale"></ui-file-input>
             <div class="upload-list" data-product="mug">
               <div class="upload-row" data-product="mug" data-wizard-step="left" data-wizard-active="true">
                 <div class="fit-label slot-label">
@@ -129,56 +162,68 @@
                   <span>Gauche</span>
                 </div>
                 <div class="upload-main">
-                  <label class="upload-button" for="leftImage">
-                    <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
-                    <span class="button-text">Image gauche</span>
-                  </label>
-                  <div class="segmented" role="group" aria-label="Ajustement de l'image gauche">
-                    <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="cut" aria-pressed="false">
-                      <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
-                      <span class="button-text">Remplir</span>
+                  <ui-file-input-trigger for="leftImage">
+                    <button class="upload-button" type="button">
+                      <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
+                      <span class="button-text">Image gauche</span>
                     </button>
-                    <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="resize" aria-pressed="true">
-                      <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
-                      <span class="button-text">Image entière</span>
-                    </button>
-                  </div>
+                  </ui-file-input-trigger>
+                  <ui-toggle-group class="segmented" aria-label="Ajustement de l'image gauche" data-image-slot="left" data-selection="fit" deselectable="false">
+                    <ui-toggle value="cut">
+                      <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="cut">
+                        <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
+                        <span class="button-text">Remplir</span>
+                      </button>
+                    </ui-toggle>
+                    <ui-toggle value="resize">
+                      <button class="mode-button" type="button" data-fit-slot="left" data-fit-mode="resize">
+                        <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
+                        <span class="button-text">Image entière</span>
+                      </button>
+                    </ui-toggle>
+                  </ui-toggle-group>
                 </div>
-                <input id="leftImage" type="file" accept="image/*" data-image-input-slot="left">
+                <ui-file-input id="leftImage" accept="image/*" data-image-input-slot="left" aria-label="Photo gauche"></ui-file-input>
                 <div class="file-row">
                   <div id="leftName" class="file-name" data-file-name-slot="left">Aucune image choisie</div>
-                  <button class="slot-crop" type="button" data-crop-slot="left" hidden aria-label="Cadrer l'image gauche">
-                    <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
-                    <span class="button-text">Cadrer</span>
-                  </button>
-                  <button class="slot-remove" type="button" data-remove-slot="left" hidden aria-label="Retirer l'image gauche">
-                    <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
-                    <span class="button-text">Retirer</span>
-                  </button>
+                  <ui-button>
+                    <button class="slot-crop" type="button" data-crop-slot="left" hidden aria-label="Cadrer l'image gauche">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
+                      <span class="button-text">Cadrer</span>
+                    </button>
+                  </ui-button>
+                  <ui-button>
+                    <button class="slot-remove" type="button" data-remove-slot="left" hidden aria-label="Retirer l'image gauche">
+                      <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                      <span class="button-text">Retirer</span>
+                    </button>
+                  </ui-button>
                 </div>
-                <details class="image-shape-control" data-image-shape-control="left" hidden open>
-                  <summary>Forme de l’image</summary>
-                  <div class="image-shape-options" role="group" aria-label="Forme de l'image gauche">
-                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="apple" aria-pressed="false"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
-                  </div>
-                </details>
+                <ui-collapsible class="image-shape-control" data-image-shape-control="left" hidden open aria-label="Forme de l’image">
+                  <ui-collapsible-trigger><button class="disclosure-button" type="button">Forme de l’image</button></ui-collapsible-trigger>
+                  <ui-collapsible-panel keep-mounted hidden>
+                    <ui-toggle-group class="image-shape-options" aria-label="Forme de l'image gauche" data-image-slot="left" data-selection="shape" deselectable="false">
+                      <ui-toggle value="rectangle"><button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="rectangle"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button></ui-toggle>
+                      <ui-toggle value="circle"><button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="circle"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button></ui-toggle>
+                      <ui-toggle value="square"><button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="square"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button></ui-toggle>
+                      <ui-toggle value="heart"><button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="heart"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button></ui-toggle>
+                      <ui-toggle value="apple"><button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="apple"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button></ui-toggle>
+                      <ui-toggle value="star"><button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="star"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button></ui-toggle>
+                      <ui-toggle value="hexagon"><button class="mode-button" type="button" data-image-shape-slot="left" data-image-shape="hexagon"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button></ui-toggle>
+                    </ui-toggle-group>
+                  </ui-collapsible-panel>
+                </ui-collapsible>
                 <div class="position-grid" aria-label="Position de l'image gauche">
                   <div class="position-control">
                     <div class="axis-label">
                       <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
                       <span>Horizontal</span>
                     </div>
-                    <div class="button-group three position-buttons" role="group" aria-label="Position horizontale de l'image gauche">
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image gauche vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image gauche centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image gauche vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
-                    </div>
+                    <ui-toggle-group class="button-group three position-buttons" aria-label="Position horizontale de l'image gauche" data-image-slot="left" data-axis="x" data-selection="position" deselectable="false">
+                      <ui-toggle value="0"><button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0" aria-label="Image gauche vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button></ui-toggle>
+                      <ui-toggle value="0.5"><button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="0.5" aria-label="Image gauche centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button></ui-toggle>
+                      <ui-toggle value="1"><button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="x" data-position-value="1" aria-label="Image gauche vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button></ui-toggle>
+                    </ui-toggle-group>
                     <div class="position-percent-wrap">
                       <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="left" data-position-axis="x" aria-label="Position horizontale de l'image gauche en pourcentage">
                       <span aria-hidden="true">%</span>
@@ -189,11 +234,11 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
                       <span>Vertical</span>
                     </div>
-                    <div class="button-group three position-buttons" role="group" aria-label="Position verticale de l'image gauche">
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image gauche en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image gauche au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image gauche en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
-                    </div>
+                    <ui-toggle-group class="button-group three position-buttons" aria-label="Position verticale de l'image gauche" data-image-slot="left" data-axis="y" data-selection="position" deselectable="false">
+                      <ui-toggle value="0"><button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0" aria-label="Image gauche en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button></ui-toggle>
+                      <ui-toggle value="0.5"><button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="0.5" aria-label="Image gauche au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button></ui-toggle>
+                      <ui-toggle value="1"><button class="mode-button position-button" type="button" data-position-slot="left" data-position-axis="y" data-position-value="1" aria-label="Image gauche en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button></ui-toggle>
+                    </ui-toggle-group>
                     <div class="position-percent-wrap">
                       <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="left" data-position-axis="y" aria-label="Position verticale de l'image gauche en pourcentage">
                       <span aria-hidden="true">%</span>
@@ -208,55 +253,67 @@
                   <span>Centre</span>
                 </div>
                 <div class="upload-main">
-                  <label class="upload-button" for="centerImage">
-                    <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
-                    <span class="button-text">Image centrale</span>
-                  </label>
-                  <div class="segmented" role="group" aria-label="Ajustement de l'image centrale">
-                    <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="cut" aria-pressed="false">
-                      <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
-                      <span class="button-text">Remplir</span>
+                  <ui-file-input-trigger for="centerImage">
+                    <button class="upload-button" type="button">
+                      <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
+                      <span class="button-text">Image centrale</span>
                     </button>
-                    <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="resize" aria-pressed="true">
-                      <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
-                      <span class="button-text">Image entière</span>
-                    </button>
-                  </div>
+                  </ui-file-input-trigger>
+                  <ui-toggle-group class="segmented" aria-label="Ajustement de l'image centrale" data-image-slot="center" data-selection="fit" deselectable="false">
+                    <ui-toggle value="cut">
+                      <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="cut">
+                        <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
+                        <span class="button-text">Remplir</span>
+                      </button>
+                    </ui-toggle>
+                    <ui-toggle value="resize">
+                      <button class="mode-button" type="button" data-fit-slot="center" data-fit-mode="resize">
+                        <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
+                        <span class="button-text">Image entière</span>
+                      </button>
+                    </ui-toggle>
+                  </ui-toggle-group>
                 </div>
                 <div class="file-row">
                   <div id="centerName" class="file-name" data-file-name-slot="center">Aucune image choisie</div>
-                  <button class="slot-crop" type="button" data-crop-slot="center" hidden aria-label="Cadrer l'image centrale">
-                    <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
-                    <span class="button-text">Cadrer</span>
-                  </button>
-                  <button class="slot-remove" type="button" data-remove-slot="center" hidden aria-label="Retirer l'image centrale">
-                    <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
-                    <span class="button-text">Retirer</span>
-                  </button>
+                  <ui-button>
+                    <button class="slot-crop" type="button" data-crop-slot="center" hidden aria-label="Cadrer l'image centrale">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
+                      <span class="button-text">Cadrer</span>
+                    </button>
+                  </ui-button>
+                  <ui-button>
+                    <button class="slot-remove" type="button" data-remove-slot="center" hidden aria-label="Retirer l'image centrale">
+                      <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                      <span class="button-text">Retirer</span>
+                    </button>
+                  </ui-button>
                 </div>
-                <details class="image-shape-control" data-image-shape-control="center" hidden open>
-                  <summary>Forme de l’image</summary>
-                  <div class="image-shape-options" role="group" aria-label="Forme de l'image centrale">
-                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="apple" aria-pressed="false"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
-                  </div>
-                </details>
+                <ui-collapsible class="image-shape-control" data-image-shape-control="center" hidden open aria-label="Forme de l’image">
+                  <ui-collapsible-trigger><button class="disclosure-button" type="button">Forme de l’image</button></ui-collapsible-trigger>
+                  <ui-collapsible-panel keep-mounted hidden>
+                    <ui-toggle-group class="image-shape-options" aria-label="Forme de l'image centrale" data-image-slot="center" data-selection="shape" deselectable="false">
+                      <ui-toggle value="rectangle"><button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="rectangle"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button></ui-toggle>
+                      <ui-toggle value="circle"><button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="circle"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button></ui-toggle>
+                      <ui-toggle value="square"><button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="square"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button></ui-toggle>
+                      <ui-toggle value="heart"><button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="heart"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button></ui-toggle>
+                      <ui-toggle value="apple"><button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="apple"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button></ui-toggle>
+                      <ui-toggle value="star"><button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="star"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button></ui-toggle>
+                      <ui-toggle value="hexagon"><button class="mode-button" type="button" data-image-shape-slot="center" data-image-shape="hexagon"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button></ui-toggle>
+                    </ui-toggle-group>
+                  </ui-collapsible-panel>
+                </ui-collapsible>
                 <div class="position-grid" aria-label="Position de l'image centrale">
                   <div class="position-control">
                     <div class="axis-label">
                       <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
                       <span>Horizontal</span>
                     </div>
-                    <div class="button-group three position-buttons" role="group" aria-label="Position horizontale de l'image centrale">
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image centrale vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image centrale centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image centrale vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
-                    </div>
+                    <ui-toggle-group class="button-group three position-buttons" aria-label="Position horizontale de l'image centrale" data-image-slot="center" data-axis="x" data-selection="position" deselectable="false">
+                      <ui-toggle value="0"><button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0" aria-label="Image centrale vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button></ui-toggle>
+                      <ui-toggle value="0.5"><button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="0.5" aria-label="Image centrale centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button></ui-toggle>
+                      <ui-toggle value="1"><button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="x" data-position-value="1" aria-label="Image centrale vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button></ui-toggle>
+                    </ui-toggle-group>
                     <div class="position-percent-wrap">
                       <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="center" data-position-axis="x" aria-label="Position horizontale de l'image centrale en pourcentage">
                       <span aria-hidden="true">%</span>
@@ -267,11 +324,11 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
                       <span>Vertical</span>
                     </div>
-                    <div class="button-group three position-buttons" role="group" aria-label="Position verticale de l'image centrale">
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image centrale en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image centrale au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image centrale en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
-                    </div>
+                    <ui-toggle-group class="button-group three position-buttons" aria-label="Position verticale de l'image centrale" data-image-slot="center" data-axis="y" data-selection="position" deselectable="false">
+                      <ui-toggle value="0"><button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0" aria-label="Image centrale en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button></ui-toggle>
+                      <ui-toggle value="0.5"><button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="0.5" aria-label="Image centrale au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button></ui-toggle>
+                      <ui-toggle value="1"><button class="mode-button position-button" type="button" data-position-slot="center" data-position-axis="y" data-position-value="1" aria-label="Image centrale en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button></ui-toggle>
+                    </ui-toggle-group>
                     <div class="position-percent-wrap">
                       <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="center" data-position-axis="y" aria-label="Position verticale de l'image centrale en pourcentage">
                       <span aria-hidden="true">%</span>
@@ -286,56 +343,68 @@
                   <span>Droite</span>
                 </div>
                 <div class="upload-main">
-                  <label class="upload-button" for="rightImage">
-                    <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
-                    <span class="button-text">Image droite</span>
-                  </label>
-                  <div class="segmented" role="group" aria-label="Ajustement de l'image droite">
-                    <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="cut" aria-pressed="false">
-                      <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
-                      <span class="button-text">Remplir</span>
+                  <ui-file-input-trigger for="rightImage">
+                    <button class="upload-button" type="button">
+                      <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
+                      <span class="button-text">Image droite</span>
                     </button>
-                    <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="resize" aria-pressed="true">
-                      <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
-                      <span class="button-text">Image entière</span>
-                    </button>
-                  </div>
+                  </ui-file-input-trigger>
+                  <ui-toggle-group class="segmented" aria-label="Ajustement de l'image droite" data-image-slot="right" data-selection="fit" deselectable="false">
+                    <ui-toggle value="cut">
+                      <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="cut">
+                        <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
+                        <span class="button-text">Remplir</span>
+                      </button>
+                    </ui-toggle>
+                    <ui-toggle value="resize">
+                      <button class="mode-button" type="button" data-fit-slot="right" data-fit-mode="resize">
+                        <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
+                        <span class="button-text">Image entière</span>
+                      </button>
+                    </ui-toggle>
+                  </ui-toggle-group>
                 </div>
-                <input id="rightImage" type="file" accept="image/*" data-image-input-slot="right">
+                <ui-file-input id="rightImage" accept="image/*" data-image-input-slot="right" aria-label="Photo droite"></ui-file-input>
                 <div class="file-row">
                   <div id="rightName" class="file-name" data-file-name-slot="right">Aucune image choisie</div>
-                  <button class="slot-crop" type="button" data-crop-slot="right" hidden aria-label="Cadrer l'image droite">
-                    <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
-                    <span class="button-text">Cadrer</span>
-                  </button>
-                  <button class="slot-remove" type="button" data-remove-slot="right" hidden aria-label="Retirer l'image droite">
-                    <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
-                    <span class="button-text">Retirer</span>
-                  </button>
+                  <ui-button>
+                    <button class="slot-crop" type="button" data-crop-slot="right" hidden aria-label="Cadrer l'image droite">
+                      <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
+                      <span class="button-text">Cadrer</span>
+                    </button>
+                  </ui-button>
+                  <ui-button>
+                    <button class="slot-remove" type="button" data-remove-slot="right" hidden aria-label="Retirer l'image droite">
+                      <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                      <span class="button-text">Retirer</span>
+                    </button>
+                  </ui-button>
                 </div>
-                <details class="image-shape-control" data-image-shape-control="right" hidden open>
-                  <summary>Forme de l’image</summary>
-                  <div class="image-shape-options" role="group" aria-label="Forme de l'image droite">
-                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="apple" aria-pressed="false"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
-                    <button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
-                  </div>
-                </details>
+                <ui-collapsible class="image-shape-control" data-image-shape-control="right" hidden open aria-label="Forme de l’image">
+                  <ui-collapsible-trigger><button class="disclosure-button" type="button">Forme de l’image</button></ui-collapsible-trigger>
+                  <ui-collapsible-panel keep-mounted hidden>
+                    <ui-toggle-group class="image-shape-options" aria-label="Forme de l'image droite" data-image-slot="right" data-selection="shape" deselectable="false">
+                      <ui-toggle value="rectangle"><button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="rectangle"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button></ui-toggle>
+                      <ui-toggle value="circle"><button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="circle"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button></ui-toggle>
+                      <ui-toggle value="square"><button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="square"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button></ui-toggle>
+                      <ui-toggle value="heart"><button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="heart"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button></ui-toggle>
+                      <ui-toggle value="apple"><button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="apple"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button></ui-toggle>
+                      <ui-toggle value="star"><button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="star"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button></ui-toggle>
+                      <ui-toggle value="hexagon"><button class="mode-button" type="button" data-image-shape-slot="right" data-image-shape="hexagon"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button></ui-toggle>
+                    </ui-toggle-group>
+                  </ui-collapsible-panel>
+                </ui-collapsible>
                 <div class="position-grid" aria-label="Position de l'image droite">
                   <div class="position-control">
                     <div class="axis-label">
                       <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
                       <span>Horizontal</span>
                     </div>
-                    <div class="button-group three position-buttons" role="group" aria-label="Position horizontale de l'image droite">
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="Image droite vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="Image droite centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="Image droite vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
-                    </div>
+                    <ui-toggle-group class="button-group three position-buttons" aria-label="Position horizontale de l'image droite" data-image-slot="right" data-axis="x" data-selection="position" deselectable="false">
+                      <ui-toggle value="0"><button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0" aria-label="Image droite vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button></ui-toggle>
+                      <ui-toggle value="0.5"><button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="0.5" aria-label="Image droite centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button></ui-toggle>
+                      <ui-toggle value="1"><button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="x" data-position-value="1" aria-label="Image droite vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button></ui-toggle>
+                    </ui-toggle-group>
                     <div class="position-percent-wrap">
                       <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="right" data-position-axis="x" aria-label="Position horizontale de l'image droite en pourcentage">
                       <span aria-hidden="true">%</span>
@@ -346,11 +415,11 @@
                       <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
                       <span>Vertical</span>
                     </div>
-                    <div class="button-group three position-buttons" role="group" aria-label="Position verticale de l'image droite">
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="Image droite en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="Image droite au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                      <button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="Image droite en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
-                    </div>
+                    <ui-toggle-group class="button-group three position-buttons" aria-label="Position verticale de l'image droite" data-image-slot="right" data-axis="y" data-selection="position" deselectable="false">
+                      <ui-toggle value="0"><button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0" aria-label="Image droite en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button></ui-toggle>
+                      <ui-toggle value="0.5"><button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="0.5" aria-label="Image droite au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button></ui-toggle>
+                      <ui-toggle value="1"><button class="mode-button position-button" type="button" data-position-slot="right" data-position-axis="y" data-position-value="1" aria-label="Image droite en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button></ui-toggle>
+                    </ui-toggle-group>
                     <div class="position-percent-wrap">
                       <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="right" data-position-axis="y" aria-label="Position verticale de l'image droite en pourcentage">
                       <span aria-hidden="true">%</span>
@@ -364,11 +433,18 @@
 
           <section class="control-block" aria-labelledby="text-heading" data-wizard-step="text">
             <div id="text-heading" class="control-label">Texte central</div>
-            <button id="quickTextEditButton" class="button primary quick-text-edit" type="button">
-              <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
-              <span id="quickTextEditButtonText" class="button-text">Ajouter du texte</span>
-            </button>
-            <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
+            <ui-button>
+              <button id="quickTextEditButton" class="button primary quick-text-edit" type="button">
+                <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
+                <span id="quickTextEditButtonText" class="button-text">Ajouter du texte</span>
+              </button>
+            </ui-button>
+            <ui-field id="textField" name="dedication">
+              <ui-field-label class="sr-only">Texte de la création</ui-field-label>
+              <ui-textarea id="textEditor">
+                <textarea id="textInput" rows="4" placeholder="Tapez le texte"></textarea>
+              </ui-textarea>
+            </ui-field>
 
             <div id="quickCenterImage" class="quick-center-image" data-product="mug" aria-labelledby="quickCenterImageTitle">
               <div class="quick-center-image-heading">
@@ -378,64 +454,72 @@
                 </div>
                 <span class="quick-center-image-optional">Facultatif</span>
               </div>
-              <label class="button secondary quick-center-upload" for="centerImage">
-                <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
-                <span id="quickCenterUploadText" class="button-text">Ajouter une image centrale</span>
-              </label>
+              <ui-file-input-trigger for="centerImage">
+                <button class="button secondary quick-center-upload" type="button">
+                  <span class="icon" aria-hidden="true"><i data-lucide="image-plus"></i></span>
+                  <span id="quickCenterUploadText" class="button-text">Ajouter une image centrale</span>
+                </button>
+              </ui-file-input-trigger>
               <div id="quickCenterDetails" class="quick-center-details" hidden>
                 <div id="quickCenterName" class="file-name" aria-live="polite">Aucune image choisie</div>
-                <button id="quickCenterRemove" class="slot-remove" type="button" aria-label="Retirer l'image centrale">
-                  <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
-                  <span class="button-text">Retirer</span>
-                </button>
+                <ui-button>
+                  <button id="quickCenterRemove" class="slot-remove" type="button" aria-label="Retirer l'image centrale">
+                    <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+                    <span class="button-text">Retirer</span>
+                  </button>
+                </ui-button>
               </div>
             </div>
 
-            <div id="fontPreviewPopover" class="font-preview-popover" role="dialog" aria-modal="false" aria-labelledby="fontPreviewTitle" hidden>
-              <div class="font-preview-head">
-                <div id="fontPreviewTitle" class="font-preview-title">Aperçu des polices</div>
-                <button id="fontPreviewClose" class="font-preview-close" type="button" aria-label="Fermer l'aperçu des polices">
-                  <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+            <ui-toggle-group class="button-group three" aria-label="Position verticale du texte" data-advanced-control data-selection="text-position" deselectable="false">
+              <ui-toggle value="top">
+                <button class="mode-button" type="button" data-text-position="top">
+                  <span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span>
+                  <span class="button-text">Haut</span>
                 </button>
-              </div>
-              <div id="fontPreviewList" class="font-preview-list" role="listbox" aria-label="Aperçu de toutes les polices"></div>
-            </div>
-
-            <div class="button-group three" role="group" aria-label="Position verticale du texte" data-advanced-control>
-              <button class="mode-button" type="button" data-text-position="top" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span>
-                <span class="button-text">Haut</span>
-              </button>
-              <button class="mode-button" type="button" data-text-position="center" aria-pressed="true">
-                <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
-                <span class="button-text">Milieu</span>
-              </button>
-              <button class="mode-button" type="button" data-text-position="bottom" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span>
-                <span class="button-text">Bas</span>
-              </button>
-            </div>
+              </ui-toggle>
+              <ui-toggle value="center">
+                <button class="mode-button" type="button" data-text-position="center">
+                  <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
+                  <span class="button-text">Milieu</span>
+                </button>
+              </ui-toggle>
+              <ui-toggle value="bottom">
+                <button class="mode-button" type="button" data-text-position="bottom">
+                  <span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span>
+                  <span class="button-text">Bas</span>
+                </button>
+              </ui-toggle>
+            </ui-toggle-group>
 
             <div class="palette-group" aria-label="Formes autour du texte" data-advanced-control>
               <div class="palette-title">Formes autour du texte</div>
-              <div class="button-group four text-shape-controls" role="group" aria-label="Formes autour du texte">
-                <button class="mode-button" type="button" data-text-shape="none" aria-pressed="true">
-                  <span class="icon" aria-hidden="true"><i data-lucide="ban"></i></span>
-                  <span class="button-text">Aucune</span>
-                </button>
-                <button class="mode-button" type="button" data-text-shape="hearts" aria-pressed="false">
-                  <span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span>
-                  <span class="button-text">Coeurs</span>
-                </button>
-                <button class="mode-button" type="button" data-text-shape="stars" aria-pressed="false">
-                  <span class="icon" aria-hidden="true"><i data-lucide="star"></i></span>
-                  <span class="button-text">Etoiles</span>
-                </button>
-                <button class="mode-button" type="button" data-text-shape="sparkles" aria-pressed="false">
-                  <span class="icon" aria-hidden="true"><i data-lucide="sparkles"></i></span>
-                  <span class="button-text">Eclats</span>
-                </button>
-              </div>
+              <ui-toggle-group class="button-group four text-shape-controls" aria-label="Formes autour du texte" data-selection="text-shape" deselectable="false">
+                <ui-toggle value="none">
+                  <button class="mode-button" type="button" data-text-shape="none">
+                    <span class="icon" aria-hidden="true"><i data-lucide="ban"></i></span>
+                    <span class="button-text">Aucune</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="hearts">
+                  <button class="mode-button" type="button" data-text-shape="hearts">
+                    <span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span>
+                    <span class="button-text">Coeurs</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="stars">
+                  <button class="mode-button" type="button" data-text-shape="stars">
+                    <span class="icon" aria-hidden="true"><i data-lucide="star"></i></span>
+                    <span class="button-text">Etoiles</span>
+                  </button>
+                </ui-toggle>
+                <ui-toggle value="sparkles">
+                  <button class="mode-button" type="button" data-text-shape="sparkles">
+                    <span class="icon" aria-hidden="true"><i data-lucide="sparkles"></i></span>
+                    <span class="button-text">Eclats</span>
+                  </button>
+                </ui-toggle>
+              </ui-toggle-group>
             </div>
 
             <div class="color-controls" aria-label="Couleurs">
@@ -445,37 +529,37 @@
                   <input id="textColor" type="color" value="#17202a" aria-label="Couleur du texte personnalisée">
                 </div>
                 <div class="palette-section-title" data-quick-color-palette>Rapides</div>
-                <div class="swatches" aria-label="Couleurs rapides du texte" data-quick-color-palette>
-                  <button class="swatch" type="button" style="background: #17202a" data-color="#17202a" aria-label="Texte encre" aria-pressed="true"></button>
-                  <button class="swatch" type="button" style="background: #ec4899" data-color="#ec4899" aria-label="Texte rose" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #2563eb" data-color="#2563eb" aria-label="Texte bleu" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #14b8a6" data-color="#14b8a6" aria-label="Texte turquoise" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #f59e0b" data-color="#f59e0b" aria-label="Texte doré" aria-pressed="false"></button>
-                </div>
+                <ui-toggle-group class="swatches" aria-label="Couleurs rapides du texte" data-quick-color-palette data-selection="color" deselectable="false">
+                  <ui-toggle value="#17202a"><button class="swatch" type="button" style="background: #17202a" data-color="#17202a" aria-label="Texte encre"></button></ui-toggle>
+                  <ui-toggle value="#ec4899"><button class="swatch" type="button" style="background: #ec4899" data-color="#ec4899" aria-label="Texte rose"></button></ui-toggle>
+                  <ui-toggle value="#2563eb"><button class="swatch" type="button" style="background: #2563eb" data-color="#2563eb" aria-label="Texte bleu"></button></ui-toggle>
+                  <ui-toggle value="#14b8a6"><button class="swatch" type="button" style="background: #14b8a6" data-color="#14b8a6" aria-label="Texte turquoise"></button></ui-toggle>
+                  <ui-toggle value="#f59e0b"><button class="swatch" type="button" style="background: #f59e0b" data-color="#f59e0b" aria-label="Texte doré"></button></ui-toggle>
+                </ui-toggle-group>
                 <div class="palette-section-title" data-advanced-control>Mignon</div>
-                <div class="swatches" aria-label="Couleurs mignonnes du texte" data-advanced-control>
-                  <button class="swatch" type="button" style="background: #ec4899" data-color="#ec4899" aria-label="Texte rose" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #f472b6" data-color="#f472b6" aria-label="Texte rose bonbon" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #a855f7" data-color="#a855f7" aria-label="Texte lavande" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #fb7185" data-color="#fb7185" aria-label="Texte corail" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #f59e0b" data-color="#f59e0b" aria-label="Texte doré" aria-pressed="false"></button>
-                </div>
+                <ui-toggle-group class="swatches" aria-label="Couleurs mignonnes du texte" data-advanced-control data-selection="color" deselectable="false">
+                  <ui-toggle value="#ec4899"><button class="swatch" type="button" style="background: #ec4899" data-color="#ec4899" aria-label="Texte rose"></button></ui-toggle>
+                  <ui-toggle value="#f472b6"><button class="swatch" type="button" style="background: #f472b6" data-color="#f472b6" aria-label="Texte rose bonbon"></button></ui-toggle>
+                  <ui-toggle value="#a855f7"><button class="swatch" type="button" style="background: #a855f7" data-color="#a855f7" aria-label="Texte lavande"></button></ui-toggle>
+                  <ui-toggle value="#fb7185"><button class="swatch" type="button" style="background: #fb7185" data-color="#fb7185" aria-label="Texte corail"></button></ui-toggle>
+                  <ui-toggle value="#f59e0b"><button class="swatch" type="button" style="background: #f59e0b" data-color="#f59e0b" aria-label="Texte doré"></button></ui-toggle>
+                </ui-toggle-group>
                 <div class="palette-section-title" data-advanced-control>Vif</div>
-                <div class="swatches" aria-label="Couleurs vives du texte" data-advanced-control>
-                  <button class="swatch" type="button" style="background: #2563eb" data-color="#2563eb" aria-label="Texte bleu" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #0ea5e9" data-color="#0ea5e9" aria-label="Texte bleu ciel" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #14b8a6" data-color="#14b8a6" aria-label="Texte turquoise" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #22c55e" data-color="#22c55e" aria-label="Texte vert" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #f97316" data-color="#f97316" aria-label="Texte orange" aria-pressed="false"></button>
-                </div>
+                <ui-toggle-group class="swatches" aria-label="Couleurs vives du texte" data-advanced-control data-selection="color" deselectable="false">
+                  <ui-toggle value="#2563eb"><button class="swatch" type="button" style="background: #2563eb" data-color="#2563eb" aria-label="Texte bleu"></button></ui-toggle>
+                  <ui-toggle value="#0ea5e9"><button class="swatch" type="button" style="background: #0ea5e9" data-color="#0ea5e9" aria-label="Texte bleu ciel"></button></ui-toggle>
+                  <ui-toggle value="#14b8a6"><button class="swatch" type="button" style="background: #14b8a6" data-color="#14b8a6" aria-label="Texte turquoise"></button></ui-toggle>
+                  <ui-toggle value="#22c55e"><button class="swatch" type="button" style="background: #22c55e" data-color="#22c55e" aria-label="Texte vert"></button></ui-toggle>
+                  <ui-toggle value="#f97316"><button class="swatch" type="button" style="background: #f97316" data-color="#f97316" aria-label="Texte orange"></button></ui-toggle>
+                </ui-toggle-group>
                 <div class="palette-section-title" data-advanced-control>Professionnel</div>
-                <div class="swatches" aria-label="Couleurs professionnelles du texte" data-advanced-control>
-                  <button class="swatch" type="button" style="background: #17202a" data-color="#17202a" aria-label="Texte encre" aria-pressed="true"></button>
-                  <button class="swatch" type="button" style="background: #334155" data-color="#334155" aria-label="Texte ardoise" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #7f1d1d" data-color="#7f1d1d" aria-label="Texte bordeaux" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #14532d" data-color="#14532d" aria-label="Texte vert forêt" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #0f766e" data-color="#0f766e" aria-label="Texte sarcelle foncé" aria-pressed="false"></button>
-                </div>
+                <ui-toggle-group class="swatches" aria-label="Couleurs professionnelles du texte" data-advanced-control data-selection="color" deselectable="false">
+                  <ui-toggle value="#17202a"><button class="swatch" type="button" style="background: #17202a" data-color="#17202a" aria-label="Texte encre"></button></ui-toggle>
+                  <ui-toggle value="#334155"><button class="swatch" type="button" style="background: #334155" data-color="#334155" aria-label="Texte ardoise"></button></ui-toggle>
+                  <ui-toggle value="#7f1d1d"><button class="swatch" type="button" style="background: #7f1d1d" data-color="#7f1d1d" aria-label="Texte bordeaux"></button></ui-toggle>
+                  <ui-toggle value="#14532d"><button class="swatch" type="button" style="background: #14532d" data-color="#14532d" aria-label="Texte vert forêt"></button></ui-toggle>
+                  <ui-toggle value="#0f766e"><button class="swatch" type="button" style="background: #0f766e" data-color="#0f766e" aria-label="Texte sarcelle foncé"></button></ui-toggle>
+                </ui-toggle-group>
               </div>
 
               <div class="palette-group" data-advanced-control>
@@ -483,187 +567,223 @@
                   <div class="palette-title">Couleur contour</div>
                   <input id="outlineColor" type="color" value="#7592b3" aria-label="Couleur du contour personnalisée">
                 </div>
-                <div class="swatches outline-swatches" aria-label="Couleurs du contour">
-                  <button class="swatch" type="button" style="background: #7592b3" data-outline-preset="tonal" aria-label="Contour ton sur ton" aria-pressed="true"></button>
-                  <button class="swatch" type="button" style="background: #1b1b1f" data-outline-preset="charcoal" aria-label="Contour charbon" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #ffffff" data-outline-preset="white" aria-label="Contour blanc" aria-pressed="false"></button>
-                  <button class="swatch" type="button" style="background: #c9a227" data-outline-preset="gold" aria-label="Contour or" aria-pressed="false"></button>
-                </div>
+                <ui-toggle-group class="swatches outline-swatches" aria-label="Couleurs du contour" data-selection="outline" deselectable="false">
+                  <ui-toggle value="tonal"><button class="swatch" type="button" style="background: #7592b3" data-outline-preset="tonal" aria-label="Contour ton sur ton"></button></ui-toggle>
+                  <ui-toggle value="charcoal"><button class="swatch" type="button" style="background: #1b1b1f" data-outline-preset="charcoal" aria-label="Contour charbon"></button></ui-toggle>
+                  <ui-toggle value="white"><button class="swatch" type="button" style="background: #ffffff" data-outline-preset="white" aria-label="Contour blanc"></button></ui-toggle>
+                  <ui-toggle value="gold"><button class="swatch" type="button" style="background: #c9a227" data-outline-preset="gold" aria-label="Contour or"></button></ui-toggle>
+                </ui-toggle-group>
               </div>
             </div>
-            <details id="textAppearance" class="text-appearance" open>
-              <summary>Police et style</summary>
-              <div class="text-appearance-controls">
-                <div class="button-group four format-controls" role="group" aria-label="Options de format du texte" data-advanced-control>
-                  <button class="mode-button" type="button" data-text-format="bold" aria-pressed="true">
-                    <span class="icon" aria-hidden="true"><i data-lucide="bold"></i></span>
-                    <span class="button-text">Gras</span>
-                  </button>
-                  <button class="mode-button" type="button" data-text-format="italic" aria-pressed="false">
-                    <span class="icon" aria-hidden="true"><i data-lucide="italic"></i></span>
-                    <span class="button-text">Italique</span>
-                  </button>
-                  <button class="mode-button" type="button" data-text-format="outline" aria-pressed="false">
-                    <span class="icon" aria-hidden="true"><i data-lucide="box-select"></i></span>
-                    <span class="button-text">Contour</span>
-                  </button>
-                  <button class="mode-button" type="button" data-text-format="shadow" aria-pressed="false">
-                    <span class="icon" aria-hidden="true"><i data-lucide="layers-2"></i></span>
-                    <span class="button-text">Ombre</span>
-                  </button>
-                </div>
-                <div class="font-picker" data-advanced-control>
-                  <div class="select-wrap">
-                    <label class="fit-label" for="fontSelect">Police</label>
-                    <select id="fontSelect" aria-label="Police du texte">
-                      <optgroup label="Latin">
-                        <option value="geist" selected>Geist (par défaut)</option>
-                        <option value="atkinson">Atkinson Hyperlegible</option>
-                        <option value="montserrat">Montserrat</option>
-                        <option value="poppins">Poppins</option>
-                        <option value="playfair">Playfair Display</option>
-                        <option value="lobster">Lobster</option>
-                        <option value="bebas">Bebas Neue</option>
-                        <option value="caveat">Caveat</option>
-                      </optgroup>
-                      <optgroup label="Arabe">
-                        <option value="noto-naskh-arabic">Noto Naskh Arabic</option>
-                        <option value="noto-kufi-arabic">Noto Kufi Arabic</option>
-                        <option value="cairo">Cairo</option>
-                        <option value="tajawal">Tajawal</option>
-                        <option value="amiri">Amiri</option>
-                        <option value="changa">Changa</option>
-                      </optgroup>
-                    </select>
+            <ui-collapsible id="textAppearance" class="text-appearance" open aria-label="Police et style">
+              <ui-collapsible-trigger><button class="disclosure-button" type="button">Police et style</button></ui-collapsible-trigger>
+              <ui-collapsible-panel keep-mounted hidden>
+                <div class="text-appearance-controls">
+                  <ui-toggle-group class="button-group four format-controls" aria-label="Options de format du texte" data-advanced-control data-selection="format" multiple>
+                    <ui-toggle value="bold">
+                      <button class="mode-button" type="button" data-text-format="bold">
+                        <span class="icon" aria-hidden="true"><i data-lucide="bold"></i></span>
+                        <span class="button-text">Gras</span>
+                      </button>
+                    </ui-toggle>
+                    <ui-toggle value="italic">
+                      <button class="mode-button" type="button" data-text-format="italic">
+                        <span class="icon" aria-hidden="true"><i data-lucide="italic"></i></span>
+                        <span class="button-text">Italique</span>
+                      </button>
+                    </ui-toggle>
+                    <ui-toggle value="outline">
+                      <button class="mode-button" type="button" data-text-format="outline">
+                        <span class="icon" aria-hidden="true"><i data-lucide="box-select"></i></span>
+                        <span class="button-text">Contour</span>
+                      </button>
+                    </ui-toggle>
+                    <ui-toggle value="shadow">
+                      <button class="mode-button" type="button" data-text-format="shadow">
+                        <span class="icon" aria-hidden="true"><i data-lucide="layers-2"></i></span>
+                        <span class="button-text">Ombre</span>
+                      </button>
+                    </ui-toggle>
+                  </ui-toggle-group>
+                  <ui-select id="fontSelect" class="font-picker" data-advanced-control value="geist">
+                    <ui-select-trigger>
+                      <button id="fontPreviewButton" class="button secondary font-preview-button" type="button" aria-label="Police du texte">
+                        <ui-select-value>Geist</ui-select-value>
+                      </button>
+                    </ui-select-trigger>
+                    <ui-select-content id="fontPreviewList" class="font-preview-list" align-item-with-trigger="false" align="start" side-offset="8" collision-padding="8" keep-mounted hidden></ui-select-content>
+                  </ui-select>
+                  <div class="range-wrap" data-advanced-control>
+                    <div class="range-row">
+                      <span>Taille</span>
+                      <span id="fontSizeValue" class="dynamic-number">138</span>
+                    </div>
+                    <ui-slider id="fontSize" class="slider" min="64" max="220" step="2" value="138">
+                      <ui-slider-control>
+                        <ui-slider-track>
+                          <ui-slider-indicator></ui-slider-indicator>
+                          <ui-slider-thumb aria-label="Taille du texte"></ui-slider-thumb>
+                        </ui-slider-track>
+                      </ui-slider-control>
+                    </ui-slider>
                   </div>
-                  <button id="fontPreviewButton" class="button secondary font-preview-button" type="button" aria-expanded="false" aria-controls="fontPreviewPopover" title="Aperçu de toutes les polices">
-                    <span class="icon" aria-hidden="true"><i data-lucide="type"></i></span>
-                    <span class="button-text">Choisir la police</span>
-                  </button>
                 </div>
-                <div class="range-wrap" data-advanced-control>
-                  <div class="range-row">
-                    <span>Taille</span>
-                    <span id="fontSizeValue" class="dynamic-number">138</span>
-                  </div>
-                  <input id="fontSize" type="range" min="64" max="220" step="2" value="138">
-                </div>
-              </div>
-            </details>
+              </ui-collapsible-panel>
+            </ui-collapsible>
           </section>
 
           <section class="actions" aria-label="Actions" data-wizard-step="done">
             <div class="print-row">
-              <button id="printButton" class="button primary" type="button">
-                <span class="icon" aria-hidden="true"><i data-lucide="printer"></i></span>
-                <span class="button-text">Imprimer</span>
-              </button>
+              <ui-button pending-announcement="Préparation de l’impression" data-agent-confirm="Ouvre l’impression du visuel.">
+                <button id="printButton" class="button primary" type="button">
+                  <span class="icon" aria-hidden="true"><i data-lucide="printer"></i></span>
+                  <span class="button-text">Imprimer</span>
+                </button>
+              </ui-button>
               <label class="checkbox-card" for="mirrorPrint" data-advanced-control>
-                <input id="mirrorPrint" type="checkbox" checked>
+                <ui-checkbox id="mirrorPrint" checked aria-label="Imprimer en miroir"><ui-checkbox-indicator></ui-checkbox-indicator></ui-checkbox>
                 <span class="icon" aria-hidden="true"><i data-lucide="flip-horizontal"></i></span>
                 <span class="button-text">Miroir</span>
               </label>
             </div>
-            <button id="downloadButton" class="button secondary" type="button">
-              <span class="icon" aria-hidden="true"><i data-lucide="download"></i></span>
-              <span class="button-text">Télécharger PNG</span>
-            </button>
-            <button id="downloadMirrorButton" class="button secondary" type="button" data-advanced-control>
-              <span class="icon" aria-hidden="true"><i data-lucide="flip-horizontal"></i></span>
-              <span class="button-text">Télécharger miroir</span>
-            </button>
-            <button id="addToPageButton" class="button secondary" type="button" data-advanced-control>
-              <span class="icon" aria-hidden="true"><i data-lucide="copy-plus"></i></span>
-              <span class="button-text">Ajouter à la page</span>
-            </button>
+            <ui-button pending-announcement="Préparation du fichier PNG">
+              <button id="downloadButton" class="button secondary" type="button">
+                <span class="icon" aria-hidden="true"><i data-lucide="download"></i></span>
+                <span class="button-text">Télécharger PNG</span>
+              </button>
+            </ui-button>
+            <ui-button data-advanced-control pending-announcement="Préparation du fichier PNG miroir">
+              <button id="downloadMirrorButton" class="button secondary" type="button">
+                <span class="icon" aria-hidden="true"><i data-lucide="flip-horizontal"></i></span>
+                <span class="button-text">Télécharger miroir</span>
+              </button>
+            </ui-button>
+            <ui-button data-advanced-control pending-announcement="Ajout de la création à la page">
+              <button id="addToPageButton" class="button secondary" type="button">
+                <span class="icon" aria-hidden="true"><i data-lucide="copy-plus"></i></span>
+                <span class="button-text">Ajouter à la page</span>
+              </button>
+            </ui-button>
             <div id="queuePanel" class="queue-panel" hidden data-advanced-control>
               <div class="queue-nav">
-                <button id="queuePrev" class="queue-arrow" type="button" aria-label="Création précédente"><i data-lucide="chevron-left"></i></button>
+                <ui-button><button id="queuePrev" class="queue-arrow" type="button" aria-label="Création précédente"><i data-lucide="chevron-left"></i></button></ui-button>
                 <span id="queueLabel" class="queue-label">Création 1 / 1</span>
-                <button id="queueNext" class="queue-arrow" type="button" aria-label="Création suivante"><i data-lucide="chevron-right"></i></button>
+                <ui-button><button id="queueNext" class="queue-arrow" type="button" aria-label="Création suivante"><i data-lucide="chevron-right"></i></button></ui-button>
               </div>
               <img id="queueThumb" class="queue-thumb" alt="Aperçu de la création en file d'attente">
               <div class="queue-actions">
-                <button id="queueRemove" class="button danger small" type="button">Retirer cette création</button>
+                <ui-button><button id="queueRemove" class="button danger small" type="button">Retirer cette création</button></ui-button>
               </div>
             </div>
-            <button id="clearButton" class="button danger" type="button" data-advanced-control>
-              <span class="icon" aria-hidden="true"><i data-lucide="trash-2"></i></span>
-              <span class="button-text">Supprimer</span>
-            </button>
+            <ui-alert-dialog-trigger for="clearDialog" data-advanced-control>
+              <button id="clearButton" class="button danger" type="button">
+                <span class="icon" aria-hidden="true"><i data-lucide="trash-2"></i></span>
+                <span class="button-text">Supprimer</span>
+              </button>
+            </ui-alert-dialog-trigger>
           </section>
         </div>
       </aside>
 
       <nav id="wizardNav" class="wizard-nav" aria-label="Navigation de l'assistant">
-        <button id="wizardBack" class="button secondary" type="button" disabled>
-          <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
-          <span class="button-text">Retour</span>
-        </button>
-        <button id="wizardNext" class="button primary" type="button" disabled>
-          <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
-          <span class="button-text">Suivant</span>
-        </button>
+        <ui-button disabled>
+          <button id="wizardBack" class="button secondary" type="button" disabled>
+            <span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span>
+            <span class="button-text">Retour</span>
+          </button>
+        </ui-button>
+        <ui-button disabled>
+          <button id="wizardNext" class="button primary" type="button" disabled>
+            <span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span>
+            <span class="button-text">Suivant</span>
+          </button>
+        </ui-button>
       </nav>
     </main>
 
+    <input id="previewFileInput" type="file" accept="image/*" hidden>
     <p id="uploadError" class="editor-warning" aria-hidden="true" hidden></p>
     <div id="status" class="sr-only" role="status" aria-live="polite"></div>
 
-    <dialog id="imageCropDialog" class="image-crop-dialog" aria-labelledby="imageCropDialogTitle">
-      <div class="crop-dialog-content">
-        <div class="crop-dialog-head">
-          <div>
-            <h2 id="imageCropDialogTitle" class="crop-dialog-title">Préparer l’image</h2>
-            <p class="crop-instruction">Glissez un bord pour couper, puis déplacez la photo.</p>
-          </div>
-          <div class="crop-modes" role="group" aria-label="Ajustement de l’image">
-            <button type="button" data-crop-mode="cut" aria-pressed="true"><img alt=""><span>Découper</span></button>
-            <button type="button" data-crop-mode="resize" aria-pressed="false"><img alt=""><span>Image entière</span></button>
-          </div>
-        </div>
-        <div id="cropPreviewStage" class="crop-preview-stage">
-          <img id="cropOffcut" class="crop-offcut" alt="">
-          <div id="cropViewport" class="crop-viewport" tabindex="0" role="group" aria-label="Déplacer la photo par glissement ou avec les flèches">
-            <div id="cropPaper" class="crop-paper">
-              <img id="cropPreviewImage" class="crop-preview-image" alt="Aperçu du cadrage">
+    <ui-dialog id="imageCropDialog" close-on-outside-press="false" presentation="dialog">
+      <ui-dialog-content id="imageCropDialogContent" class="image-crop-dialog" initial-focus="#cropViewport" keep-mounted hidden>
+        <div class="crop-dialog-content">
+          <div class="crop-dialog-head">
+            <div>
+              <ui-dialog-title id="imageCropDialogTitle" class="crop-dialog-title">Préparer l’image</ui-dialog-title>
+              <ui-dialog-description class="crop-instruction">Glissez un bord pour couper, puis déplacez la photo.</ui-dialog-description>
             </div>
+            <ui-toggle-group class="crop-modes" aria-label="Ajustement de l’image" data-selection="crop-mode" deselectable="false">
+              <ui-toggle value="cut"><button type="button" data-crop-mode="cut"><img alt=""><span>Découper</span></button></ui-toggle>
+              <ui-toggle value="resize"><button type="button" data-crop-mode="resize"><img alt=""><span>Image entière</span></button></ui-toggle>
+            </ui-toggle-group>
           </div>
-          <div class="crop-blade" data-edge="left" role="slider" tabindex="0" aria-label="Bord gauche" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Bord gauche"></div>
-          <div class="crop-blade" data-edge="top" role="slider" tabindex="0" aria-label="Bord supérieur" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Bord supérieur"></div>
-          <div class="crop-blade" data-edge="right" role="slider" tabindex="0" aria-label="Bord droit" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" title="Bord droit"></div>
-          <div class="crop-blade" data-edge="bottom" role="slider" tabindex="0" aria-label="Bord inférieur" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" title="Bord inférieur"></div>
-          <span id="cropDimensions" class="crop-dimensions" aria-label="Dimensions imprimables"></span>
-        </div>
-        <div class="crop-controls">
-          <div class="crop-edge-controls">
-            <select id="cropEdge" aria-label="Bord à couper">
-              <option value="left">Bord gauche</option>
-              <option value="right" selected>Bord droit</option>
-              <option value="top">Bord supérieur</option>
-              <option value="bottom">Bord inférieur</option>
-            </select>
-            <input id="cropEdgePosition" aria-label="Position du bord droit" type="range" step="any" min="1" max="100" value="100">
+          <div id="cropPreviewStage" class="crop-preview-stage">
+            <img id="cropOffcut" class="crop-offcut" alt="">
+            <div id="cropViewport" class="crop-viewport" tabindex="0" role="group" aria-label="Déplacer la photo par glissement ou avec les flèches">
+              <div id="cropPaper" class="crop-paper">
+                <img id="cropPreviewImage" class="crop-preview-image" alt="Aperçu du cadrage">
+              </div>
+            </div>
+            <div class="crop-blade" data-edge="left" role="slider" tabindex="0" aria-label="Bord gauche" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Bord gauche"></div>
+            <div class="crop-blade" data-edge="top" role="slider" tabindex="0" aria-label="Bord supérieur" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" title="Bord supérieur"></div>
+            <div class="crop-blade" data-edge="right" role="slider" tabindex="0" aria-label="Bord droit" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" title="Bord droit"></div>
+            <div class="crop-blade" data-edge="bottom" role="slider" tabindex="0" aria-label="Bord inférieur" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" title="Bord inférieur"></div>
+            <span id="cropDimensions" class="crop-dimensions" aria-label="Dimensions imprimables"></span>
           </div>
-          <label class="crop-zoom-row" for="cropZoom">Zoom
-            <input id="cropZoom" type="range" min="0.1" max="3" step="0.01" value="1">
-            <output id="cropZoomValue" for="cropZoom">100 %</output>
-          </label>
-          <button id="cropCenterButton" class="button secondary" type="button"><i data-lucide="crosshair"></i> Centrer</button>
-          <button id="cropResetButton" class="button secondary" type="button" aria-label="Réinitialiser le cadrage" title="Réinitialiser le cadrage"><i data-lucide="rotate-ccw"></i> Réinitialiser</button>
+          <div class="crop-controls">
+            <div class="crop-edge-controls">
+              <select id="cropEdge" aria-label="Bord à couper">
+                <option value="left">Bord gauche</option>
+                <option value="right" selected>Bord droit</option>
+                <option value="top">Bord supérieur</option>
+                <option value="bottom">Bord inférieur</option>
+              </select>
+              <input id="cropEdgePosition" aria-label="Position du bord droit" type="range" step="any" min="1" max="100" value="100">
+            </div>
+            <div class="crop-zoom-row">
+              <span>Zoom</span>
+              <ui-slider id="cropZoom" class="slider" min="0.1" max="3" step="0.01" value="1">
+                <ui-slider-control>
+                  <ui-slider-track>
+                    <ui-slider-indicator></ui-slider-indicator>
+                    <ui-slider-thumb aria-label="Zoom du cadrage"></ui-slider-thumb>
+                  </ui-slider-track>
+                </ui-slider-control>
+              </ui-slider>
+              <output id="cropZoomValue">100 %</output>
+            </div>
+            <ui-button><button id="cropCenterButton" class="button secondary" type="button"><i data-lucide="crosshair"></i> Centrer</button></ui-button>
+            <ui-button><button id="cropResetButton" class="button secondary" type="button" aria-label="Réinitialiser le cadrage" title="Réinitialiser le cadrage"><i data-lucide="rotate-ccw"></i> Réinitialiser</button></ui-button>
+          </div>
+          <div class="crop-dialog-footer">
+            <ui-dialog-close><button id="cropCancelButton" class="button secondary" type="button">Annuler</button></ui-dialog-close>
+            <ui-button>
+              <button id="cropApplyButton" class="button primary" type="button" aria-describedby="cropDimensions">
+                <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
+                <span class="button-text">Utiliser l'image</span>
+              </button>
+            </ui-button>
+          </div>
         </div>
-        <div class="crop-dialog-footer">
-          <button id="cropCancelButton" class="button secondary" type="button">Annuler</button>
-          <button id="cropApplyButton" class="button primary" type="button" aria-describedby="cropDimensions">
-            <span class="icon" aria-hidden="true"><i data-lucide="check"></i></span>
-            <span class="button-text">Utiliser l'image</span>
-          </button>
+      </ui-dialog-content>
+    </ui-dialog>
+
+    <ui-alert-dialog id="clearDialog">
+      <ui-alert-dialog-content class="clear-dialog" hidden>
+        <ui-alert-dialog-title>Supprimer la création ?</ui-alert-dialog-title>
+        <ui-alert-dialog-description>Les images, le texte et les réglages de cette création seront effacés.</ui-alert-dialog-description>
+        <div class="clear-dialog-actions">
+          <ui-alert-dialog-close value="cancel"><button class="button secondary" type="button">Annuler</button></ui-alert-dialog-close>
+          <ui-alert-dialog-close value="confirm" data-agent-confirm="Efface la création et sa file d’impression.">
+            <button class="button danger" type="button">Effacer la création</button>
+          </ui-alert-dialog-close>
         </div>
-      </div>
-    </dialog>
+      </ui-alert-dialog-content>
+    </ui-alert-dialog>
 
     <script src="assets/vendor/konva-10.3.0.min.js"></script>
     <script src="assets/vendor/lucide-1.21.0.min.js"></script>
-    <script type="module" src="assets/js/app.js?v=7844632b9dae"></script>
+    <script type="module" src="assets/js/app.js?v=9b25d861527a"></script>
   </body>
 </html>

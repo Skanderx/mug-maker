@@ -6,7 +6,7 @@ import { test } from "node:test";
 const root = new URL("../", import.meta.url);
 const indexUrl = new URL("index.html", root);
 
-test("the page loads local static assets instead of inline code or CDN libraries", async () => {
+test("the editor uses local static assets and the UI SDK module", async () => {
   const html = await readFile(indexUrl, "utf8");
   const scriptSources = Array.from(
     html.matchAll(/<script\b[^>]*\bsrc="([^"]+)"/g),
@@ -22,6 +22,7 @@ test("the page loads local static assets instead of inline code or CDN libraries
   assert.doesNotMatch(html, /<style\b/);
   assert.doesNotMatch(html, /<script\b(?![^>]*\bsrc=)/);
   assert.deepEqual(scriptSources, [
+    "https://ui-sdk.dev/web.js",
     "assets/vendor/konva-10.3.0.min.js",
     "assets/vendor/lucide-1.21.0.min.js",
     await versioned("assets/js/app.js"),
@@ -33,6 +34,16 @@ test("the page loads local static assets instead of inline code or CDN libraries
     access(new URL("assets/vendor/konva-10.3.0.min.js", root)),
     access(new URL("assets/vendor/lucide-1.21.0.min.js", root)),
   ]);
+});
+
+test("both HTML pages load UI SDK and its styles in the head", async () => {
+  for (const path of ["index.html", "dev/break-ui.html"]) {
+    const html = await readFile(new URL(path, root), "utf8");
+    const head = html.match(/<head>([\s\S]*?)<\/head>/)?.[1] ?? "";
+    const asyncAttribute = path === "index.html" ? " async" : "";
+    assert.ok(head.includes(`<script type="module" src="https://ui-sdk.dev/web.js"${asyncAttribute}></script>`), path);
+    assert.ok(head.includes('<link rel="stylesheet" href="https://ui-sdk.dev/web.css" />'), path);
+  }
 });
 
 test("vendored library files match the documented releases", async () => {

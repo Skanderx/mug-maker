@@ -102,7 +102,6 @@ import {
   let previewOffset = { x: 0, y: 0 };
   let cropDraft = null;
   let cropDrag = null;
-  let cropDialogOpener = null;
   const DEFAULT_FIT_MODES = {
     left: "cut",
     center: "cut",
@@ -301,6 +300,7 @@ import {
 
   const elements = {
     stage: document.querySelector("#stage"),
+    stageArea: document.querySelector(".stage-area"),
     controls: document.querySelector(".controls"),
     preview: document.querySelector(".preview"),
     previewTitle: document.querySelector("#previewTitle"),
@@ -313,14 +313,9 @@ import {
     stageFrame: document.querySelector(".stage-frame"),
     imageShiftOverlay: document.querySelector("#imageShiftOverlay"),
     previewActionButton: document.querySelector("#previewActionButton"),
+    previewFileInput: document.querySelector("#previewFileInput"),
     previewActionIcon: document.querySelector("#previewActionIcon"),
     previewActionText: document.querySelector("#previewActionText"),
-    leftImage: document.querySelector("#leftImage"),
-    centerImage: document.querySelector("#centerImage"),
-    rightImage: document.querySelector("#rightImage"),
-    leftName: document.querySelector("#leftName"),
-    centerName: document.querySelector("#centerName"),
-    rightName: document.querySelector("#rightName"),
     quickCenterImage: document.querySelector("#quickCenterImage"),
     quickCenterUploadText: document.querySelector("#quickCenterUploadText"),
     quickCenterDetails: document.querySelector("#quickCenterDetails"),
@@ -341,23 +336,19 @@ import {
     mousepadPhotoRows: Array.from(document.querySelectorAll("[data-mousepad-photo-row]")),
     removeButtons: Array.from(document.querySelectorAll("[data-remove-slot]")),
     cropButtons: Array.from(document.querySelectorAll("[data-crop-slot]")),
-    layoutButtons: Array.from(document.querySelectorAll("[data-layout]")),
     minimalMode: document.querySelector("#minimalMode"),
-    fitButtons: Array.from(document.querySelectorAll("[data-fit-slot]")),
+    choiceGroups: Array.from(document.querySelectorAll("[data-selection]")),
     imageShapeControls: Array.from(document.querySelectorAll("[data-image-shape-control]")),
-    imageShapeButtons: Array.from(document.querySelectorAll("[data-image-shape-slot]")),
-    positionControls: Array.from(document.querySelectorAll("[data-position-value]")),
     positionInputs: Array.from(document.querySelectorAll("[data-position-input]")),
+    textField: document.querySelector("#textField"),
     textInput: document.querySelector("#textInput"),
+    textEditor: document.querySelector("#textEditor"),
     textAppearance: document.querySelector("#textAppearance"),
     textFitWarning: document.querySelector("#textFitWarning"),
     uploadError: document.querySelector("#uploadError"),
     quickTextEditButton: document.querySelector("#quickTextEditButton"),
     quickTextEditButtonText: document.querySelector("#quickTextEditButtonText"),
     fontSelect: document.querySelector("#fontSelect"),
-    fontPreviewButton: document.querySelector("#fontPreviewButton"),
-    fontPreviewPopover: document.querySelector("#fontPreviewPopover"),
-    fontPreviewClose: document.querySelector("#fontPreviewClose"),
     fontPreviewList: document.querySelector("#fontPreviewList"),
     fontSize: document.querySelector("#fontSize"),
     fontSizeValue: document.querySelector("#fontSizeValue"),
@@ -377,19 +368,15 @@ import {
     queueLabel: document.querySelector("#queueLabel"),
     queueThumb: document.querySelector("#queueThumb"),
     queueRemove: document.querySelector("#queueRemove"),
-    sheetOptions: Array.from(document.querySelectorAll("[data-sheet-layout]")),
-    colorPresetButtons: Array.from(document.querySelectorAll("[data-color]")),
     outlinePresetButtons: Array.from(document.querySelectorAll("[data-outline-preset]")),
-    textFormatButtons: Array.from(document.querySelectorAll("[data-text-format]")),
-    textPositionButtons: Array.from(document.querySelectorAll("[data-text-position]")),
-    textShapeButtons: Array.from(document.querySelectorAll("[data-text-shape]")),
     downloadButton: document.querySelector("#downloadButton"),
     downloadMirrorButton: document.querySelector("#downloadMirrorButton"),
     printButton: document.querySelector("#printButton"),
     mirrorPrint: document.querySelector("#mirrorPrint"),
-    clearButton: document.querySelector("#clearButton"),
+    clearDialog: document.querySelector("#clearDialog"),
     status: document.querySelector("#status"),
     cropDialog: document.querySelector("#imageCropDialog"),
+    cropDialogContent: document.querySelector("#imageCropDialogContent"),
     cropPreviewStage: document.querySelector("#cropPreviewStage"),
     cropViewport: document.querySelector("#cropViewport"),
     cropPreviewImage: document.querySelector("#cropPreviewImage"),
@@ -403,7 +390,6 @@ import {
     cropModes: Array.from(document.querySelectorAll("[data-crop-mode]")),
     cropDimensions: document.querySelector("#cropDimensions"),
     cropResetButton: document.querySelector("#cropResetButton"),
-    cropCancelButton: document.querySelector("#cropCancelButton"),
     cropApplyButton: document.querySelector("#cropApplyButton"),
   };
 
@@ -423,11 +409,26 @@ import {
   stage.add(guideLayer);
 
   const resizeObserver = new ResizeObserver(resizeStage);
-  resizeObserver.observe(document.querySelector(".stage-area"));
+  resizeObserver.observe(elements.stageArea);
   resizeObserver.observe(elements.previewActionButton);
 
-  Object.entries(elements.imageInputs).forEach(([slot, input]) => {
-    input.addEventListener("change", (event) => handleFile(event, slot));
+  for (const [slot, input] of Object.entries(elements.imageInputs)) {
+    input.addEventListener("valuechange", ({ detail }) => {
+      if (detail.value.length) handleFile(detail.value[0], slot);
+    });
+    input.addEventListener("reject", () => showUploadError(slot));
+  }
+
+  elements.previewFileInput.addEventListener("change", ({ currentTarget: picker }) => {
+    const file = picker.files[0];
+    const input = getImageInput(picker.dataset.imageSlot);
+    picker.value = "";
+    if (!file || !input) return;
+
+    const targetState = state;
+    customElements.whenDefined("ui-file-input").then(() => {
+      if (state === targetState) input.api.addFiles([file]);
+    });
   });
 
   elements.removeButtons.forEach((button) => {
@@ -443,19 +444,12 @@ import {
   elements.cropButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const item = state.images[button.dataset.cropSlot];
-      if (item) openImageCropDialog(button.dataset.cropSlot, item, button);
+      if (item) openImageCropDialog(button.dataset.cropSlot, item);
     });
   });
 
-  elements.layoutButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setLayoutPreset(button.dataset.layout);
-    });
-  });
-
-  elements.minimalMode.addEventListener("change", () => {
-    setMinimalMode(elements.minimalMode.checked);
-  });
+  bindChoiceGroups();
+  elements.minimalMode.addEventListener("checkedchange", ({ detail }) => setMinimalMode(detail.value));
 
   elements.wizardSteps.addEventListener("click", (event) => {
     const button = event.target.closest("[data-wizard-go]");
@@ -465,27 +459,9 @@ import {
 
   elements.wizardBack.addEventListener("click", goToPreviousWizardStep);
   elements.wizardNext.addEventListener("click", goToNextWizardStep);
-  elements.previewActionButton.addEventListener("click", handlePreviewAction);
+  bindPendingAction(elements.previewActionButton, handlePreviewAction);
   elements.stageFrame.addEventListener("click", handleStageFrameClick);
   document.addEventListener("keydown", handleWizardEnterKey);
-
-  elements.fitButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setFitMode(button.dataset.fitSlot, button.dataset.fitMode);
-    });
-  });
-
-  elements.imageShapeButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setImageShape(button.dataset.imageShapeSlot, button.dataset.imageShape);
-    });
-  });
-
-  elements.positionControls.forEach((control) => {
-    control.addEventListener("click", () => {
-      setImagePosition(control.dataset.positionSlot, control.dataset.positionAxis, control.dataset.positionValue);
-    });
-  });
 
   elements.positionInputs.forEach((input) => {
     input.addEventListener("input", () => {
@@ -502,9 +478,12 @@ import {
     nudgeImagePosition(button.dataset.nudgeSlot, button.dataset.nudgeDirection);
   });
 
-  elements.cropZoom.addEventListener("input", () => {
-    if (!cropDraft) return;
-    cropDraft.scale = Number(elements.cropZoom.value);
+  customElements.whenDefined("ui-slider").then(() => {
+    elements.cropZoom.format = { style: "percent" };
+  });
+  elements.cropZoom.addEventListener("valuechange", ({ detail }) => {
+    if (!cropDraft || cropDraft.scale === detail.value) return;
+    cropDraft.scale = detail.value;
     updateCropLayout();
   });
   elements.cropEdge.addEventListener("change", renderCropPreview);
@@ -550,12 +529,6 @@ import {
       blade.addEventListener("lostpointercapture", () => blade.removeEventListener("pointermove", moveBlade), { once: true });
     });
   });
-  elements.cropModes.forEach((button) => {
-    button.addEventListener("click", () => {
-      cropDraft.mode = button.dataset.cropMode;
-      updateCropMode();
-    });
-  });
   elements.cropViewport.addEventListener("keydown", (event) => {
     if (!cropDraft) return;
     const moves = { ArrowLeft: ["x", -1], ArrowRight: ["x", 1], ArrowUp: ["y", -1], ArrowDown: ["y", 1] };
@@ -571,14 +544,14 @@ import {
     placeCropCenter(frame.viewport.width / 2, frame.viewport.height / 2, frame);
   });
   elements.cropResetButton.addEventListener("click", resetCropImage);
-  elements.cropCancelButton.addEventListener("click", cancelImageCrop);
   new ResizeObserver(() => {
     if (cropDraft) updateCropLayout();
   }).observe(elements.cropPreviewStage);
   elements.cropApplyButton.addEventListener("click", applyImageCrop);
-  elements.cropDialog.addEventListener("cancel", (event) => {
-    event.preventDefault();
-    cancelImageCrop();
+  elements.cropDialog.addEventListener("openchange", ({ detail }) => {
+    if (detail.value || detail.returnValue === "apply") return;
+    clearCropDraft();
+    setStatus("Cadrage annulé");
   });
   elements.cropViewport.addEventListener("pointerdown", startCropDrag);
   elements.cropViewport.addEventListener("pointermove", moveCropDrag);
@@ -586,56 +559,24 @@ import {
   elements.cropViewport.addEventListener("pointercancel", endCropDrag);
 
 
-  elements.textInput.addEventListener("input", () => {
-    state.text = elements.textInput.value;
+  elements.textEditor.addEventListener("valuechange", ({ detail }) => {
+    if (state.text === detail.value) return;
+    state.text = detail.value;
     updateFontPreviewSamples();
     updateWizardUI();
     render();
   });
 
-  elements.textAppearance.addEventListener("toggle", () => {
-    if (quickTextEditing && elements.textAppearance.open) {
-      elements.textAppearance.scrollIntoView({ block: "nearest" });
-    }
+  elements.textAppearance.addEventListener("openchangecomplete", ({ detail }) => {
+    if (quickTextEditing && detail.value) elements.textAppearance.scrollIntoView({ block: "nearest" });
   });
 
-  elements.fontSelect.addEventListener("change", () => {
-    setTextFont(elements.fontSelect.value);
-  });
-
-  elements.fontPreviewButton.addEventListener("click", toggleFontPreviewPopover);
-  elements.fontPreviewClose.addEventListener("click", () => {
-    closeFontPreviewPopover();
-    elements.fontPreviewButton.focus();
-  });
-  elements.fontPreviewList.addEventListener("click", (event) => {
-    const option = event.target.closest("[data-font-preview]");
-    if (!option) return;
-
-    setTextFont(option.dataset.fontPreview);
-    closeFontPreviewPopover();
-    elements.fontPreviewButton.focus();
-    setStatus("Police choisie");
-  });
-  elements.fontPreviewList.addEventListener("keydown", handleFontPreviewKeydown);
-  document.addEventListener("click", (event) => {
-    if (elements.fontPreviewPopover.hidden) return;
-    if (elements.fontPreviewPopover.contains(event.target)) return;
-    if (elements.fontPreviewButton.contains(event.target)) return;
-    closeFontPreviewPopover();
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || elements.fontPreviewPopover.hidden) return;
-    closeFontPreviewPopover();
-    elements.fontPreviewButton.focus();
-  });
-  window.addEventListener("resize", () => {
-    if (!elements.fontPreviewPopover.hidden) positionFontPreviewPopover();
-  });
+  elements.fontSelect.addEventListener("valuechange", ({ detail }) => setTextFont(detail.value));
   window.addEventListener("beforeunload", protectCreationBeforeUnload);
 
-  elements.fontSize.addEventListener("input", () => {
-    state.fontSize = Number(elements.fontSize.value);
+  elements.fontSize.addEventListener("valuechange", ({ detail }) => {
+    if (state.fontSize === detail.value) return;
+    state.fontSize = detail.value;
     elements.fontSizeValue.textContent = String(state.fontSize);
     saveDefaultPreferences();
     render();
@@ -645,73 +586,37 @@ import {
     setTextColor(elements.textColor.value);
   });
 
-  elements.colorPresetButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setTextColor(button.dataset.color);
-      setStatus("Couleur choisie");
-    });
-  });
-
-  elements.textFormatButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const key = button.dataset.textFormat;
-      state.textFormat[key] = !state.textFormat[key];
-      updateTextFormatButtons();
-      updateFontPreviewSamples();
-      saveDefaultPreferences();
-      render();
-    });
-  });
-
-  elements.textPositionButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setTextPosition(button.dataset.textPosition);
-    });
-  });
-
-  elements.textShapeButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setTextShape(button.dataset.textShape);
-    });
-  });
-
-  elements.outlinePresetButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setOutlineColor(getOutlineColorFromPreset(button.dataset.outlinePreset));
-      setStatus("Contour choisi");
-    });
-  });
-
   elements.outlineColor.addEventListener("input", () => {
     setOutlineColor(elements.outlineColor.value);
     setStatus("Contour personnalisé");
   });
 
-  elements.addToPageButton.addEventListener("click", addToPage);
+  bindPendingAction(elements.addToPageButton, addToPage);
   elements.queuePrev.addEventListener("click", () => { queueIndex -= 1; updateQueueUI(); });
   elements.queueNext.addEventListener("click", () => { queueIndex += 1; updateQueueUI(); });
   elements.queueRemove.addEventListener("click", removeFromQueue);
-  elements.sheetOptions.forEach((button) => {
-    button.addEventListener("click", () => setSheetLayout(button.dataset.sheetLayout));
-  });
-
-  elements.downloadButton.addEventListener("click", downloadPng);
-  elements.downloadMirrorButton.addEventListener("click", () => downloadPng({ mirror: true }));
-  elements.printButton.addEventListener("click", printMug);
+  bindPendingAction(elements.downloadButton, downloadPng);
+  bindPendingAction(elements.downloadMirrorButton, () => downloadPng({ mirror: true }));
+  bindPendingAction(elements.printButton, printMug);
 
   // Ctrl+P / Cmd+P prints the generated paper, not the editor page
   document.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "p") {
       event.preventDefault();
-      printMug();
+      if (!elements.cropDialog.open && !elements.clearDialog.open) printMug();
     }
   });
 
-  elements.mirrorPrint.addEventListener("change", () => {
-    state.mirrorPrint = elements.mirrorPrint.checked;
+  elements.mirrorPrint.addEventListener("checkedchange", ({ detail }) => {
+    state.mirrorPrint = detail.value;
   });
-  elements.clearButton.addEventListener("click", clearAll);
+  elements.clearDialog.addEventListener("openchange", ({ detail }) => {
+    if (detail.value) return;
+    if (detail.returnValue === "confirm") setTimeout(clearAll, 0);
+    else setStatus("Suppression annulée");
+  });
 
+  renderIcons();
   updateProductUI();
   updateMousePadRows();
   buildImageShiftOverlay();
@@ -724,7 +629,6 @@ import {
   updateCropButtons();
   updateImageShapeControls();
   updateFontPreviewSamples();
-  renderIcons();
   updateWizardUI();
   resizeStage();
   render();
@@ -736,6 +640,88 @@ import {
     if (!elements.status) return;
     elements.status.textContent = message;
     elements.status.classList.toggle("warning", isWarning);
+  }
+
+  function bindPendingAction(button, action) {
+    const control = button.closest("ui-button");
+    button.addEventListener("click", () => {
+      if (!control.matches(":defined")) action();
+    });
+    control.addEventListener("action", (event) => {
+      const pending = action();
+      if (pending) event.detail.waitUntil(pending);
+    });
+  }
+
+  function setActionDisabled(button, disabled) {
+    button.closest("ui-button").toggleAttribute("disabled", disabled);
+    if (button.disabled !== disabled) button.disabled = disabled;
+  }
+
+  function bindChoiceGroups() {
+    const actions = {
+      layout: (group, [value]) => {
+        if (group.dataset.product === activeProduct) setLayoutPreset(value);
+      },
+      fit: (group, [value]) => setFitMode(group.dataset.imageSlot, value),
+      shape: (group, [value]) => setImageShape(group.dataset.imageSlot, value),
+      position: (group, [value]) => setImagePosition(group.dataset.imageSlot, group.dataset.axis, value),
+      format: (_, values) => {
+        for (const name of Object.keys(state.textFormat)) state.textFormat[name] = values.includes(name);
+        updateFontPreviewSamples();
+        saveDefaultPreferences();
+        render();
+      },
+      "text-position": (_, [value]) => setTextPosition(value),
+      "text-shape": (_, [value]) => setTextShape(value),
+      color: (_, [value]) => {
+        setTextColor(value);
+        setStatus("Couleur choisie");
+      },
+      outline: (_, [value]) => {
+        setOutlineColor(getOutlineColorFromPreset(value));
+        setStatus("Contour choisi");
+      },
+      sheet: (_, [value]) => setSheetLayout(value),
+      "crop-mode": (_, [value]) => {
+        if (!cropDraft) return;
+        cropDraft.mode = value;
+        updateCropLayout();
+      },
+    };
+    for (const group of elements.choiceGroups) {
+      group.addEventListener("valuechange", ({ detail }) => {
+        queueMicrotask(() => actions[group.dataset.selection](group, detail.value));
+      });
+    }
+  }
+
+  function syncChoices(kind, getValue) {
+    for (const group of elements.choiceGroups) {
+      if (group.dataset.selection !== kind) continue;
+      const values = [getValue(group)].flat().filter(value => value !== undefined);
+      if (group.matches(":defined")) {
+        if (group.value.join(",") !== values.join(",")) group.value = values;
+      } else {
+        group.setAttribute("value", values.join(","));
+      }
+    }
+  }
+
+  function setControlValue(control, value) {
+    if (control.matches(":defined")) {
+      if (control.value !== value) control.value = value;
+    } else {
+      control.setAttribute("value", String(value));
+    }
+  }
+
+  function setControlFlag(control, name, value) {
+    if (control.matches(":defined")) {
+      if (control[name] !== value) control[name] = value;
+    } else {
+      control.toggleAttribute(name, value);
+    }
   }
 
   function buildMousePadControls() {
@@ -757,46 +743,42 @@ import {
       const main = document.createElement("div");
       main.className = "upload-main";
 
-      const upload = document.createElement("label");
-      upload.className = "upload-button";
-      upload.htmlFor = config.inputId;
-      upload.innerHTML = `<span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span><span class="button-text">${config.buttonText}</span>`;
-      main.appendChild(upload);
+      main.innerHTML = `
+        <ui-file-input-trigger for="${config.inputId}">
+          <button class="upload-button" type="button">
+            <span class="icon" aria-hidden="true"><i data-lucide="upload"></i></span>
+            <span class="button-text">${config.buttonText}</span>
+          </button>
+        </ui-file-input-trigger>
+        <ui-toggle-group class="segmented" data-selection="fit" data-image-slot="${config.slot}" data-advanced-control deselectable="false" aria-label="Ajustement de ${config.label.toLowerCase()}">
+          <ui-toggle value="cut"><button class="mode-button" type="button" data-fit-slot="${config.slot}" data-fit-mode="cut">
+            <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
+            <span class="button-text">Remplir</span>
+          </button></ui-toggle>
+          <ui-toggle value="resize"><button class="mode-button" type="button" data-fit-slot="${config.slot}" data-fit-mode="resize">
+            <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
+            <span class="button-text">Image entière</span>
+          </button></ui-toggle>
+        </ui-toggle-group>`;
 
-      const segmented = document.createElement("div");
-      segmented.className = "segmented";
-      segmented.dataset.advancedControl = "";
-      segmented.setAttribute("role", "group");
-      segmented.setAttribute("aria-label", `Ajustement de ${config.label.toLowerCase()}`);
-      segmented.innerHTML = `
-              <button class="mode-button" type="button" data-fit-slot="${config.slot}" data-fit-mode="cut" aria-pressed="false">
-                <span class="icon" aria-hidden="true"><i data-lucide="crop"></i></span>
-                <span class="button-text">Remplir</span>
-              </button>
-              <button class="mode-button" type="button" data-fit-slot="${config.slot}" data-fit-mode="resize" aria-pressed="true">
-                <span class="icon" aria-hidden="true"><i data-lucide="maximize-2"></i></span>
-                <span class="button-text">Image entière</span>
-              </button>`;
-      main.appendChild(segmented);
-
-      const input = document.createElement("input");
+      const input = document.createElement("ui-file-input");
       input.id = config.inputId;
-      input.type = "file";
-      input.accept = "image/*";
+      input.setAttribute("accept", "image/*");
+      input.setAttribute("aria-label", config.label);
       input.dataset.imageInputSlot = config.slot;
 
       const fileRow = document.createElement("div");
       fileRow.className = "file-row";
       fileRow.innerHTML = `
-              <div class="file-name" data-file-name-slot="${config.slot}">${DEFAULT_FILE_LABELS[config.slot]}</div>
-              <button class="slot-crop" type="button" data-crop-slot="${config.slot}" hidden aria-label="Cadrer ${config.label.toLowerCase()}">
-                <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
-                <span class="button-text">Cadrer</span>
-              </button>
-              <button class="slot-remove" type="button" data-remove-slot="${config.slot}" hidden aria-label="Retirer ${config.label.toLowerCase()}">
-                <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
-                <span class="button-text">Retirer</span>
-              </button>`;
+        <div class="file-name" data-file-name-slot="${config.slot}">${DEFAULT_FILE_LABELS[config.slot]}</div>
+        <ui-button><button class="slot-crop" type="button" data-crop-slot="${config.slot}" hidden aria-label="Cadrer ${config.label.toLowerCase()}">
+          <span class="icon" aria-hidden="true"><i data-lucide="move"></i></span>
+          <span class="button-text">Cadrer</span>
+        </button></ui-button>
+        <ui-button><button class="slot-remove" type="button" data-remove-slot="${config.slot}" hidden aria-label="Retirer ${config.label.toLowerCase()}">
+          <span class="icon" aria-hidden="true"><i data-lucide="x"></i></span>
+          <span class="button-text">Retirer</span>
+        </button></ui-button>`;
 
       row.append(label, main, input, fileRow);
 
@@ -832,22 +814,26 @@ import {
   }
 
   function createMousePadShapeControl(slot, label) {
-    const control = document.createElement("details");
-    control.open = true;
+    const control = document.createElement("ui-collapsible");
+    control.setAttribute("open", "");
+    control.setAttribute("aria-label", `Forme de ${label.toLowerCase()}`);
     control.className = "image-shape-control";
     control.dataset.imageShapeControl = slot;
+    control.dataset.advancedControl = "";
     control.hidden = true;
     control.innerHTML = `
-            <summary>Forme de l’image</summary>
-            <div class="image-shape-options" role="group" aria-label="Forme de ${label.toLowerCase()}">
-              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="rectangle" aria-pressed="true"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button>
-              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="circle" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button>
-              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="square" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button>
-              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="heart" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button>
-              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="apple" aria-pressed="false"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button>
-              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="star" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button>
-              <button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="hexagon" aria-pressed="false"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button>
-            </div>`;
+            <ui-collapsible-trigger><button class="disclosure-button" type="button">Forme de l’image</button></ui-collapsible-trigger>
+            <ui-collapsible-panel keep-mounted hidden>
+              <ui-toggle-group class="image-shape-options" data-selection="shape" data-image-slot="${slot}" deselectable="false" aria-label="Forme de ${label.toLowerCase()}">
+              <ui-toggle value="rectangle"><button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="rectangle"><span class="icon" aria-hidden="true"><i data-lucide="rectangle-horizontal"></i></span><span class="button-text">Rectangle</span></button></ui-toggle>
+              <ui-toggle value="circle"><button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="circle"><span class="icon" aria-hidden="true"><i data-lucide="circle"></i></span><span class="button-text">Cercle</span></button></ui-toggle>
+              <ui-toggle value="square"><button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="square"><span class="icon" aria-hidden="true"><i data-lucide="square"></i></span><span class="button-text">Carré</span></button></ui-toggle>
+              <ui-toggle value="heart"><button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="heart"><span class="icon" aria-hidden="true"><i data-lucide="heart"></i></span><span class="button-text">Cœur</span></button></ui-toggle>
+              <ui-toggle value="apple"><button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="apple"><span class="image-shape-apple-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M12 7.1C9.9 5 5.6 5.7 5.1 10.2c-.6 5.3 2.7 9.8 5.6 9.8 1.3 0 1.6-.8 2.6-.8s1.3.8 2.6.8c2.9 0 6.2-4.5 5.6-9.8C21 5.7 16.7 5 14.6 7.1L13.3 8.4z"/><path d="M13.1 5.9c.4-2.1 2-3.4 4.1-3.9.1 2.1-1.2 3.9-3.2 4.4"/></svg></span><span class="button-text">Pomme</span></button></ui-toggle>
+              <ui-toggle value="star"><button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="star"><span class="icon" aria-hidden="true"><i data-lucide="star"></i></span><span class="button-text">Étoile</span></button></ui-toggle>
+              <ui-toggle value="hexagon"><button class="mode-button" type="button" data-image-shape-slot="${slot}" data-image-shape="hexagon"><span class="icon" aria-hidden="true"><i data-lucide="hexagon"></i></span><span class="button-text">Hexagone</span></button></ui-toggle>
+              </ui-toggle-group>
+            </ui-collapsible-panel>`;
     return control;
   }
 
@@ -861,11 +847,11 @@ import {
                 <span class="icon" aria-hidden="true"><i data-lucide="move-horizontal"></i></span>
                 <span>Horizontal</span>
               </div>
-              <div class="button-group three position-buttons" role="group" aria-label="Position horizontale de ${label.toLowerCase()}">
-                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="0" aria-pressed="false" aria-label="${label} vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button>
-                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="0.5" aria-pressed="true" aria-label="${label} centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="1" aria-pressed="false" aria-label="${label} vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button>
-              </div>
+              <ui-toggle-group class="button-group three position-buttons" data-selection="position" data-image-slot="${slot}" data-axis="x" deselectable="false" aria-label="Position horizontale de ${label.toLowerCase()}">
+                <ui-toggle value="0"><button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="0" aria-label="${label} vers la gauche"><span class="icon" aria-hidden="true"><i data-lucide="arrow-left"></i></span></button></ui-toggle>
+                <ui-toggle value="0.5"><button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="0.5" aria-label="${label} centrée"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button></ui-toggle>
+                <ui-toggle value="1"><button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="x" data-position-value="1" aria-label="${label} vers la droite"><span class="icon" aria-hidden="true"><i data-lucide="arrow-right"></i></span></button></ui-toggle>
+              </ui-toggle-group>
               <div class="position-percent-wrap">
                 <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="${slot}" data-position-axis="x" aria-label="Position horizontale de ${label.toLowerCase()} en pourcentage">
                 <span aria-hidden="true">%</span>
@@ -876,11 +862,11 @@ import {
                 <span class="icon" aria-hidden="true"><i data-lucide="move-vertical"></i></span>
                 <span>Vertical</span>
               </div>
-              <div class="button-group three position-buttons" role="group" aria-label="Position verticale de ${label.toLowerCase()}">
-                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="0" aria-pressed="false" aria-label="${label} en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button>
-                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="0.5" aria-pressed="true" aria-label="${label} au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button>
-                <button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="1" aria-pressed="false" aria-label="${label} en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button>
-              </div>
+              <ui-toggle-group class="button-group three position-buttons" data-selection="position" data-image-slot="${slot}" data-axis="y" deselectable="false" aria-label="Position verticale de ${label.toLowerCase()}">
+                <ui-toggle value="0"><button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="0" aria-label="${label} en haut"><span class="icon" aria-hidden="true"><i data-lucide="arrow-up"></i></span></button></ui-toggle>
+                <ui-toggle value="0.5"><button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="0.5" aria-label="${label} au milieu"><span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span></button></ui-toggle>
+                <ui-toggle value="1"><button class="mode-button position-button" type="button" data-position-slot="${slot}" data-position-axis="y" data-position-value="1" aria-label="${label} en bas"><span class="icon" aria-hidden="true"><i data-lucide="arrow-down"></i></span></button></ui-toggle>
+              </ui-toggle-group>
               <div class="position-percent-wrap">
                 <input class="position-percent" type="number" min="0" max="100" step="1" value="50" data-position-input data-position-slot="${slot}" data-position-axis="y" aria-label="Position verticale de ${label.toLowerCase()} en pourcentage">
                 <span aria-hidden="true">%</span>
@@ -1070,11 +1056,11 @@ import {
   }
 
   function syncPreferenceControls() {
-    elements.textInput.value = state.text;
-    elements.fontSelect.value = state.textFont;
-    elements.fontSize.value = String(state.fontSize);
+    setControlValue(elements.textEditor, state.text);
+    setControlValue(elements.fontSelect, state.textFont);
+    setControlValue(elements.fontSize, state.fontSize);
     elements.fontSizeValue.textContent = String(state.fontSize);
-    elements.mirrorPrint.checked = state.mirrorPrint;
+    setControlFlag(elements.mirrorPrint, "checked", state.mirrorPrint);
     updateLayoutButtons();
     updateMinimalMode();
     updateFitButtons();
@@ -1109,9 +1095,9 @@ import {
     return MUG_LAYOUT_PRESETS[state.layoutPreset] || MUG_LAYOUT_PRESETS[DEFAULT_LAYOUT];
   }
 
-  function renderIcons() {
-    if (!window.lucide) return;
-    window.lucide.createIcons({
+  function renderIcons(root = document) {
+    window.lucide?.createIcons({
+      root,
       attrs: {
         "aria-hidden": "true",
         focusable: "false",
@@ -1162,7 +1148,7 @@ import {
     elements.productSwitchText.textContent = labels.switchLabel;
     elements.productSwitchButton.setAttribute("aria-label", labels.switchAria);
     elements.productSwitchIcon.innerHTML = `<i data-lucide="${labels.switchIcon}"></i>`;
-    renderIcons();
+    renderIcons(elements.productSwitchIcon);
   }
 
   function getActiveImageSlots() {
@@ -1231,10 +1217,12 @@ import {
       button.innerHTML = `
               <span class="icon" aria-hidden="true"><i data-lucide="${config.icon}"></i></span>
               <span class="wizard-label">${config.label}</span>`;
-      elements.wizardSteps.appendChild(button);
+      const action = document.createElement("ui-button");
+      action.appendChild(button);
+      elements.wizardSteps.appendChild(action);
     });
     elements.wizardStepButtons = Array.from(elements.wizardSteps.querySelectorAll("[data-wizard-go]"));
-    renderIcons();
+    renderIcons(elements.wizardSteps);
   }
 
   function buildImageShiftOverlay() {
@@ -1261,12 +1249,15 @@ import {
         icon.setAttribute("aria-hidden", "true");
         icon.innerHTML = `<i data-lucide="${config.icon}"></i>`;
         button.appendChild(icon);
-        pad.appendChild(button);
+        const action = document.createElement("ui-button");
+        action.appendChild(button);
+        pad.appendChild(action);
       });
 
       zone.appendChild(pad);
       elements.imageShiftOverlay.appendChild(zone);
     });
+    renderIcons(elements.imageShiftOverlay);
     updateImageShiftOverlay();
   }
 
@@ -1299,10 +1290,10 @@ import {
   function buildFontPreviewList() {
     elements.fontPreviewList.textContent = "";
     FONT_GROUPS.forEach((group) => {
-      const groupElement = document.createElement("div");
+      const groupElement = document.createElement("ui-select-group");
       groupElement.className = "font-preview-group";
 
-      const title = document.createElement("div");
+      const title = document.createElement("ui-select-group-label");
       title.className = "font-preview-group-title";
       title.textContent = group.label;
       groupElement.appendChild(title);
@@ -1310,19 +1301,19 @@ import {
       group.keys.forEach((fontKey) => {
         if (!FONT_OPTIONS[fontKey]) return;
 
-        const option = document.createElement("button");
-        option.type = "button";
+        const label = FONT_LABELS[fontKey] || fontKey;
+        const option = document.createElement("ui-select-item");
         option.className = "font-preview-option";
-        option.dataset.fontPreview = fontKey;
-        option.setAttribute("role", "option");
+        option.setAttribute("value", fontKey);
+        option.setAttribute("label", label);
 
         const name = document.createElement("span");
         name.className = "font-preview-name";
-        name.textContent = FONT_LABELS[fontKey] || fontKey;
+        name.textContent = label;
 
         const sample = document.createElement("span");
         sample.className = "font-preview-sample";
-        sample.dataset.fontPreviewSample = fontKey;
+        sample.setAttribute("aria-hidden", "true");
         sample.style.fontFamily = getFontFamily(fontKey);
 
         option.append(name, sample);
@@ -1331,73 +1322,6 @@ import {
 
       elements.fontPreviewList.appendChild(groupElement);
     });
-    updateFontPreviewSelection();
-  }
-
-  function toggleFontPreviewPopover(event) {
-    event.stopPropagation();
-    if (elements.fontPreviewPopover.hidden) {
-      openFontPreviewPopover();
-      return;
-    }
-    closeFontPreviewPopover();
-  }
-
-  function openFontPreviewPopover() {
-    updateFontPreviewSamples();
-    elements.fontPreviewPopover.hidden = false;
-    elements.fontPreviewPopover.style.visibility = "hidden";
-    positionFontPreviewPopover();
-    elements.fontPreviewPopover.style.visibility = "";
-    elements.fontPreviewButton.setAttribute("aria-expanded", "true");
-
-    const selectedOption = getSelectedFontPreviewOption();
-    if (!selectedOption) return;
-    selectedOption.scrollIntoView({ block: "nearest" });
-    selectedOption.focus({ preventScroll: true });
-  }
-
-  function closeFontPreviewPopover() {
-    if (elements.fontPreviewPopover.hidden) return;
-    elements.fontPreviewPopover.hidden = true;
-    elements.fontPreviewButton.setAttribute("aria-expanded", "false");
-  }
-
-  function positionFontPreviewPopover() {
-    const buttonRect = elements.fontPreviewButton.getBoundingClientRect();
-    const popoverWidth = elements.fontPreviewPopover.offsetWidth || 420;
-    const popoverHeight = elements.fontPreviewPopover.offsetHeight || 420;
-    const margin = 12;
-    const maxLeft = Math.max(margin, window.innerWidth - popoverWidth - margin);
-    const left = Math.min(Math.max(buttonRect.right - popoverWidth, margin), maxLeft);
-    const belowTop = buttonRect.bottom + 8;
-    const aboveTop = buttonRect.top - popoverHeight - 8;
-    const top = belowTop + popoverHeight <= window.innerHeight - margin
-      ? belowTop
-      : Math.max(margin, aboveTop);
-
-    elements.fontPreviewPopover.style.left = `${left}px`;
-    elements.fontPreviewPopover.style.top = `${top}px`;
-  }
-
-  function handleFontPreviewKeydown(event) {
-    const options = getFontPreviewOptions();
-    const currentIndex = options.indexOf(document.activeElement);
-    if (currentIndex === -1) return;
-
-    let nextIndex = currentIndex;
-    if (event.key === "ArrowDown") nextIndex = Math.min(options.length - 1, currentIndex + 1);
-    else if (event.key === "ArrowUp") nextIndex = Math.max(0, currentIndex - 1);
-    else if (event.key === "Home") nextIndex = 0;
-    else if (event.key === "End") nextIndex = options.length - 1;
-    else return;
-
-    event.preventDefault();
-    options.forEach((option) => {
-      option.tabIndex = -1;
-    });
-    options[nextIndex].tabIndex = 0;
-    options[nextIndex].focus();
   }
 
   function updateFontPreviewSamples() {
@@ -1407,7 +1331,7 @@ import {
     const fontStyle = state.textFormat.italic ? "italic" : "normal";
     const textShadow = state.textFormat.shadow ? "0 3px 5px rgba(0, 0, 0, 0.22)" : "none";
 
-    elements.fontPreviewList.querySelectorAll("[data-font-preview-sample]").forEach((sample) => {
+    elements.fontPreviewList.querySelectorAll(".font-preview-sample").forEach((sample) => {
       sample.textContent = previewText;
       sample.dir = direction;
       sample.style.color = state.textColor;
@@ -1416,23 +1340,6 @@ import {
       sample.style.textShadow = textShadow;
       sample.style.webkitTextStroke = state.textFormat.outline ? `1px ${state.outlineColor}` : "";
     });
-    updateFontPreviewSelection();
-  }
-
-  function updateFontPreviewSelection() {
-    getFontPreviewOptions().forEach((option) => {
-      const isSelected = option.dataset.fontPreview === state.textFont;
-      option.setAttribute("aria-selected", isSelected ? "true" : "false");
-      option.tabIndex = isSelected ? 0 : -1;
-    });
-  }
-
-  function getFontPreviewOptions() {
-    return Array.from(elements.fontPreviewList.querySelectorAll("[data-font-preview]"));
-  }
-
-  function getSelectedFontPreviewOption() {
-    return getFontPreviewOptions().find((option) => option.dataset.fontPreview === state.textFont);
   }
 
   function* splitGraphemes(text) {
@@ -1477,9 +1384,7 @@ import {
   }
 
   function updateLayoutButtons() {
-    elements.layoutButtons.forEach((button) => {
-      button.setAttribute("aria-pressed", state.layoutPreset === button.dataset.layout ? "true" : "false");
-    });
+    syncChoices("layout", group => productStates[group.dataset.product].layoutPreset);
   }
 
   function setMinimalMode(isEnabled) {
@@ -1488,7 +1393,7 @@ import {
     if (state.minimalMode) {
       applyQuickModeDefaults();
       state.mirrorPrint = true;
-      elements.mirrorPrint.checked = true;
+      setControlFlag(elements.mirrorPrint, "checked", true);
       wizardStep = getWizardSteps()[getUnlockedWizardStepIndex()];
       updateLayoutButtons();
       updateFitButtons();
@@ -1519,10 +1424,12 @@ import {
   }
 
   function updateMinimalMode() {
-    elements.minimalMode.checked = state.minimalMode;
+    setControlFlag(elements.minimalMode, "checked", state.minimalMode);
     document.body.classList.toggle("minimal-mode", state.minimalMode);
-    elements.textAppearance.open = !state.minimalMode;
-    elements.imageShapeControls.forEach((control) => { control.open = !state.minimalMode; });
+    setControlFlag(elements.textAppearance, "open", !state.minimalMode);
+    elements.imageShapeControls.forEach((control) => {
+      setControlFlag(control, "open", !state.minimalMode);
+    });
   }
 
   function setQuickTextEditor(isEditing) {
@@ -1543,7 +1450,7 @@ import {
   function updateQuickTextEditorUI() {
     const isAvailable = state.minimalMode && wizardStep === "text";
     if (!isAvailable) quickTextEditing = false;
-    if (state.minimalMode && !quickTextEditing) elements.textAppearance.open = false;
+    if (state.minimalMode && !quickTextEditing) setControlFlag(elements.textAppearance, "open", false);
     document.body.classList.toggle("quick-text-editor", quickTextEditing);
     elements.quickTextEditButtonText.textContent = hasTextEntry()
       ? "Modifier le texte"
@@ -1589,6 +1496,9 @@ import {
   function handleWizardEnterKey(event) {
     if (
       !state.minimalMode ||
+      event.defaultPrevented ||
+      elements.cropDialog.open ||
+      elements.clearDialog.open ||
       event.key !== "Enter" ||
       event.shiftKey ||
       event.altKey ||
@@ -1600,7 +1510,7 @@ import {
     }
 
     const target = event.target instanceof Element ? event.target : null;
-    if (target?.closest(".font-preview-popover")) return;
+    if (target?.closest("ui-select, ui-slider, ui-checkbox, ui-switch")) return;
     if (target?.closest("button, select, input[type='color']") && target !== elements.textInput) return;
     if (quickTextEditing && target === elements.textInput) return;
     if (!canProceedWizardStep(wizardStep)) return;
@@ -1701,16 +1611,16 @@ import {
 
     elements.wizardStepButtons.forEach((button) => {
       const index = steps.indexOf(button.dataset.wizardGo);
-      const isCurrent = button.dataset.wizardGo === wizardStep;
-      button.disabled = index > unlockedIndex;
-      button.setAttribute("aria-current", isCurrent ? "step" : "false");
+      const current = button.dataset.wizardGo === wizardStep ? "step" : "false";
+      setActionDisabled(button, index > unlockedIndex);
+      if (button.getAttribute("aria-current") !== current) button.setAttribute("aria-current", current);
     });
 
     const isDone = wizardStep === "done";
     elements.wizardNav.hidden = !state.minimalMode;
     elements.wizardNext.hidden = isDone;
-    elements.wizardBack.disabled = steps.indexOf(wizardStep) === 0;
-    elements.wizardNext.disabled = !quickTextEditing && !canProceedWizardStep(wizardStep);
+    setActionDisabled(elements.wizardBack, steps.indexOf(wizardStep) === 0);
+    setActionDisabled(elements.wizardNext, !quickTextEditing && !canProceedWizardStep(wizardStep));
     elements.wizardNextText.textContent = quickTextEditing
       ? "Terminer le texte"
       : wizardStep === "text"
@@ -1774,8 +1684,13 @@ import {
   function updatePreviewActionButton() {
     const config = getPreviewAction();
     elements.previewActionButton.dataset.previewAction = config.action;
-    elements.previewActionButton.disabled =
-      config.action === "next" && !quickTextEditing && !canProceedWizardStep(wizardStep);
+    const action = elements.previewActionButton.closest("ui-button");
+    if (config.action === "print") action.setAttribute("data-agent-confirm", "Ouvre l’impression du visuel.");
+    else action.removeAttribute("data-agent-confirm");
+    setActionDisabled(
+      elements.previewActionButton,
+      config.action === "next" && !quickTextEditing && !canProceedWizardStep(wizardStep),
+    );
     elements.previewActionText.textContent = config.label;
     updatePreviewActionIcon(config.icon);
   }
@@ -1783,47 +1698,9 @@ import {
   function updatePreviewActionIcon(icon) {
     if (elements.previewActionIcon.dataset.icon === icon) return;
 
-    const createIconLayer = () => {
-      const layer = document.createElement("span");
-      layer.className = "preview-action-icon-layer";
-      layer.innerHTML = `<i data-lucide="${icon}"></i>`;
-      return layer;
-    };
-
-    const hasInitialized = Boolean(elements.previewActionIcon.dataset.icon);
-    if (!hasInitialized) {
-      const initialLayer = createIconLayer();
-      initialLayer.classList.add("is-current");
-      elements.previewActionIcon.replaceChildren(initialLayer);
-      elements.previewActionIcon.dataset.icon = icon;
-      renderIcons();
-      return;
-    }
-
-    elements.previewActionIcon
-      .querySelectorAll(".preview-action-icon-layer")
-      .forEach((layer) => {
-        layer.classList.remove("is-current");
-        layer.classList.add("is-exiting");
-      });
-    const incoming = createIconLayer();
-    elements.previewActionIcon.appendChild(incoming);
+    elements.previewActionIcon.innerHTML = `<i data-lucide="${icon}"></i>`;
     elements.previewActionIcon.dataset.icon = icon;
-    renderIcons();
-
-    window.requestAnimationFrame(() => {
-      if (elements.previewActionIcon.dataset.icon !== icon) {
-        incoming.remove();
-        return;
-      }
-      incoming.classList.add("is-current");
-    });
-
-    window.setTimeout(() => {
-      elements.previewActionIcon
-        .querySelectorAll(".preview-action-icon-layer.is-exiting")
-        .forEach((layer) => layer.remove());
-    }, 320);
+    renderIcons(elements.previewActionIcon);
   }
 
   function handlePreviewAction() {
@@ -1833,21 +1710,15 @@ import {
     if (action.endsWith("-upload")) {
       const slot = action.replace(/-upload$/, "");
       const input = getImageInput(slot);
-      if (input) input.click();
+      if (input?.api) {
+        input.api.open();
+      } else if (input) {
+        elements.previewFileInput.dataset.imageSlot = slot;
+        elements.previewFileInput.click();
+      }
       return;
     }
-    if (action === "left-upload") {
-      elements.leftImage.click();
-      return;
-    }
-    if (action === "right-upload") {
-      elements.rightImage.click();
-      return;
-    }
-    if (action === "print") {
-      printMug();
-      return;
-    }
+    if (action === "print") return printMug();
 
     goToNextWizardStep();
   }
@@ -1873,10 +1744,7 @@ import {
   }
 
   function updateFitButtons() {
-    elements.fitButtons.forEach((button) => {
-      const isActive = state.fitModes[button.dataset.fitSlot] === button.dataset.fitMode;
-      button.setAttribute("aria-pressed", isActive ? "true" : "false");
-    });
+    syncChoices("fit", group => state.fitModes[group.dataset.imageSlot]);
   }
 
   function setImageShape(slot, shape) {
@@ -1887,7 +1755,7 @@ import {
       const control = elements.imageShapeControls.find((item) => item.dataset.imageShapeControl === slot);
       if (control?.open) {
         control.open = false;
-        control.querySelector("summary").focus();
+        control.api.focus();
       }
     }
     updateImageShapeControls();
@@ -1902,10 +1770,7 @@ import {
     elements.imageShapeControls.forEach((control) => {
       control.hidden = !state.images[control.dataset.imageShapeControl];
     });
-    elements.imageShapeButtons.forEach((button) => {
-      const isActive = state.imageShapes[button.dataset.imageShapeSlot] === button.dataset.imageShape;
-      button.setAttribute("aria-pressed", isActive ? "true" : "false");
-    });
+    syncChoices("shape", group => state.imageShapes[group.dataset.imageSlot]);
     updateQuickCenterImageControl();
   }
 
@@ -1936,8 +1801,7 @@ import {
     state.images[slot] = null;
     state.imagePositions[slot] = { ...DEFAULT_IMAGE_POSITION };
     state.imageScales[slot] = DEFAULT_IMAGE_SCALE;
-    const input = getImageInput(slot);
-    if (input) input.value = "";
+    getImageInput(slot)?.api?.clear();
     setFileName(slot, DEFAULT_FILE_LABELS[slot]);
     updateRemoveButtons();
     updateCropButtons();
@@ -1953,13 +1817,9 @@ import {
   }
 
   function updatePositionControls() {
-    elements.positionControls.forEach((control) => {
-      const position = state.imagePositions[control.dataset.positionSlot];
-      if (!position) return;
-      const current = position[control.dataset.positionAxis];
-      const target = Number(control.dataset.positionValue);
-      const isActive = Math.abs(current - target) < 0.0001;
-      control.setAttribute("aria-pressed", isActive ? "true" : "false");
+    syncChoices("position", group => {
+      const value = state.imagePositions[group.dataset.imageSlot]?.[group.dataset.axis];
+      if ([0, 0.5, 1].includes(value)) return String(value);
     });
     elements.positionInputs.forEach((input) => {
       const position = state.imagePositions[input.dataset.positionSlot];
@@ -1994,14 +1854,16 @@ import {
   function updateColorControls() {
     elements.textColor.value = state.textColor;
     elements.outlineColor.value = state.outlineColor;
-    elements.colorPresetButtons.forEach((button) => {
-      button.setAttribute("aria-pressed", normalizeHex(button.dataset.color) === state.textColor ? "true" : "false");
+    syncChoices("color", group => {
+      if (group.querySelector(`ui-toggle[value="${state.textColor}"]`)) return state.textColor;
     });
-    elements.outlinePresetButtons.forEach((button) => {
+    let activeOutline;
+    for (const button of elements.outlinePresetButtons) {
       const color = getOutlineColorFromPreset(button.dataset.outlinePreset);
       button.style.background = color;
-      button.setAttribute("aria-pressed", normalizeHex(color) === state.outlineColor ? "true" : "false");
-    });
+      if (normalizeHex(color) === state.outlineColor) activeOutline ??= button.dataset.outlinePreset;
+    }
+    syncChoices("outline", () => activeOutline);
   }
 
   function getOutlineColorFromPreset(presetId) {
@@ -2010,9 +1872,7 @@ import {
   }
 
   function updateTextFormatButtons() {
-    elements.textFormatButtons.forEach((button) => {
-      button.setAttribute("aria-pressed", state.textFormat[button.dataset.textFormat] ? "true" : "false");
-    });
+    syncChoices("format", () => Object.keys(state.textFormat).filter(key => state.textFormat[key]));
   }
 
   function setTextPosition(position) {
@@ -2025,9 +1885,7 @@ import {
   }
 
   function updateTextPositionButtons() {
-    elements.textPositionButtons.forEach((button) => {
-      button.setAttribute("aria-pressed", state.textPosition === button.dataset.textPosition ? "true" : "false");
-    });
+    syncChoices("text-position", () => state.textPosition);
   }
 
   function setTextShape(shape) {
@@ -2040,16 +1898,14 @@ import {
   }
 
   function updateTextShapeButtons() {
-    elements.textShapeButtons.forEach((button) => {
-      button.setAttribute("aria-pressed", state.textShape === button.dataset.textShape ? "true" : "false");
-    });
+    syncChoices("text-shape", () => state.textShape);
   }
 
   function setTextFont(fontKey) {
-    state.textFont = FONT_OPTIONS[fontKey] ? fontKey : DEFAULT_TEXT_FONT;
-    elements.fontSelect.value = state.textFont;
-    updateFontPreviewSelection();
+    if (!FONT_OPTIONS[fontKey] || state.textFont === fontKey) return;
+    state.textFont = fontKey;
     saveDefaultPreferences();
+    setStatus("Police choisie");
     render();
     ensureTextFontLoaded().then(render);
   }
@@ -2064,32 +1920,38 @@ import {
     }
   }
 
-  async function handleFile(event, slot) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-
+  async function handleFile(file, slot) {
+    const input = getImageInput(slot);
+    const targetState = state;
     elements.uploadError.hidden = true;
     try {
-      const image = await loadImage(file);
-      const item = {
+      const [image] = await Promise.all([
+        loadImage(file),
+        customElements.whenDefined("ui-dialog-content"),
+      ]);
+      if (state !== targetState || input.value[0] !== file) return;
+      openImageCropDialog(slot, {
         image,
         name: file.name,
         width: image.naturalWidth,
         height: image.naturalHeight,
-      };
-      openImageCropDialog(slot, item);
-    } catch (error) {
-      console.error(error);
-      event.target.value = "";
-      const message = "Impossible de lire cette image. Essayez un fichier JPEG, PNG ou WebP.";
-      const container = state.minimalMode
-        ? slot === "center" ? elements.quickCenterImage : elements.preview
-        : event.target.closest(".upload-row") || elements.preview;
-      container.appendChild(elements.uploadError);
-      elements.uploadError.textContent = message;
-      elements.uploadError.hidden = false;
-      setStatus(message, true);
+      });
+    } catch {
+      if (state !== targetState || input.value[0] !== file) return;
+      input.api.clear();
+      showUploadError(slot);
     }
+  }
+
+  function showUploadError(slot) {
+    const message = "Impossible de lire cette image. Essayez un fichier JPEG, PNG ou WebP.";
+    const container = state.minimalMode
+      ? slot === "center" ? elements.quickCenterImage : elements.preview
+      : getImageInput(slot)?.closest(".upload-row") || elements.preview;
+    container.appendChild(elements.uploadError);
+    elements.uploadError.textContent = message;
+    elements.uploadError.hidden = false;
+    setStatus(message, true);
   }
 
   function loadImage(file) {
@@ -2106,13 +1968,13 @@ import {
     });
   }
 
-  function openImageCropDialog(slot, item, opener = null) {
+  function openImageCropDialog(slot, item) {
     const existingItem = state.images[slot];
     const isReframingCurrentImage = existingItem === item;
-    cropDialogOpener = opener || document.activeElement;
     cropDraft = {
       slot,
       item,
+      opener: document.activeElement,
       edges: { ...FULL_CROP, ...item.edges },
       offset: { x: 0, y: 0, ...item.offset },
       mode: isReframingCurrentImage ? state.fitModes[slot] : "cut",
@@ -2141,16 +2003,9 @@ import {
       thumbnail.src = item.image.src;
       thumbnail.style.aspectRatio = target.width / target.height;
     });
-    if (!elements.cropDialog.open) elements.cropDialog.showModal();
-    updateCropMode();
-    elements.cropModes.find((button) => button.dataset.cropMode === cropDraft.mode).focus();
-  }
-
-  function updateCropMode() {
-    elements.cropModes.forEach((button) => {
-      button.setAttribute("aria-pressed", String(button.dataset.cropMode === cropDraft.mode));
-    });
-    elements.cropDialog.dataset.mode = cropDraft.mode;
+    syncChoices("crop-mode", () => cropDraft.mode);
+    elements.cropDialogContent.removeAttribute("final-focus");
+    elements.cropDialog.api.open();
     updateCropLayout();
   }
 
@@ -2205,7 +2060,7 @@ import {
     const cut = getCutBounds(frame, cropDraft.edges);
     const sourceScale = cropDraft.item.width / frame.width;
     const printable = getPrintableCrop(frame, cut);
-    elements.cropApplyButton.disabled = !printable;
+    setActionDisabled(elements.cropApplyButton, !printable);
     elements.cropDimensions.textContent = printable
       ? `${Math.round(printable.width * sourceScale)} × ${Math.round(printable.height * sourceScale)} px imprimables`
       : "Aucun pixel imprimable · Centrer";
@@ -2248,7 +2103,7 @@ import {
     elements.cropOffcut.style.height = `${frame.height}px`;
     elements.cropOffcut.style.left = `${elements.cropViewport.offsetLeft + frame.x}px`;
     elements.cropOffcut.style.top = `${elements.cropViewport.offsetTop + frame.y}px`;
-    elements.cropZoom.value = String(cropDraft.scale);
+    setControlValue(elements.cropZoom, cropDraft.scale);
     elements.cropZoomValue.textContent = `${Math.round(cropDraft.scale * 100)} %`;
   }
 
@@ -2336,23 +2191,14 @@ import {
     updateCropLayout();
   }
 
-  function closeImageCrop() {
+  function clearCropDraft() {
     const input = cropDraft ? getImageInput(cropDraft.slot) : null;
-    if (elements.cropDialog.open) elements.cropDialog.close();
-    if (input) input.value = "";
+    cropDraft = null;
+    cropDrag = null;
+    input?.api?.clear();
     elements.cropPreviewImage.removeAttribute("src");
     elements.cropOffcut.removeAttribute("src");
     elements.cropModes.forEach((button) => button.querySelector("img").removeAttribute("src"));
-    cropDraft = null;
-    cropDrag = null;
-    const opener = cropDialogOpener;
-    cropDialogOpener = null;
-    if (opener instanceof HTMLElement) opener.focus();
-  }
-
-  function cancelImageCrop() {
-    closeImageCrop();
-    setStatus("Cadrage annulé");
   }
 
   function applyImageCrop() {
@@ -2371,7 +2217,11 @@ import {
     updateImageShapeControls();
     updatePositionControls();
     updateWizardUI();
-    closeImageCrop();
+    if (cropDraft.opener === elements.previewActionButton && !elements.previewActionButton.offsetHeight) {
+      elements.cropDialogContent.setAttribute("final-focus", "#wizardNext");
+    }
+    elements.cropDialog.api.close({ returnValue: "apply" });
+    clearCropDraft();
     setStatus(mode === "cut" ? "Image cadrée" : "Image entière ajoutée");
     render();
   }
@@ -2426,7 +2276,7 @@ import {
   }
 
   function resizeStage() {
-    const area = document.querySelector(".stage-area");
+    const area = elements.stageArea;
     const layout = getPreviewPhysicalLayout();
     const styles = getComputedStyle(area);
     const actionHeight = elements.previewActionButton.offsetHeight;
@@ -2443,21 +2293,26 @@ import {
     );
     const width = Math.round(layout.widthMm * scale);
     const height = Math.round(layout.heightMm * scale);
-    previewScale = Math.max(width / exportWidth, height / exportHeight);
-    previewOffset = {
-      x: (width - exportWidth * previewScale) / 2,
-      y: (height - exportHeight * previewScale) / 2,
+    const nextScale = Math.max(width / exportWidth, height / exportHeight);
+    const nextOffset = {
+      x: (width - exportWidth * nextScale) / 2,
+      y: (height - exportHeight * nextScale) / 2,
     };
-    stage.width(width);
-    stage.height(height);
+    if (
+      stage.width() === width && stage.height() === height &&
+      previewScale === nextScale && previewOffset.x === nextOffset.x && previewOffset.y === nextOffset.y
+    ) return;
+
+    previewScale = nextScale;
+    previewOffset = nextOffset;
     contentLayer.scale({ x: previewScale, y: previewScale });
     contentLayer.position(previewOffset);
     guideLayer.scale({ x: previewScale, y: previewScale });
     guideLayer.position(previewOffset);
+    stage.size({ width, height });
     elements.stageFrame.style.width = `${width}px`;
     elements.stageFrame.style.height = `${height}px`;
     updateImageShiftOverlay();
-    render();
   }
 
   function render() {
@@ -2849,13 +2704,13 @@ import {
     state.textFits = fits;
     if (elements.textFitWarning.hidden === fits) return;
     elements.textFitWarning.hidden = fits;
-    elements.textInput.setAttribute("aria-invalid", String(!fits));
+    setControlFlag(elements.textField, "invalid", !fits);
     if (fits) elements.textInput.removeAttribute("aria-describedby");
     else elements.textInput.setAttribute("aria-describedby", "textFitWarning");
-    elements.downloadButton.disabled = !fits;
-    elements.downloadMirrorButton.disabled = !fits;
-    elements.addToPageButton.disabled = !fits;
-    elements.printButton.disabled = !fits && !printQueue.length;
+    setActionDisabled(elements.downloadButton, !fits);
+    setActionDisabled(elements.downloadMirrorButton, !fits);
+    setActionDisabled(elements.addToPageButton, !fits);
+    setActionDisabled(elements.printButton, !fits && !printQueue.length);
     updateWizardUI();
   }
 
@@ -2964,24 +2819,23 @@ import {
     render();
     if (state.textFits === false) return;
     const canvas = createExportCanvas({ mirror: Boolean(options.mirror) });
+    const downloadName = PRODUCT_LABELS[activeProduct].downloadName;
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+    if (!blob) {
+      setStatus("Impossible de créer le PNG.", true);
+      return;
+    }
 
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        setStatus("Impossible de créer le PNG.", true);
-        return;
-      }
-
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      const suffix = options.mirror ? "-miroir" : "";
-      anchor.download = `${PRODUCT_LABELS[activeProduct].downloadName}${suffix}-${new Date().toISOString().slice(0, 10)}.png`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-      setStatus("PNG téléchargé");
-    }, "image/png");
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    const suffix = options.mirror ? "-miroir" : "";
+    anchor.download = `${downloadName}${suffix}-${new Date().toISOString().slice(0, 10)}.png`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+    setStatus("PNG téléchargé");
   }
 
   async function addToPage() {
@@ -3011,16 +2865,14 @@ import {
   }
 
   function updateSheetLayoutButtons() {
-    elements.sheetOptions.forEach((button) => {
-      button.setAttribute("aria-pressed", button.dataset.sheetLayout === sheetLayout ? "true" : "false");
-    });
+    syncChoices("sheet", () => sheetLayout);
   }
 
   function updateQueueUI() {
     const count = printQueue.length;
     const labels = PRODUCT_LABELS[activeProduct];
     elements.queuePanel.hidden = count === 0;
-    elements.printButton.disabled = state.textFits === false && count === 0;
+    setActionDisabled(elements.printButton, state.textFits === false && count === 0);
     const printText = elements.printButton.querySelector(".button-text");
     if (printText) {
       printText.textContent = count
@@ -3033,8 +2885,8 @@ import {
     queueIndex = Math.max(0, Math.min(queueIndex, count - 1));
     elements.queueLabel.textContent = `${labels.queueItemLabel} ${queueIndex + 1} / ${count}`;
     elements.queueThumb.src = printQueue[queueIndex];
-    elements.queuePrev.disabled = queueIndex === 0;
-    elements.queueNext.disabled = queueIndex === count - 1;
+    setActionDisabled(elements.queuePrev, queueIndex === 0);
+    setActionDisabled(elements.queueNext, queueIndex === count - 1);
   }
 
   async function printMug() {
@@ -3370,14 +3222,6 @@ import {
   }
 
   function clearAll() {
-    const confirmed = window.confirm(
-      "Supprimer tout le design ? Cette action efface les images, le texte et les réglages.",
-    );
-    if (!confirmed) {
-      setStatus("Suppression annulée");
-      return;
-    }
-
     state = activeProduct === PRODUCT_MOUSEPAD
       ? createMousePadState(getFactoryPreferences())
       : createMugState(getFactoryPreferences());
@@ -3395,33 +3239,19 @@ import {
       quickTextEditing,
     };
     getActiveImageSlots().forEach((slot) => {
-      const input = getImageInput(slot);
-      if (input) input.value = "";
+      getImageInput(slot)?.api?.clear();
       setFileName(slot, DEFAULT_FILE_LABELS[slot]);
     });
-    elements.textInput.value = "";
     updateProductUI();
     updateMousePadRows();
     buildImageShiftOverlay();
     rebuildWizardSteps();
-    updateLayoutButtons();
-    updateMinimalMode();
+    syncPreferenceControls();
     updateWizardUI();
     updatePositionControls();
     updateRemoveButtons();
     updateCropButtons();
-    updateImageShapeControls();
-    elements.fontSelect.value = state.textFont;
-    elements.fontSize.value = String(state.fontSize);
-    elements.fontSizeValue.textContent = String(state.fontSize);
-    elements.mirrorPrint.checked = state.mirrorPrint;
-    updateTextFormatButtons();
-    updateTextPositionButtons();
-    updateTextShapeButtons();
-    updateColorControls();
     updateFontPreviewSamples();
-    updateFitButtons();
-    updateSheetLayoutButtons();
     updateQueueUI();
     saveDefaultPreferences();
     setStatus("Prêt");
