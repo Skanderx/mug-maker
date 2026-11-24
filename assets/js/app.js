@@ -618,13 +618,14 @@ import {
   bindPendingAction(elements.downloadMirrorButton, () => downloadPng({ mirror: true }));
   bindPendingAction(elements.printButton, printMug);
 
-  // Ctrl+P / Cmd+P prints the generated paper, not the editor page
-  document.addEventListener("keydown", (event) => {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "p") {
-      event.preventDefault();
-      if (!elements.cropDialog.open && !elements.clearDialog.open) printMug();
-    }
-  });
+  window.addEventListener("keydown", (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey ||
+        event.key.toLowerCase() !== "p") return;
+    event.preventDefault();
+    if (!event.repeat && !elements.cropDialog.open && !elements.clearDialog.open) printMug();
+  }, true);
+  window.addEventListener("beforeprint", prepareBrowserPrint);
+  window.addEventListener("afterprint", () => document.querySelector("#printPaper").replaceChildren());
 
   elements.mirrorPrint.addEventListener("checkedchange", ({ detail }) => {
     state.mirrorPrint = detail.value;
@@ -1459,7 +1460,8 @@ import {
         elements.textInput.setSelectionRange(end, end);
         return;
       }
-      elements.quickTextEditButton.focus();
+      const next = canProceedWizardStep("text") ? elements.wizardNext : elements.quickTextEditButton;
+      next.focus();
     });
   }
 
@@ -1513,7 +1515,6 @@ import {
     if (
       !state.minimalMode ||
       event.defaultPrevented ||
-      elements.cropDialog.open ||
       elements.clearDialog.open ||
       event.key !== "Enter" ||
       event.shiftKey ||
@@ -1525,33 +1526,46 @@ import {
       return;
     }
 
-    const target = event.target instanceof Element ? event.target : null;
-    if (target?.closest("ui-select, ui-slider, ui-checkbox, ui-switch")) return;
-    if (target?.closest("button, select, input[type='color']") && target !== elements.textInput) return;
-    if (quickTextEditing && target === elements.textInput) return;
-    if (!canProceedWizardStep(wizardStep)) return;
+    if (event.repeat) {
+      event.preventDefault();
+      return;
+    }
 
-    event.preventDefault();
-    goToNextWizardStep();
+    const target = event.target instanceof Element ? event.target : null;
+    if (target !== elements.textInput &&
+        target?.closest("button, input, select, textarea, a[href], [contenteditable], ui-select, ui-slider, ui-checkbox, ui-switch")) return;
+
+    const action = elements.cropDialog.open ? elements.cropApplyButton : getWizardPrimaryButton();
+    if (!action.disabled) {
+      event.preventDefault();
+      action.focus();
+      action.click();
+    }
+  }
+
+  function getWizardPrimaryButton() {
+    if (wizardStep === "done") return elements.printButton;
+    if (wizardStep === "text") {
+      return !quickTextEditing && !hasTextEntry() ? elements.quickTextEditButton : elements.wizardNext;
+    }
+    if (wizardStep !== "background" && getPreviewAction().action.endsWith("-upload")) {
+      return elements.previewActionButton;
+    }
+    return elements.wizardNext;
   }
 
   function focusWizardStep() {
     if (!state.minimalMode) return;
 
     window.requestAnimationFrame(() => {
-      if (wizardStep === "text") {
-        const textControl = quickTextEditing ? elements.textInput : elements.quickTextEditButton;
-        textControl.focus();
-        if (quickTextEditing) {
-          const end = elements.textInput.value.length;
-          elements.textInput.setSelectionRange(end, end);
-        }
+      if (wizardStep === "text" && quickTextEditing) {
+        elements.textInput.focus();
+        const end = elements.textInput.value.length;
+        elements.textInput.setSelectionRange(end, end);
         return;
       }
 
-      if (wizardStep === "done") {
-        elements.printButton.focus();
-      }
+      getWizardPrimaryButton().focus();
     });
   }
 
@@ -2920,24 +2934,15 @@ import {
     }
 
     await ensureTextFontLoaded();
-    const single = printQueue.length === 0;
-    if (single) {
-      render();
-      if (state.textFits === false) {
-        printWindow?.close();
-        return;
-      }
+    const job = getPrintJob();
+    if (!job) {
+      printWindow?.close();
+      return;
     }
-    const images = single
-      ? [createExportCanvas().toDataURL("image/png")]
-      : printQueue.slice();
-    const layout = activeProduct === PRODUCT_MOUSEPAD
-      ? MOUSEPAD_PRINT_LAYOUT
-      : SHEET_LAYOUTS[sheetLayout];
-    const perPage = activeProduct === PRODUCT_MOUSEPAD ? 1 : single ? 1 : layout.perPage;
+    const { images, layout, perPage, product } = job;
     const printMarkup = createPrintMarkup(images, layout, perPage, {
       standalone: Boolean(printWindow),
-      product: activeProduct,
+      product,
     });
 
     if (printWindow) {
@@ -2979,7 +2984,33 @@ import {
           }),
       ),
     ).then(runPrint);
-    setStatus(single ? "Fenêtre d'impression ouverte" : `Impression de ${images.length} création(s)`);
+    setStatus(printQueue.length ? `Impression de ${images.length} création(s)` : "Fenêtre d'impression ouverte");
+  }
+
+  function getPrintJob() {
+    const single = printQueue.length === 0;
+    if (single) {
+      render();
+      if (state.textFits === false) return null;
+    }
+
+    const product = activeProduct;
+    const layout = product === PRODUCT_MOUSEPAD ? MOUSEPAD_PRINT_LAYOUT : SHEET_LAYOUTS[sheetLayout];
+    const images = single ? [createExportCanvas().toDataURL("image/png")] : printQueue.slice();
+    const perPage = product === PRODUCT_MOUSEPAD || single ? 1 : layout.perPage;
+    return { images, layout, perPage, product };
+  }
+
+  function prepareBrowserPrint() {
+    const paper = document.querySelector("#printPaper");
+    const job = getPrintJob();
+    if (!job) {
+      paper.replaceChildren();
+      return;
+    }
+    const { images, layout, perPage, product } = job;
+    const { styles, sheets } = createPrintPaper(images, layout, perPage, product);
+    paper.innerHTML = `<style media="print">${styles}</style>${sheets}`;
   }
 
   function shouldUseStandalonePrintWindow() {
@@ -2988,13 +3019,10 @@ import {
     return /iPad|iPhone|iPod/.test(userAgent) || isiPadOSDesktopMode;
   }
 
-  function createPrintMarkup(images, layout, perPage, options = {}) {
-    const product = options.product || PRODUCT_MUG;
+  function createPrintPaper(images, layout, perPage, product) {
     const isMousePad = product === PRODUCT_MOUSEPAD;
     const cutOffset = layout.gapMm > 0 ? `-${layout.gapMm / 2}mm` : "0";
     const mirrorClass = state.mirrorPrint ? " mirror" : "";
-    const standalone = Boolean(options.standalone);
-    const labels = PRODUCT_LABELS[product];
     const sheets = [];
 
     for (let index = 0; index < images.length; index += perPage) {
@@ -3005,6 +3033,55 @@ import {
       sheets.push(`<div class="sheet">${cells}</div>`);
     }
 
+    const styles = `
+      @page { size: A4 ${isMousePad ? "landscape" : "portrait"}; margin: 0; }
+      .sheet {
+        width: ${isMousePad ? 297 : 210}mm;
+        height: ${isMousePad ? 210 : 297}mm;
+        box-sizing: border-box;
+        page-break-after: always;
+        break-after: page;
+        ${isMousePad ? "display: flex; align-items: flex-start; justify-content: flex-start;" : ""}
+      }
+      .sheet:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      .cell {
+        position: relative;
+        flex-shrink: 0;
+        width: ${layout.widthMm}mm;
+        height: ${layout.heightMm}mm;
+        margin: ${isMousePad ? "0" : `0 auto ${layout.gapMm}mm auto`};
+      }
+      .cell img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+      }
+      .cell.mirror img {
+        transform: scaleX(-1);
+      }
+      .cell::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: ${cutOffset};
+        border-bottom: 0.2mm dashed rgba(23, 32, 42, 0.45);
+        ${isMousePad ? "display: none;" : ""}
+      }
+    `;
+    return { styles, sheets: sheets.join("") };
+  }
+
+  function createPrintMarkup(images, layout, perPage, options = {}) {
+    const product = options.product || PRODUCT_MUG;
+    const labels = PRODUCT_LABELS[product];
+    const { styles, sheets } = createPrintPaper(images, layout, perPage, product);
+    const standalone = Boolean(options.standalone);
     const printToolbar = standalone
       ? `<div class="print-toolbar"><button type="button" onclick="window.print()">Imprimer</button></div>`
       : "";
@@ -3029,7 +3106,6 @@ import {
                 <title>${labels.printTitle}</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <style>
-                  @page { size: A4 ${isMousePad ? "landscape" : "portrait"}; margin: 0; }
                   html, body { margin: 0; }
                   body { background: #ffffff; color: #17202a; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
                   .print-toolbar {
@@ -3051,44 +3127,7 @@ import {
                     font: inherit;
                     font-weight: 800;
                   }
-                  .sheet {
-                    width: ${isMousePad ? 297 : 210}mm;
-                    height: ${isMousePad ? 210 : 297}mm;
-                    box-sizing: border-box;
-                    page-break-after: always;
-                    break-after: page;
-                    ${isMousePad ? "display: flex; align-items: flex-start; justify-content: flex-start;" : ""}
-                  }
-                  .sheet:last-child {
-                    page-break-after: auto;
-                    break-after: auto;
-                  }
-                  .cell {
-                    position: relative;
-                    flex-shrink: 0;
-                    width: ${layout.widthMm}mm;
-                    height: ${layout.heightMm}mm;
-                    margin: ${isMousePad ? "0" : `0 auto ${layout.gapMm}mm auto`};
-                  }
-                  .cell img {
-                    display: block;
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    object-position: center;
-                  }
-                  .cell.mirror img {
-                    transform: scaleX(-1);
-                  }
-                  .cell::after {
-                    content: "";
-                    position: absolute;
-                    left: 0;
-                    right: 0;
-                    bottom: ${cutOffset};
-                    border-bottom: 0.2mm dashed rgba(23, 32, 42, 0.45);
-                    ${isMousePad ? "display: none;" : ""}
-                  }
+                  ${styles}
                   @media print {
                     .print-toolbar { display: none; }
                   }
@@ -3096,7 +3135,7 @@ import {
               </head>
               <body>
                 ${printToolbar}
-                ${sheets.join("")}
+                ${sheets}
                 ${autoPrintScript}
               </body>
             </html>`;
