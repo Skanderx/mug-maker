@@ -12,7 +12,7 @@
     <script type="module" src="https://ui-sdk.dev/web.js" async></script>
     <link rel="stylesheet" href="https://ui-sdk.dev/web.css" />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Montserrat:wght@400;700&amp;family=Poppins:wght@400;700&amp;family=Playfair+Display:wght@400;700&amp;family=Lobster&amp;family=Bebas+Neue&amp;family=Caveat:wght@400;700&amp;family=Amiri:wght@400;700&amp;family=Cairo:wght@400;700&amp;family=Changa:wght@400;700&amp;family=Noto+Kufi+Arabic:wght@400;700&amp;family=Noto+Naskh+Arabic:wght@400;700&amp;family=Tajawal:wght@400;700&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/app.css?v=be1ee364ad0b">
+    <link rel="stylesheet" href="assets/css/app.css?v=5a5dd481101c">
 
   </head>
   <body class="minimal-mode" data-product="mug">
@@ -21,11 +21,16 @@
         <div class="preview-heading">
           <div id="currentProductLabel" class="current-product-label">Mode mug · 229 × 89 mm</div>
           <h1 id="previewTitle" class="preview-title">Créateur de mugs</h1>
-          <label class="checkbox-card minimal-mode-toggle" for="minimalMode">
-            <ui-switch id="minimalMode" checked aria-label="Mode rapide"><ui-switch-thumb></ui-switch-thumb></ui-switch>
-            <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
-            <span class="button-text">Mode rapide</span>
-          </label>
+          <div class="quick-preferences">
+            <label class="checkbox-card minimal-mode-toggle" for="minimalMode">
+              <ui-switch id="minimalMode" checked aria-label="Mode rapide"><ui-switch-thumb></ui-switch-thumb></ui-switch>
+              <span class="icon" aria-hidden="true"><i data-lucide="circle-dot"></i></span>
+              <span class="button-text">Mode rapide</span>
+            </label>
+            <label class="sound-preference" title="Sons des boutons">
+              <input id="buttonSounds" type="checkbox" aria-label="Sons des boutons"> Son
+            </label>
+          </div>
           <div id="previewMeta" class="preview-meta">Image gauche, texte central, image droite</div>
         </div>
         <div class="preview-dims">
@@ -760,6 +765,6 @@
 
     <script src="assets/vendor/konva-10.3.0.min.js"></script>
     <script src="assets/vendor/lucide-1.21.0.min.js"></script>
-    <script type="module" src="assets/js/app.js?v=46b4d5da8906"></script>
+    <script type="module" src="assets/js/app.js?v=ca7484285994"></script>
   </body>
 </html>

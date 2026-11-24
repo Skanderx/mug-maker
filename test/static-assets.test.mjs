@@ -58,4 +58,8 @@ test("vendored library files match the documented releases", async () => {
     await hash("assets/vendor/lucide-1.21.0.min.js"),
     "3c91b931c3b7192e3d96bbf5398a10506062221f8c9a18809fdc05405af7051a",
   );
+  assert.equal(
+    await hash("assets/vendor/foley-2.9.0.js"),
+    "97c823c9c29712bf934b9719d25c179d9d19b1778d9ad9f7e32ee92a00bcfd2e",
+  );
 });

@@ -167,6 +167,31 @@
         gap: 7px;
       }
 
+      .quick-preferences { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+      .sound-preference { display: none; }
+      .minimal-mode .sound-preference {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 28px;
+        font-size: .875rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      @media (max-width: 380px) {
+        body.minimal-mode .preview-top {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 2px 6px;
+        }
+        .minimal-mode .product-switch .icon { display: none; }
+        .minimal-mode .preview-heading { display: contents; }
+        .minimal-mode .preview-heading > * { grid-column: 1; }
+        .minimal-mode .preview-top .quick-preferences { grid-column: 1 / -1; }
+        .minimal-mode .preview-dims { grid-area: 1 / 2 / 3; }
+      }
+      .sound-preference input { margin: 0; accent-color: var(--accent); }
+
       .product-switch {
         min-width: 176px;
         justify-self: end;

@@ -1,3 +1,4 @@
+import { play as playSound, set as configureSound } from "../vendor/foley-2.9.0.js";
 import {
   DEFAULT_MOUSE_PAD_LAYOUT,
   MOUSE_PAD_EXPORT_HEIGHT,
@@ -449,6 +450,36 @@ import {
   });
 
   bindChoiceGroups();
+  const soundToggle = document.querySelector("#buttonSounds");
+  const soundPreferenceKey = "mugCreator.buttonSounds";
+  try {
+    soundToggle.checked = localStorage.getItem(soundPreferenceKey) === "on";
+  } catch {
+    soundToggle.checked = false;
+  }
+  configureSound({ volume: 0.25, theme: "soft", space: 0 });
+  soundToggle.addEventListener("change", () => {
+    try {
+      localStorage.setItem(soundPreferenceKey, soundToggle.checked ? "on" : "off");
+    } catch (error) {
+      console.warn("Button sound preference saving failed", error);
+    }
+    if (soundToggle.checked) playSound("tap");
+  });
+  soundToggle.disabled = !(window.AudioContext || window.webkitAudioContext);
+
+  function isSoundButton(event) {
+    return event.isTrusted && soundToggle.checked && !soundToggle.disabled && state.minimalMode &&
+      event.target.closest("button:enabled:not([aria-disabled='true'])");
+  }
+
+  document.addEventListener("pointerdown", (event) => {
+    if (event.isPrimary && event.button === 0 && isSoundButton(event)) playSound("press");
+  }, true);
+  document.addEventListener("click", (event) => {
+    if (isSoundButton(event)) playSound(event.detail ? "release" : "tap");
+  }, true);
+
   elements.minimalMode.addEventListener("checkedchange", ({ detail }) => setMinimalMode(detail.value));
 
   elements.wizardSteps.addEventListener("click", (event) => {
