@@ -451,7 +451,13 @@ import {
 
   bindChoiceGroups();
   const supportsAudio = Boolean(window.AudioContext || window.webkitAudioContext);
-  configureSound({ volume: 0.25, theme: "soft", space: 0 });
+  configureSound({ volume: 0.22, theme: "soft", space: 0 });
+
+  function playButtonSound(cue) {
+    // Keep most clicks near their original pitch. Foley adds its own ±0.3 semitone drift.
+    const pitch = (Math.random() - Math.random()) * 0.2;
+    playSound(cue, { pitch, volume: cue === "release" ? 0.75 : 1 });
+  }
 
   function isSoundButton(event) {
     return event.isTrusted && supportsAudio && state.minimalMode &&
@@ -459,10 +465,10 @@ import {
   }
 
   document.addEventListener("pointerdown", (event) => {
-    if (event.isPrimary && event.button === 0 && isSoundButton(event)) playSound("press");
+    if (event.isPrimary && event.button === 0 && isSoundButton(event)) playButtonSound("press");
   }, true);
   document.addEventListener("click", (event) => {
-    if (isSoundButton(event)) playSound(event.detail ? "release" : "tap");
+    if (isSoundButton(event)) playButtonSound(event.detail ? "release" : "tap");
   }, true);
 
   elements.minimalMode.addEventListener("checkedchange", ({ detail }) => setMinimalMode(detail.value));
